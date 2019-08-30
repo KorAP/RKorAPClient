@@ -35,7 +35,7 @@ KorAPFectAll <- function(query) {
   results <- 0
 
   repeat {
-    res <- fromJSON(paste0(query$requestUrl, '&count=50&page=', page))
+    res <- fromJSON(paste0(query$requestUrl, '&count=50&offset=', results))
     if (res$meta$totalResults == 0) { return(data.frame()) }
     for (field in query$fields) {
       if (!field %in% colnames(res$matches)) {
@@ -46,7 +46,7 @@ KorAPFectAll <- function(query) {
     factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
     currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
     currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
-    if (page == 1) {
+    if (results == 0) {
       allMatches <- currentMatches
       expectedResults <- res$meta$totalResults
     } else {
