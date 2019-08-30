@@ -28,7 +28,7 @@ KorAPQuery <- function(con, query, vc="", ql="poliqarp", fields=defaultFields) {
   return(result)
 }
 
-KorAPFectAll <- function(query, verbose=FALSE) {
+KorAPFetchAll <- function(query, verbose=FALSE) {
   if (query$meta$totalResults == 0) { return(data.frame()) }
 
   page <- 1
