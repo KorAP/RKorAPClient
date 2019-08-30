@@ -25,6 +25,8 @@ KorAPQuery <- function(con, query, vc="", ql="poliqarp", fields=defaultFields) {
   result$requestUrl <- requestUrl
   result$request <- request
   result$webUIRequestUrl <- webUIRequestUrl
+  result$nextStartIndex <- 0
+  result$hasMoreMatches <- (result$meta$totalResults > 0)
   return(result)
 }
 
@@ -62,4 +64,38 @@ KorAPFetchAll <- function(query, verbose=FALSE) {
     }
   }
   return(allMatches)
+}
+
+KorAPFetchNext <- function(query, offset=query$nextStartIndex, verbose=FALSE) {
+  if (query$nextStartIndex >= query$meta$totalResults) {
+    query$hasMoreMatches <- FALSE
+    return(query)
+  }
+
+  res <- fromJSON(paste0(query$requestUrl, '&count=50&offset=', offset))
+  for (field in query$fields) {
+    if (!field %in% colnames(res$matches)) {
+      res$matches[, field] <- NA
+    }
+  }
+  currentMatches <- res$matches[query$fields]
+  factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
+  currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
+  currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
+  if (offset == 0) {
+    res$collectedMatches <- currentMatches
+  } else {
+    res$collectedMatches <- rbind(query$collectedMatches, currentMatches)
+  }
+  if (verbose) {
+    cat(paste0("Retrieved page in ", res$meta$benchmark, '\n'))
+  }
+  res$nextStartIndex <- res$meta$startIndex + res$meta$itemsPerPage
+  res$fields <- query$fields
+  res$requestUrl <- query$requestUrl
+  res$request <- query$request
+  res$webUIRequestUrl <- query$webUIRequestUrl
+  res$hasMoreMatches <- (res$meta$totalResults > res$nextStartIndex)
+
+  return(res)
 }
