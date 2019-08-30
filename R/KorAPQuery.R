@@ -28,7 +28,7 @@ KorAPQuery <- function(con, query, vc="", ql="poliqarp", fields=defaultFields) {
   return(result)
 }
 
-KorAPFectAll <- function(query) {
+KorAPFectAll <- function(query, verbose=FALSE) {
   if (query$meta$totalResults == 0) { return(data.frame()) }
 
   page <- 1
@@ -52,8 +52,9 @@ KorAPFectAll <- function(query) {
     } else {
       allMatches <- rbind(allMatches, currentMatches)
     }
-    print(paste0("Retrieved page: ", page, "/",
-                 ceiling(expectedResults / res$meta$itemsPerPage)))
+    if (verbose) {
+      cat(paste0("Retrieved page: ", page, "/", ceiling(expectedResults / res$meta$itemsPerPage), ': ', res$meta$benchmark, '\n'))
+    }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
     if (results >= expectedResults) {
