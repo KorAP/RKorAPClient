@@ -5,7 +5,7 @@ Version: 0.0.1
 Author: KorAP-Team @ IDS Mannheim
 Maintainer: KorAP-Team <korap@ids-mannheim.de>
 Description: A simple package that makes KorAP's web serice API accessible from R.
-License: BSD2
+License: BSD-2
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 6.1.1
