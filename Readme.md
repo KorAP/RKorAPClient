@@ -1,26 +1,25 @@
 ---
-title: "KorAP web service client package for R"
+KorAP web service client package for R
 ---
 
 ## Description
 
-Simple R package to access the web service API of the [KorAP Corpus Analysis Platform](http://korap.ids-mannheim.de/) devloped at the [IDS Mannheim](http://ids-mannheim.de/)
+Simple R package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](http://korap.ids-mannheim.de/) devloped at the [IDS Mannheim](http://ids-mannheim.de/)
 
 **! This packgage is in its early stages and not stable yet! Use it on your own risk!**
 
 ## Getting started
 
-```
+```R
 library(devtools)
 install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient") 
 library(RKorAPClient)
-?KorAPQUery
+?KorAPQuery
 ```
 
 ## Development and License
 
-**Authors**:
-	     [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
+**Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
 
 Copyright (c) 2019, [IDS Mannheim](http://ids-mannheim.de/), Germany
 
