@@ -24,9 +24,9 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param query string that contains the corpus query. The query langauge depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
-#' @param metadataOnly boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites.
+#' @param metadataOnly boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
 #' @param ql string to choose the query language
-#' @param fields (meta)data fields that will be fetch for every matcch
+#' @param fields (meta)data fields that will be fetched for every match
 #' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
@@ -38,7 +38,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
 #' @export
-KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly=FALSE, ql="poliqarp", fields=defaultFields) {
+KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields) {
   if (is.na(query) && is.na(KorAPUrl) ||  ! (is.na(query) || is.na(KorAPUrl))) {
     stop("Exaclty one of the parameters query and KorAPUrl must be specified.")
   }
@@ -58,7 +58,6 @@ KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly=FALSE, q
                        '&fields=', paste(defaultFields, collapse = ","),
                        ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
   result <- fromJSON(paste0(requestUrl, '&count=1'))
-
   result$fields <- fields[!metadataOnly || !fields %in% contentFields]
   result$requestUrl <- requestUrl
   result$request <- request
