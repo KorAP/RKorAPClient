@@ -24,7 +24,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param query string that contains the corpus query. The query langauge depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
-#' @param metaDataOnly boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent query rewrites.
+#' @param metadataOnly boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites.
 #' @param ql string to choose the query language
 #' @param fields (meta)data fields that will be fetch for every matcch
 #'
@@ -71,21 +71,21 @@ KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly=FALSE, q
 }
 
 #' @export
-KorAPFetchAll <- function(query, verbose=FALSE) {
-  if (query$meta$totalResults == 0) { return(data.frame()) }
+KorAPFetchAll <- function(queryObject, verbose=FALSE) {
+  if (queryObject$meta$totalResults == 0) { return(data.frame()) }
 
   page <- 1
   results <- 0
 
   repeat {
-    res <- fromJSON(paste0(query$requestUrl, '&count=50&offset=', results))
+    res <- fromJSON(paste0(queryObject$requestUrl, '&count=50&offset=', results))
     if (res$meta$totalResults == 0) { return(data.frame()) }
-    for (field in query$fields) {
+    for (field in queryObject$fields) {
       if (!field %in% colnames(res$matches)) {
         res$matches[, field] <- NA
       }
     }
-    currentMatches <- res$matches[query$fields]
+    currentMatches <- res$matches[queryObject$fields]
     factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
     currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
     currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
@@ -108,35 +108,35 @@ KorAPFetchAll <- function(query, verbose=FALSE) {
 }
 
 #' @export
-KorAPFetchNext <- function(query, offset=query$nextStartIndex, verbose=FALSE) {
-  if (query$nextStartIndex >= query$meta$totalResults) {
-    query$hasMoreMatches <- FALSE
-    return(query)
+KorAPFetchNext <- function(queryObject, offset=queryObject$nextStartIndex, verbose=FALSE) {
+  if (queryObject$nextStartIndex >= queryObject$meta$totalResults) {
+    queryObject$hasMoreMatches <- FALSE
+    return(queryObject)
   }
 
-  res <- fromJSON(paste0(query$requestUrl, '&count=50&offset=', offset))
-  for (field in query$fields) {
+  res <- fromJSON(paste0(queryObject$requestUrl, '&count=50&offset=', offset))
+  for (field in queryObject$fields) {
     if (!field %in% colnames(res$matches)) {
       res$matches[, field] <- NA
     }
   }
-  currentMatches <- res$matches[query$fields]
+  currentMatches <- res$matches[queryObject$fields]
   factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
   currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
   currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
   if (offset == 0) {
     res$collectedMatches <- currentMatches
   } else {
-    res$collectedMatches <- rbind(query$collectedMatches, currentMatches)
+    res$collectedMatches <- rbind(queryObject$collectedMatches, currentMatches)
   }
   if (verbose) {
     cat(paste0("Retrieved page in ", res$meta$benchmark, '\n'))
   }
   res$nextStartIndex <- res$meta$startIndex + res$meta$itemsPerPage
-  res$fields <- query$fields
-  res$requestUrl <- query$requestUrl
-  res$request <- query$request
-  res$webUIRequestUrl <- query$webUIRequestUrl
+  res$fields <- queryObject$fields
+  res$requestUrl <- queryObject$requestUrl
+  res$request <- queryObject$request
+  res$webUIRequestUrl <- queryObject$webUIRequestUrl
   res$hasMoreMatches <- (res$meta$totalResults > res$nextStartIndex)
 
   return(res)

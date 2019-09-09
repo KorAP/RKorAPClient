@@ -4,8 +4,8 @@
 \alias{KorAPQuery}
 \title{\code{KorAPQuery} perform a query on the KorAP server.}
 \usage{
-KorAPQuery(con, query = NA, vc = NA, KorAPUrl = NA,
-  metadataOnly = FALSE, ql = "poliqarp", fields = defaultFields)
+KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = FALSE,
+  ql = "poliqarp", fields = defaultFields)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
@@ -16,11 +16,11 @@ KorAPQuery(con, query = NA, vc = NA, KorAPUrl = NA,
 
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 
+\item{metadataOnly}{boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites.}
+
 \item{ql}{string to choose the query language}
 
 \item{fields}{(meta)data fields that will be fetch for every matcch}
-
-\item{metaDataOnly}{boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent query rewrites.}
 }
 \description{
 \code{KorAPQuery} perform a query on the KorAP server.
