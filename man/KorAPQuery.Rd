@@ -22,6 +22,9 @@ KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = FALSE,
 
 \item{fields}{(meta)data fields that will be fetch for every matcch}
 }
+\value{
+A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
+}
 \description{
 \code{KorAPQuery} perform a query on the KorAP server.
 }

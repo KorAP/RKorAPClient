@@ -27,8 +27,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param metadataOnly boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites.
 #' @param ql string to choose the query language
 #' @param fields (meta)data fields that will be fetch for every matcch
-#'
-#' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all (\code{\link{KorAPFetchAll}) or the next page of results (\code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen rewrites of the query had to be performed.
+#' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
 #' q <- KorAPQuery(con, "Ameisenplage")
