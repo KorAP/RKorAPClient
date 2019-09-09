@@ -4,7 +4,7 @@
 \alias{KorAPQuery}
 \title{\code{KorAPQuery} perform a query on the KorAP server.}
 \usage{
-KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = FALSE,
+KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE,
   ql = "poliqarp", fields = defaultFields)
 }
 \arguments{
@@ -16,11 +16,11 @@ KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = FALSE,
 
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 
-\item{metadataOnly}{boolean that determines wether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites.}
+\item{metadataOnly}{boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
 
 \item{ql}{string to choose the query language}
 
-\item{fields}{(meta)data fields that will be fetch for every matcch}
+\item{fields}{(meta)data fields that will be fetched for every match}
 }
 \value{
 A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
