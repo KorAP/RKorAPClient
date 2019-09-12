@@ -6,6 +6,8 @@ defaultFields <- c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
 
 contentFields <- c("snippet")
 
+maxResultsPerPage <- 50;
+
 QueryParameterFromUrl <- function(url, parameter) {
   regex <- paste0(".*[?&]", parameter, "=([^&]*).*")
   if (grepl(regex, url)) {
@@ -19,7 +21,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
   return(URLdecode(gsub(".*[?&]q=([^&]*).*", '\\1', KorAPUrl, perl = TRUE)))
 }
 
-#' \code{KorAPQuery} perform a query on the KorAP server.
+#' Send a query to a KorAP connection.
 #' @param con object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information
 #' @param query string that contains the corpus query. The query langauge depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
@@ -27,7 +29,9 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param metadataOnly boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
 #' @param ql string to choose the query language
 #' @param fields (meta)data fields that will be fetched for every match
-#' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
+#' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}).
+#' A correspunding URL to be used within a web browser is contained in \code{$webUIRequestUrl}
+#' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
 #' q <- KorAPQuery(con, "Ameisenplage")
@@ -38,9 +42,10 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
 #' @export
-KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields) {
+KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
+                       accessRewriteFatal = TRUE) {
   if (is.na(query) && is.na(KorAPUrl) ||  ! (is.na(query) || is.na(KorAPUrl))) {
-    stop("Exaclty one of the parameters query and KorAPUrl must be specified.")
+    stop("Exactly one of the parameters query and KorAPUrl must be specified.")
   }
   if (is.na(query)) {
     query <- QueryParameterFromUrl(KorAPUrl, "q")
@@ -58,7 +63,7 @@ KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, 
                        '&fields=', paste(defaultFields, collapse = ","),
                        ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
   result <- fromJSON(paste0(requestUrl, '&count=1'))
-  result$fields <- fields[!metadataOnly || !fields %in% contentFields]
+  result$fields <- fields[!fields %in% contentFields]
   result$requestUrl <- requestUrl
   result$request <- request
   result$vc <- vc
@@ -68,15 +73,34 @@ KorAPQuery <- function(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, 
   return(result)
 }
 
+#' Fetch the next bunch of results of a KorAP query.
+#' @param queryObject object obtained from \code{\link{KorAPQuery}}
+#' @param offset start offset for query results to fetch
+#' @param maxFetch maximum number of query results to fetch
+#' @param verbose
+#' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, , \code{$hasMoreMatches}
+#'
+#' @examples
+#' q <- KorapFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage"))
+#'
+#' @seealso \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchAll}}
+#'
+#' @references
+#' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+#'
 #' @export
-KorAPFetchAll <- function(queryObject, verbose=FALSE) {
-  if (queryObject$meta$totalResults == 0) { return(data.frame()) }
+KorAPFetchNext <- function(queryObject, offset = queryObject$nextStartIndex, maxFetch = maxResultsPerPage, verbose = FALSE) {
+  if (queryObject$meta$totalResults == 0 || offset >= queryObject$meta$totalResults) {
+    return(queryObject)
+  }
 
   page <- 1
   results <- 0
 
+  collectedMatches <- queryObject$collectedMatches
+
   repeat {
-    res <- fromJSON(paste0(queryObject$requestUrl, '&count=50&offset=', results))
+    res <- fromJSON(paste0(queryObject$requestUrl, '&count=', min(ifelse(!is.na(maxFetch), maxFetch - results, maxResultsPerPage), maxResultsPerPage) ,'&offset=', offset + results))
     if (res$meta$totalResults == 0) { return(data.frame()) }
     for (field in queryObject$fields) {
       if (!field %in% colnames(res$matches)) {
@@ -87,48 +111,19 @@ KorAPFetchAll <- function(queryObject, verbose=FALSE) {
     factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
     currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
     currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
-    if (results == 0) {
-      allMatches <- currentMatches
-      expectedResults <- res$meta$totalResults
+    if (!is.list(collectedMatches)) {
+      collectedMatches <- currentMatches
     } else {
-      allMatches <- rbind(allMatches, currentMatches)
+      collectedMatches <- rbind(collectedMatches, currentMatches)
     }
     if (verbose) {
-      cat(paste0("Retrieved page: ", page, "/", ceiling(expectedResults / res$meta$itemsPerPage), ': ', res$meta$benchmark, '\n'))
+      cat(paste0("Retrieved page: ", page, "/", ceiling((res$meta$totalResults) / res$meta$itemsPerPage), ': ', res$meta$benchmark, '\n'))
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (results >= expectedResults) {
+    if (offset + results >= res$meta$totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
-  }
-  return(allMatches)
-}
-
-#' @export
-KorAPFetchNext <- function(queryObject, offset=queryObject$nextStartIndex, verbose=FALSE) {
-  if (queryObject$nextStartIndex >= queryObject$meta$totalResults) {
-    queryObject$hasMoreMatches <- FALSE
-    return(queryObject)
-  }
-
-  res <- fromJSON(paste0(queryObject$requestUrl, '&count=50&offset=', offset))
-  for (field in queryObject$fields) {
-    if (!field %in% colnames(res$matches)) {
-      res$matches[, field] <- NA
-    }
-  }
-  currentMatches <- res$matches[queryObject$fields]
-  factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
-  currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
-  currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
-  if (offset == 0) {
-    res$collectedMatches <- currentMatches
-  } else {
-    res$collectedMatches <- rbind(queryObject$collectedMatches, currentMatches)
-  }
-  if (verbose) {
-    cat(paste0("Retrieved page in ", res$meta$benchmark, '\n'))
   }
   res$nextStartIndex <- res$meta$startIndex + res$meta$itemsPerPage
   res$fields <- queryObject$fields
@@ -136,6 +131,44 @@ KorAPFetchNext <- function(queryObject, offset=queryObject$nextStartIndex, verbo
   res$request <- queryObject$request
   res$webUIRequestUrl <- queryObject$webUIRequestUrl
   res$hasMoreMatches <- (res$meta$totalResults > res$nextStartIndex)
-
+  res$collectedMatches <- collectedMatches
   return(res)
+}
+
+#' Fetch all results of a KorAP query.
+#' @param queryObject object obtained from \code{\link{KorAPQuery}}
+#' @param verbose
+#' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}
+#'
+#' @examples
+#' q <- KorAPFetchAll(KorAPQuery(KorAPConnection(), "Ameisenplage"))
+#' q$collectedMatches
+#'
+#' @seealso \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchNext}}
+#'
+#' @references
+#' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+#'
+#' @export
+KorAPFetchAll <- function(queryObject, verbose = FALSE) {
+  return(KorAPFetchNext(queryObject, offset = 0, maxFetch = NA, verbose = verbose))
+}
+
+#' Fetches all remaining results of a KorAP query.
+#' @param queryObject object obtained from \code{\link{KorAPQuery}}
+#' @param verbose
+#' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}
+#'
+#' @examples
+#' q <- KorAPFetchRest(KorAPQueryNext(KorAPQuery(KorAPConnection(), "Ameisenplage")))
+#' q$collectedMatches
+#'
+#' @seealso \code{\link{KorAPFetchAll}}, \code{\link{KorAPFetchNext}}
+#'
+#' @references
+#' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+#'
+#' @export
+KorAPFetchRest <- function(queryObject, verbose = FALSE) {
+  return(KorAPFetchNext(queryObject, maxFetch = NA, verbose = verbose))
 }

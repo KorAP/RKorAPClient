@@ -2,10 +2,10 @@
 % Please edit documentation in R/KorAPQuery.R
 \name{KorAPQuery}
 \alias{KorAPQuery}
-\title{\code{KorAPQuery} perform a query on the KorAP server.}
+\title{Send a query to a KorAP connection.}
 \usage{
 KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE,
-  ql = "poliqarp", fields = defaultFields)
+  ql = "poliqarp", fields = defaultFields, accessRewriteFatal = TRUE)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
@@ -23,10 +23,12 @@ KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE,
 \item{fields}{(meta)data fields that will be fetched for every match}
 }
 \value{
-A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}). Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
+A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}).
+A correspunding URL to be used within a web browser is contained in \code{$webUIRequestUrl}
+Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 }
 \description{
-\code{KorAPQuery} perform a query on the KorAP server.
+Send a query to a KorAP connection.
 }
 \examples{
 q <- KorAPQuery(con, "Ameisenplage")
