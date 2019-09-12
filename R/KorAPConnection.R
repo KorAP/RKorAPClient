@@ -3,9 +3,12 @@
 
 defaultKorAPUrl <- "https://korap.ids-mannheim.de/"
 
-#' \code{KorAPQuery} initiates a connect to some KorAP server.
+#' Connect to a KorAP server.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
-#' @return object that contains all necessary connection information and can be used on \code{\link{KorAPQuery}}
+#' @return object that contains all connection information and can be used with \code{\link{KorAPQuery}}
+#'
+#' @note Currently it is not possible to authenticate the client
+#'
 #' @export
 KorAPConnection <- function(KorAPUrl=defaultKorAPUrl, apiVersion='v1.0', apiUrl = NA) {
   m <-regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/KorAPConnection.R
 \name{KorAPConnection}
 \alias{KorAPConnection}
-\title{\code{KorAPQuery} initiates a connect to some KorAP server.}
+\title{Connect to a KorAP server.}
 \usage{
 KorAPConnection(KorAPUrl = defaultKorAPUrl, apiVersion = "v1.0",
   apiUrl = NA)
@@ -11,8 +11,11 @@ KorAPConnection(KorAPUrl = defaultKorAPUrl, apiVersion = "v1.0",
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 }
 \value{
-object that contains all necessary connection information and can be used on \code{\link{KorAPQuery}}
+object that contains all connection information and can be used with \code{\link{KorAPQuery}}
 }
 \description{
-\code{KorAPQuery} initiates a connect to some KorAP server.
+Connect to a KorAP server.
+}
+\note{
+Currently it is not possible to authenticate the client
 }
