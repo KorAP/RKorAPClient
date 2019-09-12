@@ -2,17 +2,20 @@
 % Please edit documentation in R/KorAPCorpusStats.R
 \name{KorAPCorpusStats}
 \alias{KorAPCorpusStats}
-\title{\code{KorAPCorpusStats}}
+\title{Fetch information about a (virtual) corpus}
 \usage{
 KorAPCorpusStats(con, vc = NA, query = NA)
 }
 \arguments{
-\item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
+\item{con}{object obtained from \code{\link{KorAPConnection}}}
 
 \item{vc}{string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
-\item{query}{qquery object returned from \code{\link{KorAPQuery}}}
+\item{query}{object returned from \code{\link{KorAPQuery}}}
+}
+\value{
+object with the fields \code{$documents}, \code{$tokens}, \code{$sentences}, \code{$paragraphs}
 }
 \description{
-\code{KorAPCorpusStats}
+Fetch information about a (virtual) corpus
 }
