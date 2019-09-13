@@ -27,16 +27,22 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
 #' @param metadataOnly boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
-#' @param ql string to choose the query language
+#' @param ql string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.
 #' @param fields (meta)data fields that will be fetched for every match
 #' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}).
 #' A correspunding URL to be used within a web browser is contained in \code{$webUIRequestUrl}
 #' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
+#' con <- KorAPConnection()
 #' q <- KorAPQuery(con, "Ameisenplage")
-#' q <- KorAPQuery(KorAPConnection(), "Ameisenplage")
+#' q <- KorAPFetchAll(q)
+#' summary(q$collectedMatches)
+#'
 #' q <- KorAPQuery(con, KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp&cutoff=1")
+#' q$meta$totalResults
+#'
+#' @seealso \code{\link{KorAPConnection}}, \code{\link{KorAPFetchNext}}, \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchAll}}, \code{\link{KorAPCorpusStats}}
 #'
 #' @references
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}

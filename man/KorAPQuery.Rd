@@ -4,8 +4,9 @@
 \alias{KorAPQuery}
 \title{Send a query to a KorAP connection.}
 \usage{
-KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE,
-  ql = "poliqarp", fields = defaultFields, accessRewriteFatal = TRUE)
+KorAPQuery(con, query = NA, vc = NA, KorAPUrl = NA,
+  metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
+  accessRewriteFatal = TRUE)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
@@ -18,7 +19,7 @@ KorAPQuery(con, query, vc = NA, KorAPUrl = NA, metadataOnly = TRUE,
 
 \item{metadataOnly}{boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
 
-\item{ql}{string to choose the query language}
+\item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
 
 \item{fields}{(meta)data fields that will be fetched for every match}
 }
@@ -31,11 +32,18 @@ Please make sure to check \code{$collection$rewrites} to see if any unforseen ac
 Send a query to a KorAP connection.
 }
 \examples{
+con <- KorAPConnection()
 q <- KorAPQuery(con, "Ameisenplage")
-q <- KorAPQuery(KorAPConnection(), "Ameisenplage")
+q <- KorAPFetchAll(q)
+summary(q$collectedMatches)
+
 q <- KorAPQuery(con, KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp&cutoff=1")
+q$meta$totalResults
 
 }
 \references{
 \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+}
+\seealso{
+\code{\link{KorAPConnection}}, \code{\link{KorAPFetchNext}}, \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchAll}}, \code{\link{KorAPCorpusStats}}
 }
