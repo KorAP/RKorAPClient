@@ -10,13 +10,13 @@ defaultKorAPUrl <- "https://korap.ids-mannheim.de/"
 #' @note Currently it is not possible to authenticate the client
 #'
 #' @export
-KorAPConnection <- function(KorAPUrl=defaultKorAPUrl, apiVersion='v1.0', apiUrl = NA) {
+KorAPConnection <- function(KorAPUrl=defaultKorAPUrl, apiVersion='v1.0', apiUrl) {
   m <-regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
   KorAPUrl <- regmatches(KorAPUrl, m)
   if (!endsWith(KorAPUrl, '/')) {
     KorAPUrl <- paste0(KorAPUrl, "/")
   }
-  if (is.na(apiUrl)) {
+  if (missing(apiUrl)) {
     apiUrl = paste0(KorAPUrl, 'api/', apiVersion, '/')
   }
   con <- data.frame(apiUrl, KorAPUrl, apiVersion)

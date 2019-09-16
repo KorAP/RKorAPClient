@@ -5,7 +5,7 @@
 \title{Connect to a KorAP server.}
 \usage{
 KorAPConnection(KorAPUrl = defaultKorAPUrl, apiVersion = "v1.0",
-  apiUrl = NA)
+  apiUrl)
 }
 \arguments{
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}

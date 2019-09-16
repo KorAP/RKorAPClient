@@ -48,18 +48,15 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
 #' @export
-KorAPQuery <- function(con, query = NA, vc = NA, KorAPUrl = NA, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
+KorAPQuery <- function(con, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
                        accessRewriteFatal = TRUE) {
-  if (is.na(query) && is.na(KorAPUrl) ||  ! (is.na(query) || is.na(KorAPUrl))) {
+  if (missing(query) && missing(KorAPUrl) ||  ! (missing(query) || missing(KorAPUrl))) {
     stop("Exactly one of the parameters query and KorAPUrl must be specified.")
   }
-  if (is.na(query)) {
+  if (missing(query)) {
     query <- QueryParameterFromUrl(KorAPUrl, "q")
     vc <- QueryParameterFromUrl(KorAPUrl, "vc")
     ql <- QueryParameterFromUrl(KorAPUrl, "ql")
-  }
-  if (is.na(vc)) {
-    vc <- ""
   }
   request <- paste0('?q=', URLencode(query, reserved=TRUE),
                     ifelse(vc != '', paste0('&vc=', URLencode(vc, reserved=TRUE)), ''),

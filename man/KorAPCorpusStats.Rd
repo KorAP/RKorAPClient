@@ -4,7 +4,7 @@
 \alias{KorAPCorpusStats}
 \title{Fetch information about a (virtual) corpus}
 \usage{
-KorAPCorpusStats(con, vc = NA, query = NA)
+KorAPCorpusStats(con, vc, query)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}}

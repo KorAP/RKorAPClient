@@ -4,9 +4,8 @@
 \alias{KorAPQuery}
 \title{Send a query to a KorAP connection.}
 \usage{
-KorAPQuery(con, query = NA, vc = NA, KorAPUrl = NA,
-  metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-  accessRewriteFatal = TRUE)
+KorAPQuery(con, query, vc = "", KorAPUrl, metadataOnly = TRUE,
+  ql = "poliqarp", fields = defaultFields, accessRewriteFatal = TRUE)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
