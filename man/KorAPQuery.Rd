@@ -36,7 +36,8 @@ q <- KorAPQuery(con, "Ameisenplage")
 q <- KorAPFetchAll(q)
 summary(q$collectedMatches)
 
-q <- KorAPQuery(con, KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp&cutoff=1")
+q <- KorAPQuery(con,
+       KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 q$meta$totalResults
 
 }

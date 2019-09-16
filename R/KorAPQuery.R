@@ -40,8 +40,17 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' q <- KorAPFetchAll(q)
 #' summary(q$collectedMatches)
 #'
-#' q <- KorAPQuery(con, KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp&cutoff=1")
+#' q <- KorAPQuery(con,
+#'        KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 #' q$meta$totalResults
+#'
+#' q <- KorAPQuery(con, "Ameisenplage")
+#' q <- KorAPFetchAll(q, verbose=TRUE)
+#' tokensPerYear <- function(year) { return(KorAPCorpusStats(con, paste("pubDate in", year))$tokens) }
+#' df <- as.data.frame(table(as.numeric(format(q$collectedMatches$pubDate,"%Y")), dnn="year"),
+#'                     stringsAsFactors = FALSE)
+#' df$ipm <- 1000000 * df$Freq / tokensPerYear(df$year)
+#' plot(df$year, df$ipm, type="l")
 #'
 #' @seealso \code{\link{KorAPConnection}}, \code{\link{KorAPFetchNext}}, \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchAll}}, \code{\link{KorAPCorpusStats}}
 #'
@@ -60,8 +69,7 @@ KorAPQuery <- function(con, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "p
     ql <- QueryParameterFromUrl(KorAPUrl, "ql")
   }
   request <- paste0('?q=', URLencode(query, reserved=TRUE),
-                    ifelse(vc != '', paste0('&vc=', URLencode(vc, reserved=TRUE)), ''),
-                    '&ql=', ql);
+                    ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
   webUIRequestUrl <- paste0(con$KorAPUrl, request)
   requestUrl <- paste0(con$apiUrl, 'search', request,
                        '&fields=', paste(defaultFields, collapse = ","),
