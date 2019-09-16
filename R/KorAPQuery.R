@@ -1,5 +1,6 @@
 #' @import jsonlite
 #' @import curl
+#' @import utils
 
 defaultFields <- c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
             "availability", "textClass", "snippet")

@@ -1,5 +1,6 @@
 #' @import jsonlite
 #' @import curl
+#' @import utils
 
 defaultKorAPUrl <- "https://korap.ids-mannheim.de/"
 
