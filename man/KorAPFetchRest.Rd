@@ -8,6 +8,8 @@ KorAPFetchRest(queryObject, verbose = FALSE)
 }
 \arguments{
 \item{queryObject}{object obtained from \code{\link{KorAPQuery}}}
+
+\item{verbose}{print progress information if true}
 }
 \value{
 The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}
@@ -16,7 +18,7 @@ The \code{queryObject} input parameter with updated fields \code{$collectedMatch
 Fetches all remaining results of a KorAP query.
 }
 \examples{
-q <- KorAPFetchRest(KorAPQueryNext(KorAPQuery(KorAPConnection(), "Ameisenplage")))
+q <- KorAPFetchRest(KorAPFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage")))
 q$collectedMatches
 
 }

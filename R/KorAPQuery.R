@@ -30,6 +30,8 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param metadataOnly boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
 #' @param ql string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.
 #' @param fields (meta)data fields that will be fetched for every match
+#' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented)
+#' @param verbose print some info
 #' @return A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}).
 #' A correspunding URL to be used within a web browser is contained in \code{$webUIRequestUrl}
 #' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
@@ -59,7 +61,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #'
 #' @export
 KorAPQuery <- function(con, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-                       accessRewriteFatal = TRUE) {
+                       accessRewriteFatal = TRUE, verbose=FALSE) {
   if (missing(query) && missing(KorAPUrl) ||  ! (missing(query) || missing(KorAPUrl))) {
     stop("Exactly one of the parameters query and KorAPUrl must be specified.")
   }
@@ -74,6 +76,9 @@ KorAPQuery <- function(con, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "p
   requestUrl <- paste0(con$apiUrl, 'search', request,
                        '&fields=', paste(defaultFields, collapse = ","),
                        ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
+  if (verbose) {
+    cat(paste0(webUIRequestUrl, "\n"))
+  }
   result <- fromJSON(paste0(requestUrl, '&count=1'))
   result$fields <- fields[!fields %in% contentFields]
   result$requestUrl <- requestUrl
@@ -89,11 +94,11 @@ KorAPQuery <- function(con, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "p
 #' @param queryObject object obtained from \code{\link{KorAPQuery}}
 #' @param offset start offset for query results to fetch
 #' @param maxFetch maximum number of query results to fetch
-#' @param verbose
+#' @param verbose print progress information if true
 #' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, , \code{$hasMoreMatches}
 #'
 #' @examples
-#' q <- KorapFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage"))
+#' q <- KorAPFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage"))
 #'
 #' @seealso \code{\link{KorAPFetchRest}}, \code{\link{KorAPFetchAll}}
 #'
@@ -108,7 +113,7 @@ KorAPFetchNext <- function(queryObject, offset = queryObject$nextStartIndex, max
 
   page <- 1
   results <- 0
-
+  pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- queryObject$collectedMatches
 
   repeat {
@@ -149,7 +154,7 @@ KorAPFetchNext <- function(queryObject, offset = queryObject$nextStartIndex, max
 
 #' Fetch all results of a KorAP query.
 #' @param queryObject object obtained from \code{\link{KorAPQuery}}
-#' @param verbose
+#' @param verbose print progress information if true
 #' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}
 #'
 #' @examples
@@ -168,11 +173,11 @@ KorAPFetchAll <- function(queryObject, verbose = FALSE) {
 
 #' Fetches all remaining results of a KorAP query.
 #' @param queryObject object obtained from \code{\link{KorAPQuery}}
-#' @param verbose
+#' @param verbose print progress information if true
 #' @return The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}
 #'
 #' @examples
-#' q <- KorAPFetchRest(KorAPQueryNext(KorAPQuery(KorAPConnection(), "Ameisenplage")))
+#' q <- KorAPFetchRest(KorAPFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage")))
 #' q$collectedMatches
 #'
 #' @seealso \code{\link{KorAPFetchAll}}, \code{\link{KorAPFetchNext}}

@@ -5,7 +5,8 @@
 \title{Send a query to a KorAP connection.}
 \usage{
 KorAPQuery(con, query, vc = "", KorAPUrl, metadataOnly = TRUE,
-  ql = "poliqarp", fields = defaultFields, accessRewriteFatal = TRUE)
+  ql = "poliqarp", fields = defaultFields, accessRewriteFatal = TRUE,
+  verbose = FALSE)
 }
 \arguments{
 \item{con}{object obtained from \code{\link{KorAPConnection}}, that contains all necessary connection information}
@@ -21,6 +22,10 @@ KorAPQuery(con, query, vc = "", KorAPUrl, metadataOnly = TRUE,
 \item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
 
 \item{fields}{(meta)data fields that will be fetched for every match}
+
+\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented)}
+
+\item{verbose}{print some info}
 }
 \value{
 A KorAP query object that, among other information, contains the total number of results in \code{$meta$totalResults}. The resulting object can be used to fetch all query results (with \code{\link{KorAPFetchAll}}) or the next page of results (with \code{\link{KorAPFetchNext}}).
@@ -39,6 +44,14 @@ summary(q$collectedMatches)
 q <- KorAPQuery(con,
        KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 q$meta$totalResults
+
+q <- KorAPQuery(con, "Ameisenplage")
+q <- KorAPFetchAll(q, verbose=TRUE)
+tokensPerYear <- function(year) { return(KorAPCorpusStats(con, paste("pubDate in", year))$tokens) }
+df <- as.data.frame(table(as.numeric(format(q$collectedMatches$pubDate,"\%Y")), dnn="year"),
+                    stringsAsFactors = FALSE)
+df$ipm <- 1000000 * df$Freq / tokensPerYear(df$year)
+plot(df$year, df$ipm, type="l")
 
 }
 \references{

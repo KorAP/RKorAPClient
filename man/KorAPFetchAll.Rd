@@ -8,6 +8,8 @@ KorAPFetchAll(queryObject, verbose = FALSE)
 }
 \arguments{
 \item{queryObject}{object obtained from \code{\link{KorAPQuery}}}
+
+\item{verbose}{print progress information if true}
 }
 \value{
 The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, \code{$hasMoreMatches}

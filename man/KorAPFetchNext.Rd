@@ -13,6 +13,8 @@ KorAPFetchNext(queryObject, offset = queryObject$nextStartIndex,
 \item{offset}{start offset for query results to fetch}
 
 \item{maxFetch}{maximum number of query results to fetch}
+
+\item{verbose}{print progress information if true}
 }
 \value{
 The \code{queryObject} input parameter with updated fields \code{$collectedMatches}, \code{$matches} (latest bunch only), \code{$nextStartIndex}, , \code{$hasMoreMatches}
@@ -21,7 +23,7 @@ The \code{queryObject} input parameter with updated fields \code{$collectedMatch
 Fetch the next bunch of results of a KorAP query.
 }
 \examples{
-q <- KorapFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage"))
+q <- KorAPFetchNext(KorAPQuery(KorAPConnection(), "Ameisenplage"))
 
 }
 \references{

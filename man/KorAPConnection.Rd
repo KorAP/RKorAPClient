@@ -9,6 +9,10 @@ KorAPConnection(KorAPUrl = defaultKorAPUrl, apiVersion = "v1.0",
 }
 \arguments{
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
+
+\item{apiVersion}{which version of KorAP's API you want to connect to}
+
+\item{apiUrl}{url of the KorAP web service}
 }
 \value{
 object that contains all connection information and can be used with \code{\link{KorAPQuery}}
