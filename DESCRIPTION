@@ -12,4 +12,10 @@ RoxygenNote: 6.1.1
 Imports:
     curl,
     jsonlite,
-    utils
+    utils,
+    httr,
+    methods
+Collate: 
+    'KorAPConnection.R'
+    'KorAPCorpusStats.R'
+    'KorAPQuery.R'

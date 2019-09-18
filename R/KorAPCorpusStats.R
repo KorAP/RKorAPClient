@@ -1,21 +1,50 @@
-#' @import jsonlite
-#' @import curl
+#' Class KorAPCorpusStats
+#'
+#' \code{KorAPCorpusStats} objetcs can hold information about a corpus or virtual corpus.
+#' \code{KorAPCorpusStats} objects can be obtained by the \code{\link{corpusStats}()} method.
+#'
+#' @include KorAPConnection.R
+#'
+#' @export
+#' @slot vc definition of the virtual corpus
+#' @slot tokens number of tokens
+#' @slot documents number of documents
+#' @slot sentences number of sentences
+#' @slot paragraphs number of paragraphs
+setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric"))
 
-dummy <- NA # without this roxygen2 fails
+setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 
 #' Fetch information about a (virtual) corpus
-#' @param con object obtained from \code{\link{KorAPConnection}}
-#' @param query object returned from \code{\link{KorAPQuery}}
+#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
+#' @return \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
+#'
+#' @examples
+#' corpusStats(new("KorAPConnection"))
+#'
+#' kco <- new("KorAPConnection")
+#' corpusStats(kco, "pubDate in 2017 & articleType=/Zeitung.*/")
+#'
+#' @aliases corpusStats
 #' @export
-#' @return object with the fields \code{$documents}, \code{$tokens}, \code{$sentences}, \code{$paragraphs}
-KorAPCorpusStats <- function(con, vc, query) {
-  if ((missing(query) && missing(vc)) || !(missing(query) || missing(vc))) {
-    stop("Exaclty one of the parameters query and vc must be specified.")
+setMethod("corpusStats", "KorAPConnection",  function(kco, vc="") {
+  url <- paste0(kco@apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
+  res <- fromJSON(url)
+  new("KorAPCorpusStats", vc = vc, documents = res$documents, tokens = res$tokens, sentences = res$sentences, paragraphs = res$paragraphs)
+})
+
+#' @rdname KorAPCorpusStats-class
+#' @param object KorAPCorpusStats object
+#' @export
+setMethod("show", "KorAPCorpusStats", function(object) {
+  cat("<KorAPCorpusStats>", "\n")
+  if (object@vc == "") {
+    cat("The whole corpus")
+  } else {
+    cat("The virtual corpus described by \"", object@vc, "\"", sep="")
   }
-  if (missing(vc)) {
-    vc = query$vc
-  }
-  url <- paste0(con$apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
-  return(fromJSON(url))
-}
+  cat(" contains", formatC(object@tokens, format="f", digits=0, big.mark=","), "tokens in",
+      formatC(object@sentences, format="d", big.mark=","), "sentences in",
+      formatC(object@documents, format="d", big.mark=","), "documents.\n")
+})
