@@ -14,7 +14,7 @@ Simple R package to access the [web service API](https://github.com/KorAP/Kustva
 library(devtools)
 install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient") 
 library(RKorAPClient)
-?KorAPQuery
+?corpusQuery
 ```
 
 ## Development and License
