@@ -146,9 +146,12 @@ setMethod("corpusQuery", "KorAPConnection",
                                  '&fields=', paste(defaultFields, collapse = ","),
                                  ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
             if (verbose) {
-              cat(paste0(webUIRequestUrl, "\n"))
+              cat("Searching \"", query, "\" in \"", vc, "\"", sep="")
             }
             res = fromJSON(paste0(requestUrl, '&count=1'))
+            if (verbose) {
+              cat(" took ", res$meta$benchmark, "\n", sep="")
+            }
             KorAPQuery(
               nextStartIndex = 0,
               fields = fields[!fields %in% contentFields],
