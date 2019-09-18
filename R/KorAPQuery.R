@@ -94,15 +94,21 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
+#' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
 #' kco <- new("KorAPConnection")
 #' kqo <- corpusQuery(kco, "Ameisenplage")
 #' kqo <- fetchAll(kqo)
 #' kqo
 #'
+#' # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
+#' # and show the number of query hits (but don't fetch them).
+#' kco <- new("KorAPConnection")
 #' kqo <- corpusQuery(kco,
 #'        KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 #' kqo
 #'
+#' # Plot the time/frequency curve of "Ameisenplage"
+#' kco <- new("KorAPConnection")
 #' q <- corpusQuery(kco, "Ameisenplage")
 #' q <- fetchAll(q, verbose=TRUE)
 #' tokensPerYear <- function(year) { return(corpusStats(kco, paste("pubDate in", year))@tokens) }
