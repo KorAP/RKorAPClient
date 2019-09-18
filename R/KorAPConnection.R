@@ -28,7 +28,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @rdname KorAPConnection-class
 #' @export
 setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl) {
+          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/instance/test/", apiVersion = 'v1.0', apiUrl) {
             .Object <- callNextMethod()
             m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
             .Object@KorAPUrl <- regmatches(KorAPUrl, m)
