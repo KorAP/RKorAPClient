@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c84d5ee0_668fef70",
+        "filename": "examples/alternativesOverTime.R",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2019-09-19T06:57:29Z",
+      "side": 1,
+      "message": "Should we introduce such a default for a KorAPConnection also in the library itself for the corpusQuery-method?\n\nThis would let it look extremely simple: \n\nlibary(RKorAPClient)\ncorpusQuery(\"Hello world\")\n\n(instead of:)\n\nlibary(RKorAPClient)\ncorpusQuery(new(\"KorAPConnection\"), \"Hello world\")\n\nWould be all you need. (However, I don\u0027t know if it is even possible to assign a default class instance to class methods)",
+      "range": {
+        "startLine": 11,
+        "startChar": 103,
+        "endLine": 11,
+        "endChar": 131
+      },
+      "revId": "81a053f3b0909082cfc0f5462b301b979810709e",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c",
+      "unresolved": false
+    }
+  ]
+}
