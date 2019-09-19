@@ -32,6 +32,10 @@ At this point there is no binary package on CRAN yet, so you have to install the
 library(devtools)
 devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 ```
+## Examples
+
+More elaborate R scripts demonstrating the use of the package can be found in the [examples](examples) folder.
+
 ## Development and License
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
