@@ -27,6 +27,10 @@ library(RKorAPClient)
 kqo <- corpusQuery(new("KorAPConnection", verbose=TRUE), "Hello world")
 fetchAll(kqo)
 ```
+## Examples
+
+More elaborate R scripts demonstrating the use of the package can be found in the [examples](examples) folder.
+
 ## Development and License
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
