@@ -17,6 +17,21 @@ library(RKorAPClient)
 ?corpusQuery
 ```
 
+## Hello world
+
+```R
+library(RKorAPClient)
+fetchAll(corpusQuery(new("KorAPConnection"), "Hello world"))
+```
+## Installation
+
+At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtool package:
+
+```R
+#install.packages("devtools")
+library(devtools)
+devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
+```
 ## Development and License
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
