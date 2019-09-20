@@ -11,6 +11,7 @@
 
 #' @export
 KorAPQuery <- setClass("KorAPQuery", slots = c(
+  "korapConnection",
   "request",
   "vc",
   "totalResults",
@@ -27,6 +28,7 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #'
 #' @rdname KorAPQuery-class
 #' @param .Object …
+#' @param korapConnection KorAPConnection object
 #' @param request query part of the request URL
 #' @param vc definition of a virtual corpus
 #' @param totalResults number of hits the query has yielded
@@ -39,10 +41,11 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #' @param collectedMatches matches already fetched from the KorAP-API-server
 #' @export
 setMethod("initialize", "KorAPQuery",
-          function(.Object, request = NULL, vc="", totalResults=0, nextStartIndex=0, fields=c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
+          function(.Object, korapConnection = NULL, request = NULL, vc="", totalResults=0, nextStartIndex=0, fields=c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
                                                                               "availability", "textClass", "snippet"),
                    requestUrl="", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches= FALSE, collectedMatches = NULL) {
             .Object <- callNextMethod()
+            .Object@korapConnection = korapConnection
             .Object@request = request
             .Object@vc = vc
             .Object@totalResults = totalResults
@@ -153,6 +156,7 @@ setMethod("corpusQuery", "KorAPConnection",
               cat(" took ", res$meta$benchmark, "\n", sep="")
             }
             KorAPQuery(
+              korapConnection = kco,
               nextStartIndex = 0,
               fields = fields[!fields %in% contentFields],
               requestUrl = requestUrl,
@@ -217,6 +221,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   }
   nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, res$meta$totalResults)
   KorAPQuery(nextStartIndex = nextStartIndex,
+    korapConnection = kco,
     fields = kqo@fields,
     requestUrl = kqo@requestUrl,
     request = kqo@request,
