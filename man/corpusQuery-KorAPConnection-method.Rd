@@ -8,7 +8,7 @@
 \usage{
 \S4method{corpusQuery}{KorAPConnection}(kco, query, vc = "", KorAPUrl,
   metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-  accessRewriteFatal = TRUE, verbose = FALSE)
+  accessRewriteFatal = TRUE, verbose = kco@verbose)
 }
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
