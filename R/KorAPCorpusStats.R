@@ -18,6 +18,7 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #' Fetch information about a (virtual) corpus
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
+#' @param verbose logical. If \code{TRUE}, additional diagnostics are printed.
 #' @return \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
 #'
 #' @examples
@@ -28,9 +29,15 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #'
 #' @aliases corpusStats
 #' @export
-setMethod("corpusStats", "KorAPConnection",  function(kco, vc="") {
+setMethod("corpusStats", "KorAPConnection",  function(kco, vc="", verbose = kco@verbose) {
   url <- paste0(kco@apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
+  if (verbose) {
+    cat("Calculating size of corpus \"", vc,"\"", sep="")
+  }
   res <- fromJSON(url)
+  if (verbose) {
+    cat("\n")
+  }
   new("KorAPCorpusStats", vc = vc, documents = res$documents, tokens = res$tokens, sentences = res$sentences, paragraphs = res$paragraphs)
 })
 

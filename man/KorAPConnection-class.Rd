@@ -10,7 +10,7 @@
 \usage{
 \S4method{initialize}{KorAPConnection}(.Object,
   KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
-  apiUrl)
+  apiUrl, verbose = FALSE)
 
 \S4method{show}{KorAPConnection}(object)
 }
@@ -22,6 +22,8 @@
 \item{apiVersion}{which version of KorAP's API you want to connect to.}
 
 \item{apiUrl}{URL of the KorAP web service.}
+
+\item{verbose}{logical decides wether following operations will default to be verbose}
 
 \item{object}{KorAPConnection object}
 }
@@ -36,8 +38,8 @@ New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}
 Currently it is not possible to authenticate the client
 }
 \examples{
-kcon <- new("KorAPConnection")
+kcon <- new("KorAPConnection", verbose = TRUE)
 kq <- corpusQuery(kcon, "Ameisenplage")
-kq <- fetchAll(kq, verbose=TRUE)
+kq <- fetchAll(kq)
 
 }

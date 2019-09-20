@@ -129,7 +129,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
           function(kco, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-                   accessRewriteFatal = TRUE, verbose=FALSE) {
+                   accessRewriteFatal = TRUE, verbose = kco@verbose) {
             defaultFields <- c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
                                "availability", "textClass", "snippet")
             contentFields <- c("snippet")
