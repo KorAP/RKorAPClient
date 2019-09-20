@@ -15,11 +15,11 @@
 \alias{show,KorAPQuery-method}
 \title{Class KorAPQuery}
 \usage{
-\S4method{initialize}{KorAPQuery}(.Object, request = NULL, vc = "",
-  totalResults = 0, nextStartIndex = 0, fields = c("corpusSigle",
-  "textSigle", "pubDate", "pubPlace", "availability", "textClass",
-  "snippet"), requestUrl = "", webUIRequestUrl = "",
-  apiResponse = NULL, hasMoreMatches = FALSE,
+\S4method{initialize}{KorAPQuery}(.Object, korapConnection = NULL,
+  request = NULL, vc = "", totalResults = 0, nextStartIndex = 0,
+  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace",
+  "availability", "textClass", "snippet"), requestUrl = "",
+  webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE,
   collectedMatches = NULL)
 
 \S4method{fetchNext}{KorAPQuery}(kqo, offset = kqo@nextStartIndex,
@@ -35,6 +35,8 @@
 }
 \arguments{
 \item{.Object}{…}
+
+\item{korapConnection}{KorAPConnection object}
 
 \item{request}{query part of the request URL}
 
