@@ -9,8 +9,8 @@
 \title{Class KorAPConnection}
 \usage{
 \S4method{initialize}{KorAPConnection}(.Object,
-  KorAPUrl = "https://korap.ids-mannheim.de/instance/test/",
-  apiVersion = "v1.0", apiUrl)
+  KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
+  apiUrl)
 
 \S4method{show}{KorAPConnection}(object)
 }
