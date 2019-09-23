@@ -183,7 +183,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = FALSE) {
+setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
@@ -211,7 +211,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       collectedMatches <- rbind(collectedMatches, currentMatches)
     }
     if (verbose) {
-      cat(paste0("Retrieved page: ", page, "/", ceiling((res$meta$totalResults) / res$meta$itemsPerPage), ': ', res$meta$benchmark, '\n'))
+      cat(paste0("Retrieved page ", page, "/", ceiling((res$meta$totalResults) / res$meta$itemsPerPage), ' in ', res$meta$benchmark, '\n'))
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
@@ -242,7 +242,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 #' @aliases fetchAll
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = FALSE) {
+setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
   return(fetchNext(kqo, offset = 0, maxFetch = NA, verbose = verbose))
 })
 
@@ -255,7 +255,7 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = FALSE) {
 #' @aliases fetchRest
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = FALSE) {
+setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose))
 })
 

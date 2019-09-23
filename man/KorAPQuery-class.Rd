@@ -23,11 +23,13 @@
   collectedMatches = NULL)
 
 \S4method{fetchNext}{KorAPQuery}(kqo, offset = kqo@nextStartIndex,
-  maxFetch = maxResultsPerPage, verbose = FALSE)
+  maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose)
 
-\S4method{fetchAll}{KorAPQuery}(kqo, verbose = FALSE)
+\S4method{fetchAll}{KorAPQuery}(kqo,
+  verbose = kqo@korapConnection@verbose)
 
-\S4method{fetchRest}{KorAPQuery}(kqo, verbose = FALSE)
+\S4method{fetchRest}{KorAPQuery}(kqo,
+  verbose = kqo@korapConnection@verbose)
 
 \method{format}{KorAPQuery}(x, ...)
 
