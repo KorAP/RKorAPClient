@@ -151,7 +151,7 @@ setMethod("corpusQuery", "KorAPConnection",
             if (verbose) {
               cat("Searching \"", query, "\" in \"", vc, "\"", sep="")
             }
-            res = fromJSON(paste0(requestUrl, '&count=1'))
+            res = apiCall(kco, paste0(requestUrl, '&count=1'))
             if (verbose) {
               cat(" took ", res$meta$benchmark, "\n", sep="")
             }
@@ -194,7 +194,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   collectedMatches <- kqo@collectedMatches
 
   repeat {
-    res <- fromJSON(paste0(kqo@requestUrl, '&count=', min(ifelse(!is.na(maxFetch), maxFetch - results, maxResultsPerPage), maxResultsPerPage) ,'&offset=', offset + results))
+    res <- apiCall(kqo@korapConnection, paste0(kqo@requestUrl, '&count=', min(ifelse(!is.na(maxFetch), maxFetch - results, maxResultsPerPage), maxResultsPerPage) ,'&offset=', offset + results))
     if (res$meta$totalResults == 0) { return(kqo) }
     for (field in kqo@fields) {
       if (!field %in% colnames(res$matches)) {
@@ -221,7 +221,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   }
   nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, res$meta$totalResults)
   KorAPQuery(nextStartIndex = nextStartIndex,
-    korapConnection = kco,
+    korapConnection = kqo@korapConnection,
     fields = kqo@fields,
     requestUrl = kqo@requestUrl,
     request = kqo@request,

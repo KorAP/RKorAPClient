@@ -34,7 +34,7 @@ setMethod("corpusStats", "KorAPConnection",  function(kco, vc="", verbose = kco@
   if (verbose) {
     cat("Calculating size of corpus \"", vc,"\"", sep="")
   }
-  res <- fromJSON(url)
+  res <- apiCall(kco, url)
   if (verbose) {
     cat("\n")
   }
