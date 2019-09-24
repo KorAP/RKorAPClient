@@ -10,12 +10,14 @@
 #'
 
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", verbose="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", userAgent="character", timeout="numeric", verbose="logical"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
+#' @param userAgent user agent string.
+#' @param timeout time out in seconds.
 #' @param verbose logical decides wether following operations will default to be verbose
 #' @return \code{\link{KorAPConnection}} object that can be used e.g. with \code{\link{corpusQuery}}
 #'
@@ -29,7 +31,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @rdname KorAPConnection-class
 #' @export
 setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, verbose = FALSE) {
+          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, userAgent = "R-KorAP-Client", timeout=10, verbose = FALSE) {
             .Object <- callNextMethod()
             m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
             .Object@KorAPUrl <- regmatches(KorAPUrl, m)
@@ -42,9 +44,38 @@ setMethod("initialize", "KorAPConnection",
               .Object@apiUrl = apiUrl
             }
             .Object@apiVersion = apiVersion
+            .Object@userAgent = userAgent
+            .Object@timeout = timeout
             .Object@verbose = verbose
             .Object
           })
+
+setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
+
+#' @aliases apiCall
+#' @rdname KorAPConnection-class
+#' @param kco KorAPConnection object
+#' @param url request url
+setMethod("apiCall", "KorAPConnection",  function(kco, url) {
+  resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
+  if (http_type(resp) != "application/json") {
+    stop("API did not return json", call. = FALSE)
+  }
+  parsed <- jsonlite::fromJSON(content(resp, "text"))
+  if (!is.null(parsed$warnings)) {
+    message <- ifelse (nrow(parsed$warnings) > 1,
+                       sapply(parsed$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n")),
+                       sprintf("%s: %s", parsed$warnings[1], parsed$warnings[2]))
+    warning(message, call. = FALSE)
+  }
+  if (status_code(resp) != 200) {
+    message <- ifelse (!is.null(parsed$errors),
+                       sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KoRAP API request failed: %s", error[1], error[2]))),
+                       message <- sprintf("%s: KoRAP API request failed.", status_code(resp)))
+    stop(message, call. = FALSE)
+  }
+  parsed
+})
 
 #' @rdname KorAPConnection-class
 #' @param object KorAPConnection object
@@ -54,12 +85,11 @@ setMethod("show", "KorAPConnection", function(object) {
   cat("apiUrl: ", object@apiUrl, "\n")
 })
 
-#' Funtion KorAPConnection()
-#'
-#' Wrappper function for new("KorAPConnection")
-#'
-#' @rdname KorAPConnection-constructor
-#' @name KorAPConnection-constructor
-#' @export
-# KorAPConnection <- function(...) new("KorAPConnection", ...)
-
+##' Funtion KorAPConnection()
+##'
+##' Wrappper function for new("KorAPConnection")
+##'
+##' @rdname KorAPConnection-constructor
+##' @name KorAPConnection-constructor
+##' @export
+## XKorAPConnection <- function(...) new("KorAPConnection", ...)
