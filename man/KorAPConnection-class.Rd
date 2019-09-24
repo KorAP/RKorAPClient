@@ -5,12 +5,17 @@
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
 \alias{initialize,KorAPConnection-method}
+\alias{apiCall,KorAPConnection-method}
+\alias{apiCall}
 \alias{show,KorAPConnection-method}
 \title{Class KorAPConnection}
 \usage{
 \S4method{initialize}{KorAPConnection}(.Object,
   KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
-  apiUrl, verbose = FALSE)
+  apiUrl, userAgent = "R-KorAP-Client", timeout = 10,
+  verbose = FALSE)
+
+\S4method{apiCall}{KorAPConnection}(kco, url)
 
 \S4method{show}{KorAPConnection}(object)
 }
@@ -23,7 +28,15 @@
 
 \item{apiUrl}{URL of the KorAP web service.}
 
+\item{userAgent}{user agent string.}
+
+\item{timeout}{time out in seconds.}
+
 \item{verbose}{logical decides wether following operations will default to be verbose}
+
+\item{kco}{KorAPConnection object}
+
+\item{url}{request url}
 
 \item{object}{KorAPConnection object}
 }
