@@ -151,7 +151,7 @@ setMethod("corpusQuery", "KorAPConnection",
             if (verbose) {
               cat("Searching \"", query, "\" in \"", vc, "\"", sep="")
             }
-            res = apiCall(kco, paste0(requestUrl, '&count=1'))
+            res = apiCall(kco, paste0(requestUrl, '&count=0'))
             if (verbose) {
               cat(" took ", res$meta$benchmark, "\n", sep="")
             }
