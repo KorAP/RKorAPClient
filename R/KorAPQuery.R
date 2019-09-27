@@ -84,13 +84,13 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' Perform a corpus query via a connection to a KorAP-API-server.
 #'
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
-#' @param query string that contains the corpus query. The query langauge depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}
+#' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
 #' @param metadataOnly boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
 #' @param ql string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.
-#' @param fields (meta)data fields that will be fetched for every match
-#' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented)
+#' @param fields (meta)data fields that will be fetched for every match.
+#' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).
 #' @param verbose print some info
 #' @return A \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 #' A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
