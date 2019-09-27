@@ -70,8 +70,8 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   }
   if (status_code(resp) != 200) {
     message <- ifelse (!is.null(parsed$errors),
-                       sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KoRAP API request failed: %s", error[1], error[2]))),
-                       message <- sprintf("%s: KoRAP API request failed.", status_code(resp)))
+                       sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KorAP API request failed: %s", error[1], error[2]))),
+                       message <- sprintf("%s: KorAP API request failed.", status_code(resp)))
     stop(message, call. = FALSE)
   }
   parsed
