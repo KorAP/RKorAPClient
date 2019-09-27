@@ -133,6 +133,7 @@ setMethod("corpusQuery", "KorAPConnection",
             defaultFields <- c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
                                "availability", "textClass", "snippet")
             contentFields <- c("snippet")
+            fields <- fields[!fields %in% contentFields]
 
             if (missing(query) && missing(KorAPUrl) ||  ! (missing(query) || missing(KorAPUrl))) {
               stop("Exactly one of the parameters query and KorAPUrl must be specified.")
@@ -146,7 +147,7 @@ setMethod("corpusQuery", "KorAPConnection",
                               ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
             webUIRequestUrl <- paste0(kco@KorAPUrl, request)
             requestUrl <- paste0(kco@apiUrl, 'search', request,
-                                 '&fields=', paste(defaultFields, collapse = ","),
+                                 '&fields=', paste(fields, collapse = ","),
                                  ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
             if (verbose) {
               cat("Searching \"", query, "\" in \"", vc, "\"", sep="")
@@ -158,7 +159,7 @@ setMethod("corpusQuery", "KorAPConnection",
             KorAPQuery(
               korapConnection = kco,
               nextStartIndex = 0,
-              fields = fields[!fields %in% contentFields],
+              fields = fields,
               requestUrl = requestUrl,
               request = request,
               totalResults = res$meta$totalResults,
@@ -202,9 +203,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       }
     }
     currentMatches <- res$matches[kqo@fields]
-    factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
+    if ("pubDate" %in% kqo@fields) {
+      currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
+      factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
+    } else {
+      factorCols <- colnames(currentMatches)
+    }
     currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
-    currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
