@@ -1,7 +1,7 @@
 #' Class KorAPConnection
 #'
-#' \code{KorAPConnection} objetcs represent the connection to a KorAP server.
-#' New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}
+#' \code{KorAPConnection} objects represent the connection to a KorAP server.
+#' New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
 #'
 #' @import jsonlite
 #' @import utils
@@ -18,7 +18,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param apiUrl URL of the KorAP web service.
 #' @param userAgent user agent string.
 #' @param timeout time out in seconds.
-#' @param verbose logical decides wether following operations will default to be verbose
+#' @param verbose logically decides whether following operations will default to be verbose.
 #' @return \code{\link{KorAPConnection}} object that can be used e.g. with \code{\link{corpusQuery}}
 #'
 #' @examples
