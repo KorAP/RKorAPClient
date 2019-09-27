@@ -1,6 +1,6 @@
 #' Class KorAPCorpusStats
 #'
-#' \code{KorAPCorpusStats} objetcs can hold information about a corpus or virtual corpus.
+#' \code{KorAPCorpusStats} objects can hold information about a corpus or virtual corpus.
 #' \code{KorAPCorpusStats} objects can be obtained by the \code{\link{corpusStats}()} method.
 #'
 #' @include KorAPConnection.R
