@@ -58,7 +58,7 @@ setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
 #' @param url request url
 setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
-  if (http_type(resp) != "application/json") {
+  if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
     stop("API did not return json", call. = FALSE)
   }
   parsed <- jsonlite::fromJSON(content(resp, "text"))
