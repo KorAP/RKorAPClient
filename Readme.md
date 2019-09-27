@@ -10,7 +10,10 @@ Simple R package to access the [web service API](https://github.com/KorAP/Kustva
 
 ## Getting started
 
+At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtool package:
+
 ```R
+# install.packages("devtools")
 library(devtools)
 install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient") 
 library(RKorAPClient)
@@ -23,15 +26,6 @@ library(RKorAPClient)
 library(RKorAPClient)
 kqo <- corpusQuery(new("KorAPConnection", verbose=TRUE), "Hello world")
 fetchAll(kqo)
-```
-## Installation
-
-At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtool package:
-
-```R
-#install.packages("devtools")
-library(devtools)
-devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 ```
 ## Development and License
 
