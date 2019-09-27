@@ -13,19 +13,19 @@
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
-\item{query}{string that contains the corpus query. The query langauge depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}}
+\item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
 \item{vc}{string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 
-\item{metadataOnly}{boolean that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
+\item{metadataOnly}{logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
 
 \item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
 
-\item{fields}{(meta)data fields that will be fetched for every match}
+\item{fields}{(meta)data fields that will be fetched for every match.}
 
-\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented)}
+\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).}
 
 \item{verbose}{print some info}
 }

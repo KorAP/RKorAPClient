@@ -32,7 +32,7 @@
 
 \item{timeout}{time out in seconds.}
 
-\item{verbose}{logical decides wether following operations will default to be verbose}
+\item{verbose}{logical. Decides whether following operations will default to be verbose.}
 
 \item{kco}{KorAPConnection object}
 
@@ -44,8 +44,8 @@
 \code{\link{KorAPConnection}} object that can be used e.g. with \code{\link{corpusQuery}}
 }
 \description{
-\code{KorAPConnection} objetcs represent the connection to a KorAP server.
-New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}
+\code{KorAPConnection} objects represent the connection to a KorAP server.
+New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
 }
 \note{
 Currently it is not possible to authenticate the client

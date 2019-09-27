@@ -56,7 +56,7 @@
 
 \item{apiResponse}{data-frame representation of the JSON response of the API request}
 
-\item{hasMoreMatches}{boolean that signals if more query results can be fetched}
+\item{hasMoreMatches}{logical that signals if more query results can be fetched}
 
 \item{collectedMatches}{matches already fetched from the KorAP-API-server}
 
