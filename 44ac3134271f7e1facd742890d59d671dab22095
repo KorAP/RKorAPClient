@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef71f518_6eaca6fb",
+        "filename": "R/KorAPConnection.R",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2019-09-27T14:17:44Z",
+      "side": 1,
+      "message": "For JSON-LD content type seems to be like this..",
+      "range": {
+        "startLine": 61,
+        "startChar": 51,
+        "endLine": 61,
+        "endChar": 70
+      },
+      "revId": "44ac3134271f7e1facd742890d59d671dab22095",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c",
+      "unresolved": true
+    }
+  ]
+}
