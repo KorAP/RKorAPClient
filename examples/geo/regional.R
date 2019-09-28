@@ -3,6 +3,8 @@ library(RKorAPClient)
 library(ggplot2)
 library(raster)
 library(broom)
+library(plotly)
+library(htmlwidgets)
 
 mapfile <- "examples/geo/data/cache/map-v2.rds"
 
@@ -34,6 +36,7 @@ map <- fetchMaps(c("DEU_1", "AUT_0", "CHE_0", "LUX_0", "BEL_3", "ITA_1", "LIE_0"
 geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
   regions <- readRDS("examples/geo/data/regions.rds")
   regions$freq <- NA
+  regions$url <- NA
   plot <- NULL
   vc <- ""
   for (i in 1:nrow(regions)) {
@@ -44,20 +47,32 @@ geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
         regions[i,]$afreq <- 0
         regions[i,]$freq <- NA
       } else {
-        regions[i,]$afreq <- corpusQuery(kco, query, vc=paste0(vc, regions[i,]$query))@totalResults
+        kqo <- corpusQuery(kco, query, vc=paste0(vc, regions[i,]$query))
+        regions[i,]$afreq <- kqo@totalResults
         regions[i,]$freq <- regions[i,]$afreq / regions[i,]$total
+        regions[i,]$url <- kqo@webUIRequestUrl
       }
       cat(regions[i,]$afreq, regions[i,]$total, regions[i,]$freq, "\n")
-      plot <- updatePlot(query, plot, map, regions)
+      plot <- updatePlot(query, map, regions)
       cat("\n\n")
     }
   }
+  pp <- ggplotly(plot)
+  for (i in 1:nrow(regions)) {
+    j <- grep(paste0(regions$region[i], "\""), pp$x$data, perl=TRUE)
+    pp$x$data[[j]]$customdata <- regions[i,]$url
+  }
+  ppp <- onRender(pp, "function(el, x) { el.on('plotly_click', function(d) { var url=d.points[0].data.customdata; window.open(url, 'korap') })}")
+  print(ppp)
+  pp
 }
 
-updatePlot <- function(query, regionsPlot, map, laender) {
-  map$ipm <- sapply(map$grp, function(grp) laender$freq[grp] * 10^6)
+updatePlot <- function(query, map, regions) {
+  map$ipm <- sapply(map$grp, function(grp) regions$freq[grp] * 10^6)
+  map$region <- sapply(map$grp, function(grp) regions$region[grp])
+  map$url <- sapply(map$grp, function(grp) regions$url[grp])
   regionsPlot <- ggplot(map) +
-    geom_polygon(aes(x=long, y=lat, group=group, fill=ipm), colour= "black", size=.1) +
+    geom_polygon(aes(x=long, y=lat, group=group, fill=ipm, text=region), colour= "black", size=.1) +
     theme(axis.line.x = element_blank(),
           axis.line.y = element_blank(),
           panel.grid.major = element_blank(),
