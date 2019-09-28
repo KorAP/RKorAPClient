@@ -4,7 +4,7 @@ library(ggplot2)
 library(raster)
 library(broom)
 
-mapfile <- "examples/geo/data/cache/map.rds"
+mapfile <- "examples/geo/data/cache/map-v2.rds"
 
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
@@ -29,7 +29,7 @@ fetchMaps <- function(maps, picks) {
   df
 }
 
-map <- fetchMaps(c("DEU_1", "AUT_1", "CHE_1", "LUX_0", "BEL_3", "ITA_1"), c(0,0,0,0,34,17))
+map <- fetchMaps(c("DEU_1", "AUT_0", "CHE_0", "LUX_0", "BEL_3", "ITA_1", "LIE_0"), c(0, 0, 0, 0, 34, 17, 0))
 
 geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
   regions <- readRDS("examples/geo/data/regions.rds")
@@ -38,7 +38,7 @@ geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
   vc <- ""
   for (i in 1:nrow(regions)) {
     if (!is.na(regions[i,]$query)) {
-      cat(as.character(regions[i,]$land), "\n")
+      cat(as.character(regions[i,]$region), "\n")
       regions[i,]$total <- corpusStats(kco, vc=paste0(vc, regions[i,]$query))@tokens
       if (regions[i,]$total == 0) {
         regions[i,]$afreq <- 0
