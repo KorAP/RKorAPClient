@@ -6,7 +6,7 @@ library(broom)
 library(plotly)
 library(htmlwidgets)
 
-mapfile <- "examples/geo/data/cache/map-v2.rds"
+mapfile <- "demo/geo/data/cache/map-v2.rds"
 
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
@@ -34,7 +34,7 @@ fetchMaps <- function(maps, picks) {
 map <- fetchMaps(c("DEU_1", "AUT_0", "CHE_0", "LUX_0", "BEL_3", "ITA_1", "LIE_0"), c(0, 0, 0, 0, 34, 17, 0))
 
 geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
-  regions <- readRDS("examples/geo/data/regions.rds")
+  regions <- readRDS("demo/geo/data/regions.rds")
   regions$freq <- NA
   regions$url <- NA
   plot <- NULL
