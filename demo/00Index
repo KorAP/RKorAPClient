@@ -1,0 +1,5 @@
+frequenciesOverTime       Plot frequency of query expressions over time
+frequenciesOverDomains    Box plot frequency of query expressions per topic domain
+conditionsOverTime        Plot frequency of query expressions over time under different conditions
+alternativesOverTime      Plot proportion of alternative spellings/variants over time
+regional                  Map plot regional frequencies of query expression

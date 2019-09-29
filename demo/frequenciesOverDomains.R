@@ -21,7 +21,7 @@ freqPerDomain <- function(query, con = new("KorAPConnection", verbose = TRUE)) {
   g <- ggplot(data = df, mapping = aes(x = Domain, y = freq)) +
     geom_col() +
     geom_errorbar(aes(ymin=ci[, 1], ymax=ci[, 2]), width=.5, alpha=.5) +
-    ylab(sprintf("Observed frequency of “%s”", query)) +
+    ylab(sprintf("Observed frequency of \u201c%s\u201d", query)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   print(g)
   df

@@ -26,7 +26,7 @@ conditionsOverTime <- function(query, conditions, years, kco = new("KorAPConnect
     geom_ribbon(aes(ymin=ci[, 1], ymax=ci[, 2], fill=condition, color=condition), alpha=.3, linetype=0) +
     xlab("TIME") +
     labs(color="Virtual Corpus", fill="Virtual Corpus") +
-    ylab(sprintf("Observed frequency of “%s”", query)) +
+    ylab(sprintf("Observed frequency of \u201c%s\u201d", query)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))  + scale_x_continuous(breaks=unique(df$year))
   print(g)
   # print(ggplotly(g, tooltip = c("x", "y")))
