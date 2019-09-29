@@ -111,14 +111,15 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' kqo
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
-#' kco <- new("KorAPConnection")
-#' q <- corpusQuery(kco, "Ameisenplage")
-#' q <- fetchAll(q, verbose=TRUE)
-#' tokensPerYear <- function(year) { return(corpusStats(kco, paste("pubDate in", year))@tokens) }
+#' kco <- new("KorAPConnection", verbose=TRUE)
+#' q <- fetchAll(corpusQuery(kco, "Ameisenplage"))
 #' df <- as.data.frame(table(as.numeric(format(q@collectedMatches$pubDate,"%Y")), dnn="year"),
 #'                     stringsAsFactors = FALSE)
-#' df$ipm <- 1000000 * df$Freq / tokensPerYear(df$year)
-#' plot(df$year, df$ipm, type="l")
+#' df$Freq <- mapply(function(f, y) f / corpusStats(kco, paste("pubDate in", y))@tokens,
+#'                   df$Freq, df$year)
+#' df <- merge(data.frame(year=min(df$year):max(df$year)), df, all = TRUE)
+#' df[is.na(df$Freq),]$Freq <- 0
+#' plot(df, type="l")
 #'
 #' @seealso \code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
 #'
