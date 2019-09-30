@@ -24,8 +24,7 @@ library(RKorAPClient)
 
 ```R
 library(RKorAPClient)
-kqo <- corpusQuery(new("KorAPConnection", verbose=TRUE), "Hello world")
-fetchAll(kqo)
+new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
 ```
 ## Demos
 

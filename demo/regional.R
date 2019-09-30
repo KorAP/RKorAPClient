@@ -73,7 +73,7 @@ updatePlot <- function(query, map, regions) {
   map$region <- sapply(map$grp, function(grp) regions$region[grp])
   map$url <- sapply(map$grp, function(grp) regions$url[grp])
   regionsPlot <- ggplot(map) +
-    geom_polygon(aes(x=long, y=lat, group=group, fill=ipm, text=region), colour= "black", size=.1) +
+    geom_polygon(aes(x=long, y=lat, group=group, fill=ipm, hack=region), colour= "black", size=.1) +
     theme(axis.line.x = element_blank(),
           axis.line.y = element_blank(),
           panel.grid.major = element_blank(),
