@@ -82,10 +82,10 @@ The \code{kqo} input object with updated slots \code{collectedMatches}, \code{ap
 New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 }
 \examples{
-q <- fetchAll(corpusQuery(new("KorAPConnection"), "Ameisenplage"))
+q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
 
-q <- fetchRest(fetchNext(corpusQuery(new("KorAPConnection"), "Ameisenplage")))
+q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
 
 }
