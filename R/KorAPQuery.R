@@ -141,7 +141,7 @@ setMethod("corpusQuery", "KorAPConnection",
             }
             if (missing(query)) {
               query <- QueryParameterFromUrl(KorAPUrl, "q")
-              vc <- QueryParameterFromUrl(KorAPUrl, "vc")
+              vc <- QueryParameterFromUrl(KorAPUrl, "cq")
               ql <- QueryParameterFromUrl(KorAPUrl, "ql")
             }
             request <- paste0('?q=', URLencode(query, reserved=TRUE),
