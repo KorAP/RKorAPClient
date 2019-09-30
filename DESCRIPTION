@@ -12,6 +12,11 @@ LazyData: false
 RoxygenNote: 6.1.1
 Imports:
     R.cache,
+    magrittr,
+    tidyr,
+    dplyr,
+    purrr,
+    lubridate,
     curl,
     jsonlite,
     utils,
@@ -21,3 +26,4 @@ Collate:
     'KorAPConnection.R'
     'KorAPCorpusStats.R'
     'KorAPQuery.R'
+    'reexports.R'

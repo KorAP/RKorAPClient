@@ -4,10 +4,11 @@
 #' New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
 #'
 #' @import R.cache
-#' @import jsonlite
 #' @import utils
 #' @import methods
-#'
+#' @import dplyr
+#' @import purrr
+#' @import tidyr
 #'
 
 #' @export
@@ -64,6 +65,8 @@ setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
 #' @rdname KorAPConnection-class
 #' @param kco KorAPConnection object
 #' @param url request url
+#' @importFrom jsonlite fromJSON
+#' @export
 setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   if (kco@cache) {
     parsed <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url))
