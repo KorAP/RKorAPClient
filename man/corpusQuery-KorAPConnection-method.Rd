@@ -39,28 +39,30 @@ Perform a corpus query via a connection to a KorAP-API-server.
 }
 \examples{
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-kco <- new("KorAPConnection")
-kqo <- corpusQuery(kco, "Ameisenplage")
-kqo <- fetchAll(kqo)
-kqo
+new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 
 # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 # and show the number of query hits (but don't fetch them).
-kco <- new("KorAPConnection")
-kqo <- corpusQuery(kco,
-       KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
-kqo
+
+new("KorAPConnection", verbose = TRUE) \%>\%
+ corpusQuery(KorAPUrl =
+   "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 
 # Plot the time/frequency curve of "Ameisenplage"
-kco <- new("KorAPConnection", verbose=TRUE)
-q <- fetchAll(corpusQuery(kco, "Ameisenplage"))
-df <- as.data.frame(table(as.numeric(format(q@collectedMatches$pubDate,"\%Y")), dnn="year"),
-                    stringsAsFactors = FALSE)
-df$Freq <- mapply(function(f, y) f / corpusStats(kco, paste("pubDate in", y))@tokens,
-                  df$Freq, df$year)
-df <- merge(data.frame(year=min(df$year):max(df$year)), df, all = TRUE)
-df[is.na(df$Freq),]$Freq <- 0
-plot(df, type="l")
+new("KorAPConnection", verbose=TRUE) \%>\%
+  { . ->> kco } \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchAll() \%>\%
+  slot("collectedMatches") \%>\%
+  mutate(year = lubridate::year(pubDate)) \%>\%
+  select(year) \%>\%
+  group_by(year) \%>\%
+  summarise(Count = n()) \%>\%
+  mutate(Freq = mapply(function(f, y)
+    f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
+  select(-Count) \%>\%
+  complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
+  plot(type = "l")
 
 }
 \references{

@@ -4,7 +4,8 @@
 #' New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 #'
 #' @include KorAPConnection.R
-#' @import jsonlite
+#' @import tidyr
+#' @import dplyr
 #' @import httr
 #'
 #'
@@ -98,28 +99,30 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #'
 #' @examples
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-#' kco <- new("KorAPConnection")
-#' kqo <- corpusQuery(kco, "Ameisenplage")
-#' kqo <- fetchAll(kqo)
-#' kqo
+#' new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #'
 #' # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 #' # and show the number of query hits (but don't fetch them).
-#' kco <- new("KorAPConnection")
-#' kqo <- corpusQuery(kco,
-#'        KorAPUrl = "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
-#' kqo
+#'
+#' new("KorAPConnection", verbose = TRUE) %>%
+#'  corpusQuery(KorAPUrl =
+#'    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
-#' kco <- new("KorAPConnection", verbose=TRUE)
-#' q <- fetchAll(corpusQuery(kco, "Ameisenplage"))
-#' df <- as.data.frame(table(as.numeric(format(q@collectedMatches$pubDate,"%Y")), dnn="year"),
-#'                     stringsAsFactors = FALSE)
-#' df$Freq <- mapply(function(f, y) f / corpusStats(kco, paste("pubDate in", y))@tokens,
-#'                   df$Freq, df$year)
-#' df <- merge(data.frame(year=min(df$year):max(df$year)), df, all = TRUE)
-#' df[is.na(df$Freq),]$Freq <- 0
-#' plot(df, type="l")
+#' new("KorAPConnection", verbose=TRUE) %>%
+#'   { . ->> kco } %>%
+#'   corpusQuery("Ameisenplage") %>%
+#'   fetchAll() %>%
+#'   slot("collectedMatches") %>%
+#'   mutate(year = lubridate::year(pubDate)) %>%
+#'   select(year) %>%
+#'   group_by(year) %>%
+#'   summarise(Count = n()) %>%
+#'   mutate(Freq = mapply(function(f, y)
+#'     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) %>%
+#'   select(-Count) %>%
+#'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
+#'   plot(type = "l")
 #'
 #' @seealso \code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
 #'
@@ -203,10 +206,14 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
         res$matches[, field] <- NA
       }
     }
-    currentMatches <- res$matches[kqo@fields]
+    currentMatches <-
+      kqo@fields %>%
+      map_dfr( ~tibble(!!.x := logical() ) ) %>%
+      bind_rows(res$matches) %>%
+      select(kqo@fields)
     if ("pubDate" %in% kqo@fields) {
-      currentMatches$pubDate = as.Date(currentMatches$pubDate, format = "%Y-%m-%d")
-      factorCols <- colnames(subset(currentMatches, select=-c(pubDate)))
+      currentMatches$pubDate <-  currentMatches$pubDate %>% as.Date(format = "%Y-%m-%d")
+      factorCols <- currentMatches %>% select(-pubDate) %>% colnames()
     } else {
       factorCols <- colnames(currentMatches)
     }
@@ -242,7 +249,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 #' Fetch all results of a KorAP query.
 #'
 #' @examples
-#' q <- fetchAll(corpusQuery(new("KorAPConnection"), "Ameisenplage"))
+#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' q@collectedMatches
 #'
 #' @aliases fetchAll
@@ -255,7 +262,7 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' Fetches the remaining results of a KorAP query.
 #'
 #' @examples
-#' q <- fetchRest(fetchNext(corpusQuery(new("KorAPConnection"), "Ameisenplage")))
+#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' q@collectedMatches
 #'
 #' @aliases fetchRest
