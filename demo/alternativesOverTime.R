@@ -39,6 +39,7 @@ alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection
     pp$x$data[[2+i]]$text <- sprintf("%s<br />absolute: %d / %d", pp$x$data[[2+i]]$text, vdata$afreq, vdata$total)
   }
   ppp <- onRender(pp, "function(el, x) { el.on('plotly_click', function(d) { var url=d.points[0].customdata; window.open(url, 'korap') })}")
+  htmlwidgets::saveWidget(ppp, "sogenannt.html")
   print(ppp)
   df
 }

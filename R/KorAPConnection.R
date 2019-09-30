@@ -6,7 +6,9 @@
 #' @import jsonlite
 #' @import utils
 #' @import methods
-#'
+#' @import dplyr
+#' @import purrr
+#' @import tidyr
 #'
 
 #' @export
@@ -56,6 +58,7 @@ setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
 #' @rdname KorAPConnection-class
 #' @param kco KorAPConnection object
 #' @param url request url
+#' @export
 setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
   if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
