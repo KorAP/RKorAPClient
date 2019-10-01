@@ -3,6 +3,7 @@
 #' \code{KorAPConnection} objects represent the connection to a KorAP server.
 #' New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
 #'
+#' @import R.cache
 #' @import jsonlite
 #' @import utils
 #' @import methods
@@ -10,7 +11,7 @@
 #'
 
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", userAgent="character", timeout="numeric", verbose="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
@@ -19,6 +20,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param userAgent user agent string.
 #' @param timeout time out in seconds.
 #' @param verbose logical. Decides whether following operations will default to be verbose.
+#' @param cache logical. Decides if API calls are cached locally. You can clear the cache with \code{\link{clearCache}()}.
 #' @return \code{\link{KorAPConnection}} object that can be used e.g. with \code{\link{corpusQuery}}
 #'
 #' @examples
@@ -31,7 +33,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @rdname KorAPConnection-class
 #' @export
 setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, userAgent = "R-KorAP-Client", timeout=10, verbose = FALSE) {
+          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, userAgent = "R-KorAP-Client", timeout=10, verbose = FALSE, cache = TRUE) {
             .Object <- callNextMethod()
             m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
             .Object@KorAPUrl <- regmatches(KorAPUrl, m)
@@ -47,8 +49,28 @@ setMethod("initialize", "KorAPConnection",
             .Object@userAgent = userAgent
             .Object@timeout = timeout
             .Object@verbose = verbose
+            .Object@cache = cache
             .Object
           })
+
+
+KorAPCacheSubDir <- function() {
+  paste0("RKorAPClient_", packageVersion("RKorAPClient"))
+}
+
+cacheHashSuffix <- function(url) {
+  paste0(R.cache::getChecksum(url),".Rcache")
+}
+
+invalidateCacheEntry <- function(url) {
+  if (kco@cache) {
+    df <- file.info(list.files(R.cache::getCachePath(dir = KorAPCacheSubDir()), full.names = T))
+    fn <- rownames(df)[endsWith(rownames(df), cacheHashSuffix(url))]
+    if (!is.null(fn)) {
+      file.remove(fn)
+    }
+  }
+}
 
 setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
 
@@ -57,8 +79,15 @@ setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
 #' @param kco KorAPConnection object
 #' @param url request url
 setMethod("apiCall", "KorAPConnection",  function(kco, url) {
-  resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
+  if (kco@cache) {
+    resp <- R.cache::evalWithMemoization(GET(url, user_agent(kco@userAgent), timeout(kco@timeout)), key=url,
+                                         suffix = cacheHashSuffix(url),
+                                         dir = KorAPCacheSubDir())
+  } else {
+    resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
+  }
   if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
+    invalidateCacheEntry(url)
     stop("API did not return json", call. = FALSE)
   }
   parsed <- jsonlite::fromJSON(content(resp, "text"))
@@ -69,12 +98,23 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
     warning(message, call. = FALSE)
   }
   if (status_code(resp) != 200) {
+    invalidateCacheEntry(url)
     message <- ifelse (!is.null(parsed$errors),
                        sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KorAP API request failed: %s", error[1], error[2]))),
                        message <- sprintf("%s: KorAP API request failed.", status_code(resp)))
     stop(message, call. = FALSE)
   }
   parsed
+})
+
+setGeneric("clearCache", function(kco)  standardGeneric("clearCache") )
+
+#' @aliases clearCache
+#' @rdname KorAPConnection-class
+#' @param kco KorAPConnection object
+#' @export
+setMethod("clearCache", "KorAPConnection",  function(kco) {
+  R.cache::clearCache(dir=KorAPCacheSubDir())
 })
 
 #' @rdname KorAPConnection-class
