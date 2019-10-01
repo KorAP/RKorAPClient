@@ -7,15 +7,19 @@
 \alias{initialize,KorAPConnection-method}
 \alias{apiCall,KorAPConnection-method}
 \alias{apiCall}
+\alias{clearCache,KorAPConnection-method}
+\alias{clearCache}
 \alias{show,KorAPConnection-method}
 \title{Class KorAPConnection}
 \usage{
 \S4method{initialize}{KorAPConnection}(.Object,
   KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
   apiUrl, userAgent = "R-KorAP-Client", timeout = 10,
-  verbose = FALSE)
+  verbose = FALSE, cache = TRUE)
 
 \S4method{apiCall}{KorAPConnection}(kco, url)
+
+\S4method{clearCache}{KorAPConnection}(kco)
 
 \S4method{show}{KorAPConnection}(object)
 }
@@ -33,6 +37,8 @@
 \item{timeout}{time out in seconds.}
 
 \item{verbose}{logical. Decides whether following operations will default to be verbose.}
+
+\item{cache}{logical. Decides if API calls are cached locally. You can clear the cache with \code{\link{clearCache}()}.}
 
 \item{kco}{KorAPConnection object}
 
