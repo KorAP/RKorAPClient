@@ -54,10 +54,10 @@ geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
         regions[i,]$url <- kqo@webUIRequestUrl
       }
       cat(regions[i,]$afreq, regions[i,]$total, regions[i,]$freq, "\n")
-      plot <- updatePlot(query, map, regions)
       cat("\n\n")
     }
   }
+  plot <- updatePlot(query, map, regions)
   pp <- ggplotly(plot)
   for (i in 1:nrow(regions)) {
     j <- grep(paste0(regions$region[i], "\""), pp$x$data, perl=TRUE)
