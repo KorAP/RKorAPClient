@@ -4,9 +4,6 @@
 #' New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 #'
 #' @include KorAPConnection.R
-#' @import jsonlite
-#' @import tidyr
-#' @import dplyr
 #' @import httr
 #'
 #' @include RKorAPClient.R
@@ -41,6 +38,8 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #' @param apiResponse data-frame representation of the JSON response of the API request
 #' @param hasMoreMatches logical that signals if more query results can be fetched
 #' @param collectedMatches matches already fetched from the KorAP-API-server
+#'
+#' @importFrom tibble tibble
 #' @export
 setMethod("initialize", "KorAPQuery",
           function(.Object, korapConnection = NULL, request = NULL, vc="", totalResults=0, nextStartIndex=0, fields=c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
@@ -202,6 +201,8 @@ setMethod("corpusQuery", "KorAPConnection",
 #'
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr rowwise bind_rows
 #' @export
 setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
