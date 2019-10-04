@@ -65,6 +65,7 @@ setGeneric("corpusQuery", function(kco, ...)  standardGeneric("corpusQuery") )
 setGeneric("fetchAll", function(kqo, ...)  standardGeneric("fetchAll") )
 setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
 setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
+setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
 
 maxResultsPerPage <- 50
 
@@ -279,6 +280,27 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @export
 setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose))
+})
+
+#' @aliases frequencyQuery
+#' @export
+setMethod("frequencyQuery", "KorAPConnection",
+  function(kco,
+    query = ifelse(missing(KorAPUrl),
+                  stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE),
+                  httr::parse_url(KorAPUrl)$query$q),
+    vc = ifelse(missing(KorAPUrl), "", httr::parse_url(KorAPUrl)$query$cq),
+    KorAPUrl,
+    metadataOnly = TRUE,
+    ql = ifelse(missing(KorAPUrl), "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
+    fields = c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
+              "availability", "textClass", "snippet"),
+    accessRewriteFatal = TRUE,
+    verbose = kco@verbose,
+    as.df = FALSE) {
+      corpusQuery(kco, query, vc, as.df=TRUE) %>%
+      mutate(tokens=corpusStats(kco, vc=vc, as.df=TRUE)$tokens) %>%
+      ci()
 })
 
 #´ format()
