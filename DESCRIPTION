@@ -12,6 +12,9 @@ LazyData: false
 RoxygenNote: 6.1.1
 Imports:
     R.cache,
+    broom,
+    ggplot2,
+    tibble,
     magrittr,
     tidyr,
     dplyr,
@@ -27,4 +30,5 @@ Collate:
     'KorAPCorpusStats.R'
     'RKorAPClient.R'
     'KorAPQuery.R'
+    'ci.R'
     'reexports.R'
