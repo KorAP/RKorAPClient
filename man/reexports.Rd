@@ -3,12 +3,16 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
+\alias{bind_cols}
 \alias{mutate}
 \alias{select}
 \alias{group_by}
 \alias{summarise}
 \alias{complete}
+\alias{expand_grid}
 \alias{year}
+\alias{as_tibble}
+\alias{tidy}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -16,10 +20,14 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr]{mutate}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{summarise}}}
+  \item{broom}{\code{\link[broom]{tidy}}}
+
+  \item{dplyr}{\code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{summarise}}}
 
   \item{lubridate}{\code{\link[lubridate]{year}}}
 
-  \item{tidyr}{\code{\link[tidyr]{complete}}}
+  \item{tibble}{\code{\link[tibble]{as_tibble}}}
+
+  \item{tidyr}{\code{\link[tidyr]{complete}}, \code{\link[tidyr]{expand_grid}}}
 }}
 
