@@ -18,8 +18,9 @@ be a single number between 0 and 1.}
 }
 \description{
 Using \code{\link{prop.test}}, \code{ci} adds three columns to a data frame:
-1. relative frequency (\code{f}) 2. lower bound of a confidence interval
-(\code{ci.low}) 3. upper bound of a confidence interval
+1. relative frequency (\code{f})
+2. lower bound of a confidence interval (\code{ci.low})
+3. upper bound of a confidence interval
 }
 \examples{
 library(ggplot2)
@@ -31,4 +32,7 @@ expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
     geom_point() + geom_line() + geom_ribbon(alpha=.3)
 
+}
+\seealso{
+\code{ci} is alread included in \code{\link{frequencyQuery}}
 }
