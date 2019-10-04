@@ -1,5 +1,5 @@
 ---
-KorAP web service client package for R
+KorAP web service client package for R: tidyverse branch
 ---
 
 ## Description
@@ -15,9 +15,10 @@ At this point there is no binary package on CRAN yet, so you have to install the
 ```R
 # install.packages("devtools")
 library(devtools)
-install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient") 
+install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient", ref="tidy")
 library(RKorAPClient)
 ?corpusQuery
+?freqeuncyQuery
 ```
 
 ## Hello world
