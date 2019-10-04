@@ -15,12 +15,12 @@ alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection
     setNames(alternatives) %>%
     mutate(year = years) %>%
     pivot_longer(cols = alternatives) %>%
-    rowwise %>% mutate(value = corpusQuery(kco, query=name, vc=paste(vc, year))@totalResults) %>%
+    mutate(value = corpusQuery(kco, query=name, vc=paste(vc, year))$totalResults) %>%
     pivot_wider(id_cols= year, names_from = name) %>%
     mutate(total = rowSums(.[alternatives])) %>%
     pivot_longer(cols = alternatives) %>%
     mutate(share = value / total) %>%
-    rowwise %>% mutate(url =  corpusQuery(kco, query=name, vc=paste(vc, year))@webUIRequestUrl) %>%
+    mutate(url =  corpusQuery(kco, query=name, vc=paste(vc, year))$webUIRequestUrl) %>%
     rename(Variant = name)
   df$ci <- t(sapply(Map(prop.test, df$value, df$total), "[[","conf.int"))
   g <- ggplot(data = df, mapping = aes(x = year, y = share, color=Variant, fill=Variant)) +
