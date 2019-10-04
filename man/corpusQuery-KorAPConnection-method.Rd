@@ -15,7 +15,8 @@
   "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace",
   "availability", "textClass", "snippet"), accessRewriteFatal = TRUE,
-  verbose = kco@verbose, as.df = FALSE)
+  verbose = kco@verbose, expand = length(vc) != length(query),
+  as.df = FALSE)
 }
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
@@ -36,10 +37,12 @@
 
 \item{verbose}{print some info}
 
+\item{expand}{logical that deicdes if \code{query} and \code{vc} parameters are expanded to all of their combinations}
+
 \item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
-A \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
+Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
 Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 }

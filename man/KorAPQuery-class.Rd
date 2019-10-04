@@ -11,6 +11,8 @@
 \alias{fetchAll}
 \alias{fetchRest,KorAPQuery-method}
 \alias{fetchRest}
+\alias{frequencyQuery,KorAPConnection-method}
+\alias{frequencyQuery}
 \alias{format.KorAPQuery}
 \alias{show,KorAPQuery-method}
 \title{Class KorAPQuery}
@@ -30,6 +32,8 @@
 
 \S4method{fetchRest}{KorAPQuery}(kqo,
   verbose = kqo@korapConnection@verbose)
+
+\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "", ...)
 
 \method{format}{KorAPQuery}(x, ...)
 
@@ -68,9 +72,13 @@
 
 \item{verbose}{print progress information if true}
 
-\item{x}{KorAPQuery object}
+\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
+
+\item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
 \item{...}{further arguments passed to or from other methods}
+
+\item{x}{KorAPQuery object}
 
 \item{object}{KorAPQuery object}
 }
@@ -80,6 +88,13 @@ The \code{kqo} input object with updated slots \code{collectedMatches}, \code{ap
 \description{
 \code{KorAPQuery} objetcs represent the current state of a query to a KorAP server.
 New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
+
+\bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
+
+\bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
+\code{\link{ci}} to compute a table with the relative frequencies and
+confidence intervals of one ore multiple search terms across one or multiple
+virtual corpora.
 }
 \examples{
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
@@ -87,6 +102,9 @@ q@collectedMatches
 
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
+
+new("KorAPConnection", verbose = TRUE) \%>\%
+  frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 
 }
 \references{

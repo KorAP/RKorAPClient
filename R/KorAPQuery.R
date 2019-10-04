@@ -65,6 +65,7 @@ setGeneric("corpusQuery", function(kco, ...)  standardGeneric("corpusQuery") )
 setGeneric("fetchAll", function(kqo, ...)  standardGeneric("fetchAll") )
 setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
 setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
+setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
 
 maxResultsPerPage <- 50
 
@@ -94,7 +95,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
-#' @return A \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
+#' @param expand logical that deicdes if \code{query} and \code{vc} parameters are expanded to all of their combinations
+#' @return Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 #' A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
 #' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
 #'
@@ -145,13 +147,15 @@ setMethod("corpusQuery", "KorAPConnection",
                       "availability", "textClass", "snippet"),
            accessRewriteFatal = TRUE,
            verbose = kco@verbose,
+           expand = length(vc) != length(query),
            as.df = FALSE) {
     ifelse(length(query) > 1 , {
-           #grid <- expand_grid(query=query, vc=vc)
-           return(
+        grid <- { if (expand)  expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc) }
+        return(
              do.call(rbind,
-                     Map(function(q, cq) corpusQuery(kco, query=q, vc=cq,
-                                                     verbose=verbose, as.df = TRUE), query, vc))
+                     Map(function(q, cq) corpusQuery(kco, query=q, vc=cq, ql=ql,
+                                                     verbose=verbose, as.df = TRUE), grid$query, grid$vc)) %>%
+               remove_rownames()
            )}, {
              contentFields <- c("snippet")
              fields <- fields[!fields %in% contentFields]
@@ -184,6 +188,8 @@ setMethod("corpusQuery", "KorAPConnection",
   })
 
 #' Fetch the next bunch of results of a KorAP query.
+#'
+#' \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 #'
 #' @param kqo object obtained from \code{\link{corpusQuery}}
 #' @param offset start offset for query results to fetch
@@ -279,6 +285,29 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @export
 setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose))
+})
+
+#' Query relative frequency of search term(s)
+#'
+#' \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
+#' \code{\link{ci}} to compute a table with the relative frequencies and
+#' confidence intervals of one ore multiple search terms across one or multiple
+#' virtual corpora.
+#'
+#' @aliases frequencyQuery
+#' @rdname KorAPQuery-class
+#' @examples
+#' new("KorAPConnection", verbose = TRUE) %>%
+#'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
+#'
+#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
+#' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
+#' @export
+setMethod("frequencyQuery", "KorAPConnection",
+  function(kco, query, vc = "", ...) {
+      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df=TRUE, ...) %>%
+      mutate(tokens=corpusStats(kco, vc=vc, as.df=TRUE)$tokens) %>%
+      ci()
 })
 
 #´ format()
