@@ -7,7 +7,7 @@
 \title{Fetch information about a (virtual) corpus}
 \usage{
 \S4method{corpusStats}{KorAPConnection}(kco, vc = "",
-  verbose = kco@verbose)
+  verbose = kco@verbose, as.df = FALSE)
 }
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
@@ -15,6 +15,8 @@
 \item{vc}{string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
 \item{verbose}{logical. If \code{TRUE}, additional diagnostics are printed.}
+
+\item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
 \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}

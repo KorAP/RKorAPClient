@@ -6,9 +6,16 @@
 \alias{corpusQuery}
 \title{Method corpusQuery}
 \usage{
-\S4method{corpusQuery}{KorAPConnection}(kco, query, vc = "", KorAPUrl,
-  metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-  accessRewriteFatal = TRUE, verbose = kco@verbose)
+\S4method{corpusQuery}{KorAPConnection}(kco,
+  query = ifelse(missing(KorAPUrl),
+  stop("At least one of the parameters query and KorAPUrl must be specified.",
+  call. = FALSE), httr::parse_url(KorAPUrl)$query$q),
+  vc = ifelse(missing(KorAPUrl), "", httr::parse_url(KorAPUrl)$query$cq),
+  KorAPUrl, metadataOnly = TRUE, ql = ifelse(missing(KorAPUrl),
+  "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
+  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace",
+  "availability", "textClass", "snippet"), accessRewriteFatal = TRUE,
+  verbose = kco@verbose, as.df = FALSE)
 }
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
@@ -28,6 +35,8 @@
 \item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).}
 
 \item{verbose}{print some info}
+
+\item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
 A \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
@@ -55,12 +64,12 @@ new("KorAPConnection", verbose=TRUE) \%>\%
   fetchAll() \%>\%
   slot("collectedMatches") \%>\%
   mutate(year = lubridate::year(pubDate)) \%>\%
-  dplyr::select(year) \%>\%
+  select(year) \%>\%
   group_by(year) \%>\%
   summarise(Count = n()) \%>\%
   mutate(Freq = mapply(function(f, y)
     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
-  dplyr::select(-Count) \%>\%
+  select(-Count) \%>\%
   complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
   plot(type = "l")
 
