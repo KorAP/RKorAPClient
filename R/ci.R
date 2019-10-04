@@ -40,9 +40,8 @@ ci <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
     tidyr::unnest(tst)
 }
 
-
-## quiets concerns of R CMD check re: the .'s that appear in pipelines
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
+## Mute notes: "Undefined global functions or variables:"
+globalVariables(c("totalResults", "tokens", "estimate", "tst"))
 
 
 # ci.old <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
