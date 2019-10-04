@@ -25,5 +25,6 @@ Imports:
 Collate: 
     'KorAPConnection.R'
     'KorAPCorpusStats.R'
+    'RKorAPClient.R'
     'KorAPQuery.R'
     'reexports.R'
