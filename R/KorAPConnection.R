@@ -6,10 +6,6 @@
 #' @import R.cache
 #' @import utils
 #' @import methods
-#' @import dplyr
-#' @import purrr
-#' @import tidyr
-
 #' @export
 KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
 

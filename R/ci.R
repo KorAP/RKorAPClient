@@ -1,10 +1,10 @@
-
 #' Add confidence interval and relative frequency variables
 #'
 #' Using \code{\link{prop.test}}, \code{ci} adds three columns to a data frame:
 #' 1. relative frequency (\code{f})
 #' 2. lower bound of a confidence interval (\code{ci.low})
 #' 3. upper bound of a confidence interval
+#'
 #'
 #' @seealso
 #' \code{ci} is alread included in \code{\link{frequencyQuery}}
@@ -18,6 +18,7 @@
 #' @export
 #' @importFrom stats prop.test
 #' @importFrom tibble remove_rownames
+#' @importFrom dplyr enquo rename starts_with
 #' @examples
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
