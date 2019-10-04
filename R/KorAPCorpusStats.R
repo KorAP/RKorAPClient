@@ -13,12 +13,16 @@
 #' @slot paragraphs number of paragraphs
 setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric"))
 
+log.info <- function(v,  ...) {
+  cat(ifelse(v, paste0(...), ""))
+}
 setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 
 #' Fetch information about a (virtual) corpus
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param verbose logical. If \code{TRUE}, additional diagnostics are printed.
+#' @param as.df return result as data frame instead of as S4 object?
 #' @return \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
 #'
 #' @examples
@@ -29,16 +33,22 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #'
 #' @aliases corpusStats
 #' @export
-setMethod("corpusStats", "KorAPConnection",  function(kco, vc="", verbose = kco@verbose) {
-  url <- paste0(kco@apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
-  if (verbose) {
-    cat("Calculating size of corpus \"", vc,"\"", sep="")
-  }
-  res <- apiCall(kco, url)
-  if (verbose) {
-    cat("\n")
-  }
-  new("KorAPCorpusStats", vc = vc, documents = res$documents, tokens = res$tokens, sentences = res$sentences, paragraphs = res$paragraphs)
+setMethod("corpusStats", "KorAPConnection",  function(kco, vc="", verbose = kco@verbose, as.df = FALSE) {
+  ifelse(length(vc) > 1,
+    return(
+      sapply(vc, function(cq) corpusStats(kco, cq, verbose, as.df = TRUE)) %>%
+        apply(1, unlist) %>%
+        as.data.frame() %>%
+        rownames_to_column("vc")
+    ), {
+    url <- paste0(kco@apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
+    log.info(verbose, "Calculating size of corpus \"", vc,"\"", sep="")
+    res <- apiCall(kco, url)
+    log.info(verbose, "\n")
+    ifelse(as.df, return(as.data.frame(vc=vc, res)),
+      return(new("KorAPCorpusStats", vc = vc, documents = res$documents, tokens = res$tokens, sentences = res$sentences, paragraphs = res$paragraphs))
+    )
+  })
 })
 
 #' @rdname KorAPCorpusStats-class

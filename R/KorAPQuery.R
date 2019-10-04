@@ -4,11 +4,12 @@
 #' New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 #'
 #' @include KorAPConnection.R
+#' @import jsonlite
 #' @import tidyr
 #' @import dplyr
 #' @import httr
 #'
-#'
+#' @include RKorAPClient.R
 
 #' @export
 KorAPQuery <- setClass("KorAPQuery", slots = c(
@@ -80,6 +81,9 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
   return(URLdecode(gsub(".*[?&]q=([^&]*).*", '\\1', KorAPUrl, perl = TRUE)))
 }
 
+## quiets concerns of R CMD check re: the .'s that appear in pipelines
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
+
 #' Method corpusQuery
 #'
 #' Perform a corpus query via a connection to a KorAP-API-server.
@@ -93,6 +97,7 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @param fields (meta)data fields that will be fetched for every match.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).
 #' @param verbose print some info
+#' @param as.df return result as data frame instead of as S4 object?
 #' @return A \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 #' A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
 #' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
@@ -115,12 +120,12 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #'   fetchAll() %>%
 #'   slot("collectedMatches") %>%
 #'   mutate(year = lubridate::year(pubDate)) %>%
-#'   dplyr::select(year) %>%
+#'   select(year) %>%
 #'   group_by(year) %>%
 #'   summarise(Count = n()) %>%
 #'   mutate(Freq = mapply(function(f, y)
 #'     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) %>%
-#'   dplyr::select(-Count) %>%
+#'   select(-Count) %>%
 #'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
 #'   plot(type = "l")
 #'
@@ -132,47 +137,55 @@ KorAPQueryStringFromUrl <- function(KorAPUrl) {
 #' @aliases corpusQuery
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
-          function(kco, query, vc="", KorAPUrl, metadataOnly = TRUE, ql = "poliqarp", fields = defaultFields,
-                   accessRewriteFatal = TRUE, verbose = kco@verbose) {
-            defaultFields <- c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
-                               "availability", "textClass", "snippet")
-            contentFields <- c("snippet")
-            fields <- fields[!fields %in% contentFields]
+  function(kco,
+           query = ifelse(missing(KorAPUrl),
+                     stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE),
+                     httr::parse_url(KorAPUrl)$query$q),
+           vc = ifelse(missing(KorAPUrl), "", httr::parse_url(KorAPUrl)$query$cq),
+           KorAPUrl,
+           metadataOnly = TRUE,
+           ql = ifelse(missing(KorAPUrl), "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
+           fields = c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
+                      "availability", "textClass", "snippet"),
+           accessRewriteFatal = TRUE,
+           verbose = kco@verbose,
+           as.df = FALSE) {
+    ifelse(length(query) > 1, {
+           #grid <- expand_grid(query=query, vc=vc)
+           return(
+             mapply(function(q, cq) corpusQuery(kco, query=q, vc=cq, verbose=verbose, as.df = TRUE), query, vc) %>%
+               apply(1, unlist) %>%
+               as.data.frame(stringsAsFactors=FALSE) %>%
+               as_tibble() %>%
+#               mutate_at(vars(query, vc), as.factor) %>%
+               mutate_at(vars(totalResults), as.numeric)
+           )}, {
 
-            if (missing(query) && missing(KorAPUrl) ||  ! (missing(query) || missing(KorAPUrl))) {
-              stop("Exactly one of the parameters query and KorAPUrl must be specified.")
-            }
-            if (missing(query)) {
-              query <- QueryParameterFromUrl(KorAPUrl, "q")
-              vc <- QueryParameterFromUrl(KorAPUrl, "cq")
-              ql <- QueryParameterFromUrl(KorAPUrl, "ql")
-            }
-            request <- paste0('?q=', URLencode(query, reserved=TRUE),
-                              ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
-            webUIRequestUrl <- paste0(kco@KorAPUrl, request)
-            requestUrl <- paste0(kco@apiUrl, 'search', request,
-                                 '&fields=', paste(fields, collapse = ","),
-                                 ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
-            if (verbose) {
-              cat("Searching \"", query, "\" in \"", vc, "\"", sep="")
-            }
-            res = apiCall(kco, paste0(requestUrl, '&count=0'))
-            if (verbose) {
-              cat(" took ", res$meta$benchmark, "\n", sep="")
-            }
-            KorAPQuery(
-              korapConnection = kco,
-              nextStartIndex = 0,
-              fields = fields,
-              requestUrl = requestUrl,
-              request = request,
-              totalResults = res$meta$totalResults,
-              vc = vc,
-              apiResponse = res,
-              webUIRequestUrl = webUIRequestUrl,
-              hasMoreMatches = (res$meta$totalResults > 0),
-            )
-          })
+             contentFields <- c("snippet")
+             fields <- fields[!fields %in% contentFields]
+    request <- paste0('?q=', URLencode(query, reserved=TRUE),
+                      ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
+    webUIRequestUrl <- paste0(kco@KorAPUrl, request)
+    requestUrl <- paste0(kco@apiUrl, 'search', request,
+                         '&fields=', paste(fields, collapse = ","),
+                         ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
+    log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep="")
+    res = apiCall(kco, paste0(requestUrl, '&count=0'))
+    log.info(verbose, " took ", res$meta$benchmark, "\n", sep="")
+    ifelse(as.df, return(list(query=query, totalResults=res$meta$totalResults, vc=vc, webUIRequestUrl=as.character(webUIRequestUrl))),
+     return(KorAPQuery(
+      korapConnection = kco,
+      nextStartIndex = 0,
+      fields = fields,
+      requestUrl = requestUrl,
+      request = request,
+      totalResults = res$meta$totalResults,
+      vc = vc,
+      apiResponse = res,
+      webUIRequestUrl = webUIRequestUrl,
+      hasMoreMatches = (res$meta$totalResults > 0),
+    )))})
+  })
 
 #' Fetch the next bunch of results of a KorAP query.
 #'
