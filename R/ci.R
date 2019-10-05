@@ -35,7 +35,7 @@ ci <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
   df %>%
     rowwise %>%
     mutate(tst = list(broom::tidy(prop.test(!!x, !!N, conf.level = conf.level)) %>%
-                        select("estimate", starts_with("conf.")) %>%
+                        select("estimate", "conf.low", "conf.high") %>%
                         rename(f = estimate)
     )) %>%
     tidyr::unnest(tst)
