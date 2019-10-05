@@ -11,7 +11,7 @@ library(reshape2)
 
 conditionsOverTime <- function(query, conditions, years, kco = new("KorAPConnection", verbose = TRUE)) {
   g <- expand_grid(condition = conditions, year = years) %>%
-  cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", sprintf("%s & pubDate in %d", .$condition, .$year))) %>%
+  cbind(frequencyQuery(kco, query, sprintf("%s & pubDate in %d", .$condition, .$year))) %>%
   ggplot(aes(x = year, y = f, fill=condition, color=condition)) +
     geom_point() +
     geom_line() +
