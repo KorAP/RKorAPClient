@@ -31,4 +31,5 @@ Collate:
     'RKorAPClient.R'
     'KorAPQuery.R'
     'ci.R'
+    'misc.R'
     'reexports.R'
