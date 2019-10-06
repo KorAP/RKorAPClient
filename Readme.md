@@ -27,6 +27,20 @@ library(RKorAPClient)
 library(RKorAPClient)
 new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
 ```
+
+## Example
+```r
+library(RKorAPClient)
+library(ggplot2)
+kco <- new("KorAPConnection", verbose=TRUE)
+expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"), year = (2002:2018)) %>%
+    cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", paste0(.$condition," & pubDate in ", .$year)))  %>%
+    ipm() %>%
+    ggplot(aes(x = year, y = ipm, fill = condition, color = condition, ymin = conf.low, ymax = conf.high)) +
+    geom_freq_by_year_ci()
+```
+![](man/figures/Readme-Example-1.png)<!-- -->
+
 ## Demos
 
 More elaborate R scripts demonstrating the use of the package can be found in the [demo](demo) folder.
