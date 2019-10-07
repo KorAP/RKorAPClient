@@ -4,7 +4,8 @@
 \alias{geom_freq_by_year_ci}
 \title{Plot frequency by year graphs with confidence intervals}
 \usage{
-geom_freq_by_year_ci()
+geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high),
+  ...)
 }
 \description{
 Convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
@@ -17,7 +18,7 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
                             paste0(.$condition," & pubDate in ", .$year)))  \%>\%
   ipm() \%>\%
-  ggplot(aes(year, ipm, fill = condition, color = condition, ymin = conf.low, ymax = conf.high)) +
+  ggplot(aes(year, ipm, fill = condition, color = condition)) +
   geom_freq_by_year_ci()
 
 }
