@@ -6,22 +6,21 @@ library(RKorAPClient)
 library(ggplot2)
 
 freqPerDomain <- function(query, con = new("KorAPConnection", verbose = TRUE)) {
-  q <- corpusQuery(con, query = query, vc="")
-  q <- fetchAll(q)
-  tokensPerMainTopic <-
-    function(topic) {
-      return(corpusStats(con, sprintf("textClass = /%s.*/", topic))@tokens)
-    }
-  q@collectedMatches$primaryTopic <-
-    sapply(strsplit(as.character(q@collectedMatches$textClass), " "), `[[`, 1)
-  df <- as.data.frame(table(q@collectedMatches$primaryTopic, dnn = "Domain"))
-  df$total <- sapply(df$Domain, tokensPerMainTopic)
-  df$freq <- df$Freq / df$total
-  df$ci <- t(sapply(Map(prop.test, df$Freq, df$total), "[[","conf.int"))
-  g <- ggplot(data = df, mapping = aes(x = Domain, y = freq)) +
+  g <- corpusQuery(con, query = query, vc="") %>%
+    fetchAll() %>%
+    slot("collectedMatches") %>%
+    mutate(Domain = sapply(strsplit(as.character(.$textClass), " "), `[[`, 1)) %>%
+    group_by(Domain) %>%
+    filter(!is.na(Domain)) %>%
+    summarise(count = dplyr::n()) %>%
+    mutate(tokens = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
+    ci(x = count) %>%
+    ipm() %>%
+    { df <<- . } %>%
+    ggplot(aes(x = Domain, y = ipm, ymin = conf.low, ymax = conf.high)) +
     geom_col() +
-    geom_errorbar(aes(ymin=ci[, 1], ymax=ci[, 2]), width=.5, alpha=.5) +
-    ylab(sprintf("Observed frequency of \u201c%s\u201d", query)) +
+    geom_errorbar(width = .3, alpha = .3) +
+    ylab(sprintf("Observed frequency/million of \u201c%s\u201d", query)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   print(g)
   df
