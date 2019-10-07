@@ -2,12 +2,19 @@
 % Please edit documentation in R/misc.R
 \name{geom_freq_by_year_ci}
 \alias{geom_freq_by_year_ci}
-\title{Plot frequency by year graphs with confidence intervals}
+\title{Experimental: Plot frequency by year graphs with confidence intervals}
 \usage{
-geom_freq_by_year_ci()
+geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high),
+  ...)
+}
+\arguments{
+\item{mapping}{Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.}
+
+\item{...}{Other arguments passed to geom_ribbon, geom_line, and geom_click_point.}
 }
 \description{
-Convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
+Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
+\bold{Warning:} This function may be moved to a new package.
 }
 \examples{
 library(ggplot2)
@@ -17,7 +24,7 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
                             paste0(.$condition," & pubDate in ", .$year)))  \%>\%
   ipm() \%>\%
-  ggplot(aes(year, ipm, fill = condition, color = condition, ymin = conf.low, ymax = conf.high)) +
+  ggplot(aes(year, ipm, fill = condition, color = condition)) +
   geom_freq_by_year_ci()
 
 }
