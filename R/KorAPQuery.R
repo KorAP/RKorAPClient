@@ -117,12 +117,12 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'   fetchAll() %>%
 #'   slot("collectedMatches") %>%
 #'   mutate(year = lubridate::year(pubDate)) %>%
-#'   select(year) %>%
+#'   dplyr::select(year) %>%
 #'   group_by(year) %>%
 #'   summarise(Count = n()) %>%
 #'   mutate(Freq = mapply(function(f, y)
 #'     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) %>%
-#'   select(-Count) %>%
+#'   dplyr::select(-Count) %>%
 #'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
 #'   plot(type = "l")
 #'
@@ -202,7 +202,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr rowwise bind_rows
+#' @importFrom dplyr rowwise bind_rows select
 #' @export
 setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
@@ -226,7 +226,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       kqo@fields %>%
       map_dfr( ~tibble(!!.x := logical() ) ) %>%
       bind_rows(res$matches) %>%
-      select(kqo@fields)
+      dplyr::select(kqo@fields)
     if ("pubDate" %in% kqo@fields) {
       currentMatches$pubDate <-  currentMatches$pubDate %>% as.Date(format = "%Y-%m-%d")
       factorCols <- currentMatches %>% select(-pubDate) %>% colnames()

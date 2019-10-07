@@ -67,12 +67,12 @@ new("KorAPConnection", verbose=TRUE) \%>\%
   fetchAll() \%>\%
   slot("collectedMatches") \%>\%
   mutate(year = lubridate::year(pubDate)) \%>\%
-  select(year) \%>\%
+  dplyr::select(year) \%>\%
   group_by(year) \%>\%
   summarise(Count = n()) \%>\%
   mutate(Freq = mapply(function(f, y)
     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
-  select(-Count) \%>\%
+  dplyr::select(-Count) \%>\%
   complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
   plot(type = "l")
 
