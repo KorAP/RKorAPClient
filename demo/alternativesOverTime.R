@@ -12,14 +12,11 @@ alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection
     cbind(corpusQuery(kco, .$Variant, sprintf("textType = /Zeit.*/ & pubDate in %d", .$year))) %>%
     group_by(year) %>% mutate(tokens = sum(totalResults)) %>%
     ci()
-  g <- ggplot(data = df, mapping = aes(x = year, y = f, color = Variant, fill = Variant)) +
-    geom_ribbon(aes(ymin = conf.low, ymax = conf.high, color = Variant, fill = Variant), alpha = .3, linetype = 0) +
-    geom_line() +
-    geom_point() +
+  g <- ggplot(data = df, mapping = aes(x = year, y = f, color = Variant, fill = Variant, ymin = conf.low, ymax = conf.high)) +
+    geom_freq_by_year_ci() +
     ggtitle(paste0(alternatives, collapse = " vs. ")) +
     xlab("TIME") +
-    ylab(sprintf("Observed frequency ratio")) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_x_continuous(breaks = unique(df$year))
+    ylab(sprintf("Observed frequency ratio"))
   pp <- ggplotly(g, tooltip = c("x", "y"))
   for (i in 1:length(alternatives)) {
     vdata <- df[df$Variant == alternatives[i],]
