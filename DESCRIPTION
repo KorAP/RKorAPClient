@@ -22,6 +22,8 @@ Imports:
     lubridate,
     curl,
     jsonlite,
+    plotly,
+    htmlwidgets,
     utils,
     httr,
     methods
