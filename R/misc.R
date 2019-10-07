@@ -40,12 +40,48 @@ ipm <- function(df) {
 #' @importFrom ggplot2 geom_ribbon geom_line geom_point theme element_text scale_x_continuous
 #'
 #' @export
-geom_freq_by_year_ci <- function() {
+geom_freq_by_year_ci <- function(mapping = NULL) {
   list(
     geom_ribbon(alpha = .3, linetype = 0, show.legend = FALSE),
     geom_line(),
-    geom_point(),
+    geom_click_point(mapping),
     theme(axis.text.x = element_text(angle = 45, hjust = 1)),
     scale_x_continuous(breaks = function(x) seq(ceiling(x[1]), floor(x[2]), by = 1 + floor(((x[2]-x[1])/30)))))
 }
 
+GeomClickPoint <- ggproto(
+  "GeomPoint",
+  GeomPoint,
+  required_aes = c("x", "y"),
+  default_aes = aes(
+    shape = 19, colour = "black", size = 1.5, fill = NA,
+    alpha = NA, stroke = 0.5, url = NA
+  ),
+  extra_params = c("na.rm", "url"),
+  draw_panel = function(data, panel_params,
+                        coord, na.rm = FALSE, showpoints = TRUE, url = NULL) {
+    GeomPoint$draw_panel(data, panel_params, coord, na.rm = na.rm)
+  }
+)
+
+geom_click_point <- function(mapping = NULL, data = NULL, stat = "identity",
+                              position = "identity", na.rm = FALSE, show.legend = NA,
+                              inherit.aes = TRUE, url = NA, ...) {
+  layer(
+    geom = GeomClickPoint, mapping = mapping,  data = data, stat = stat,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+addKorAPHyperlinks <- function(p) {
+  pattern <- "webUIRequestUrl: ([^<]+)"
+  for(i in grep("webUIRequestUrl", p$x$data)) {
+    x <- p[["x"]][["data"]][[i]][["text"]]
+    m <- regexpr(pattern, x)
+    matches <- sub("webUIRequestUrl: ", "", regmatches(x, m))
+    p$x$data[[i]]$customdata <- matches
+    p[["x"]][["data"]][[i]][["text"]] <- sub("webUIRequestUrl:[^<]*<br ?/?>", "", p[["x"]][["data"]][[i]][["text"]] )
+  }
+  onRender(p, "function(el, x) { el.on('plotly_click', function(d) { var url=d.points[0].customdata; if(url) { window.open(url, 'korap') } })}")
+}
