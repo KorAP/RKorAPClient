@@ -33,7 +33,8 @@
 \S4method{fetchRest}{KorAPQuery}(kqo,
   verbose = kqo@korapConnection@verbose)
 
-\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "", ...)
+\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "",
+  conf.level = 0.95, ...)
 
 \method{format}{KorAPQuery}(x, ...)
 
@@ -75,6 +76,8 @@
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
+
+\item{conf.level}{confidence level of the returned confidence interval (passed throgh \code{\link{ci}}  to \code{\link{prop.test}}).}
 
 \item{...}{further arguments passed to or from other methods}
 
