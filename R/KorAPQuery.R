@@ -305,10 +305,10 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
 #' @export
 setMethod("frequencyQuery", "KorAPConnection",
-  function(kco, query, vc = "", ...) {
-      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df=TRUE, ...) %>%
+  function(kco, query, vc = "", conf.level = 0.95, ...) {
+      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
       mutate(tokens=corpusStats(kco, vc=vc, as.df=TRUE)$tokens) %>%
-      ci()
+      ci(conf.level = conf.level)
 })
 
 #´ format()

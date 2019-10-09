@@ -33,7 +33,8 @@
 \S4method{fetchRest}{KorAPQuery}(kqo,
   verbose = kqo@korapConnection@verbose)
 
-\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "", ...)
+\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "",
+  conf.level = 0.95, ...)
 
 \method{format}{KorAPQuery}(x, ...)
 
