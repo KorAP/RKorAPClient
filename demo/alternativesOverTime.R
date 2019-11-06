@@ -17,7 +17,8 @@ alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection
     geom_freq_by_year_ci() +
     ggtitle(paste0(alternatives, collapse = " vs. ")) +
     xlab("TIME") +
-    ylab(sprintf("Observed frequency ratio"))
+    ylab(sprintf("Observed frequency ratio")) +
+    theme(text = element_text(size = 16))
   ppp <- RKorAPClient::ggplotly(g)
   print(ppp)
   df
