@@ -73,6 +73,9 @@ setMethod("initialize", "KorAPConnection",
               .Object@apiUrl = apiUrl
             }
             .Object@accessToken = accessToken
+            if (is.null(accessToken)) {
+              message("By using RKorAPClient to access the German Reference Corpus DeReKo, you agree that you are using it exclusively for non-commercial and academic purposes.")
+            }
             .Object@apiVersion = apiVersion
             .Object@userAgent = userAgent
             .Object@timeout = timeout
