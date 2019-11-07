@@ -54,6 +54,9 @@ setMethod("initialize", "KorAPConnection",
               .Object@apiUrl = apiUrl
             }
             .Object@apiToken = apiToken
+            if (is.null(apiToken))
+              warning("By using this service you agree that you are using it exclusively for non-commercial and academic purposes.", call. = FALSE)
+
             .Object@apiVersion = apiVersion
             .Object@userAgent = userAgent
             .Object@timeout = timeout
