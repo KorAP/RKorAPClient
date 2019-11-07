@@ -22,6 +22,7 @@ Imports:
     lubridate,
     curl,
     jsonlite,
+    keyring,
     plotly,
     htmlwidgets,
     utils,
