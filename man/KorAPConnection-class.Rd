@@ -5,6 +5,10 @@
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
 \alias{initialize,KorAPConnection-method}
+\alias{persistApiToken,KorAPConnection-method}
+\alias{persistApiToken}
+\alias{clearApiToken,KorAPConnection-method}
+\alias{clearApiToken}
 \alias{apiCall,KorAPConnection-method}
 \alias{apiCall}
 \alias{clearCache,KorAPConnection-method}
@@ -14,8 +18,13 @@
 \usage{
 \S4method{initialize}{KorAPConnection}(.Object,
   KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
-  apiUrl, userAgent = "R-KorAP-Client", timeout = 10,
-  verbose = FALSE, cache = TRUE)
+  apiUrl, apiToken = getApiToken(KorAPUrl),
+  userAgent = "R-KorAP-Client", timeout = 10, verbose = FALSE,
+  cache = TRUE)
+
+\S4method{persistApiToken}{KorAPConnection}(kco, apiToken = kco@apiToken)
+
+\S4method{clearApiToken}{KorAPConnection}(kco)
 
 \S4method{apiCall}{KorAPConnection}(kco, url)
 
@@ -32,13 +41,25 @@
 
 \item{apiUrl}{URL of the KorAP web service.}
 
+\item{apiToken}{OAuth2 API token. To use authorization based on an API token in
+subsequent queries, intialize your KorAP connection with
+\code{kco <- new("KorAPConnection", apiToken="<API Token>")}. In order to make the API
+token persistent for the currently used \code{KorAPUrl} (you can have one
+token per KorAPUrl / KorAP server instance), use
+\code{persistApiToken(kco)}. This will store it in your keyring using the
+\code{\link{keyring}} package. Subsequent new("KorAPConnection") calls will then
+automatically retrieve the token from your keying. To stop using a
+persisted token, call \code{clearApiToken(kco)}.}
+
 \item{userAgent}{user agent string.}
 
 \item{timeout}{time out in seconds.}
 
-\item{verbose}{logical. Decides whether following operations will default to be verbose.}
+\item{verbose}{logical. Decides whether following operations will default to
+be verbose.}
 
-\item{cache}{logical. Decides if API calls are cached locally. You can clear the cache with \code{\link{clearCache}()}.}
+\item{cache}{logical. Decides if API calls are cached locally. You can clear
+the cache with \code{\link{clearCache}()}.}
 
 \item{kco}{KorAPConnection object}
 
@@ -47,7 +68,8 @@
 \item{object}{KorAPConnection object}
 }
 \value{
-\code{\link{KorAPConnection}} object that can be used e.g. with \code{\link{corpusQuery}}
+\code{\link{KorAPConnection}} object that can be used e.g. with
+  \code{\link{corpusQuery}}
 }
 \description{
 \code{KorAPConnection} objects represent the connection to a KorAP server.
@@ -60,5 +82,15 @@ Currently it is not possible to authenticate the client
 kcon <- new("KorAPConnection", verbose = TRUE)
 kq <- corpusQuery(kcon, "Ameisenplage")
 kq <- fetchAll(kq)
+
+\dontrun{
+kco <- new("KorAPConnection", apiToken="e739u6eOzkwADQPdVChxFg")
+persistApiToken(kco)
+}
+
+\dontrun{
+kco <- new("KorAPConnection")
+clearApiToken(kco)
+}
 
 }

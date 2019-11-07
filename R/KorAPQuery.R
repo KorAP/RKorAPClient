@@ -157,7 +157,9 @@ setMethod("corpusQuery", "KorAPConnection",
                remove_rownames()
            )}, {
              contentFields <- c("snippet")
-             fields <- fields[!fields %in% contentFields]
+             if(metadataOnly) {
+                fields <- fields[!fields %in% contentFields]
+             }
              request <- paste0('?q=', URLencode(query, reserved=TRUE),
                       ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
              webUIRequestUrl <- paste0(kco@KorAPUrl, request)
