@@ -3,6 +3,11 @@ test_that("KorAPConnection is printable", {
   expect_error(print(kco), NA)
 })
 
+test_that("KorAPConnection without access token prints ToS message", {
+  expect_message(new("KorAPConnection", accessToken = NULL),
+                 ".*By using.*non-commercial.*purposes", perl = TRUE)
+})
+
 test_that("Opening KorAPConnection with apiToken works", {
   kco <- new("KorAPConnection", accessToken="test token")
   persistAccessToken(kco)
