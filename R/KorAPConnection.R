@@ -1,3 +1,8 @@
+################################################################################
+# Use setClassUnion to define the unholy NULL-data union as a virtual class.
+################################################################################
+setClassUnion("characterOrNULL", c("character", "NULL"))
+
 #' Class KorAPConnection
 #'
 #' \code{KorAPConnection} objects represent the connection to a KorAP server.
@@ -7,7 +12,7 @@
 #' @import utils
 #' @import methods
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", apiToken="character", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", apiToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
