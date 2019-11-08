@@ -114,14 +114,14 @@ setGeneric("clearApiToken", function(kco) standardGeneric("clearApiToken") )
 #' }
 #'
 setMethod("clearApiToken", "KorAPConnection",  function(kco) {
-  key_delete("RKorAPClientAPIToken", kco@KorAPUrl)
+  key_delete(apiTokenServiceName, kco@KorAPUrl)
 })
 
 #' @import keyring
 getApiToken <- function(KorAPUrl) {
   ifelse("keyring" %in% installed.packages()[,1 ]&& has_keyring_support()
-         && KorAPUrl %in% key_list(service = "RKorAPClientAPIToken"),
-         key_get("RKorAPClientAPIToken", KorAPUrl), NULL)
+         && KorAPUrl %in% key_list(service = apiTokenServiceName),
+         key_get(apiTokenServiceName, KorAPUrl), NULL)
 }
 
 KorAPCacheSubDir <- function() {
