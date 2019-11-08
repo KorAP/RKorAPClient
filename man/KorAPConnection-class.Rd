@@ -80,7 +80,7 @@ the cache with \code{\link{clearCache}()}.}
 }
 \description{
 \code{KorAPConnection} objects represent the connection to a KorAP server.
-New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
+New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
 }
 \examples{
 kcon <- new("KorAPConnection", verbose = TRUE)
