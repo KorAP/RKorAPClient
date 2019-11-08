@@ -9,9 +9,9 @@ freqPerDomain <- function(query, con = new("KorAPConnection", verbose = TRUE)) {
   g <- corpusQuery(con, query = query, vc="") %>%
     fetchAll() %>%
     slot("collectedMatches") %>%
-    mutate(Domain = sapply(strsplit(as.character(.$textClass), " "), `[[`, 1)) %>%
+    mutate(Domain = factor(sapply(strsplit(as.character(.$textClass), " "), `[[`, 1))) %>%
     group_by(Domain) %>%
-    filter(!is.na(Domain)) %>%
+    dplyr::filter(!is.na(Domain)) %>%
     summarise(count = dplyr::n()) %>%
     mutate(tokens = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
     ci(x = count) %>%
