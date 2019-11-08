@@ -114,7 +114,7 @@ setGeneric("clearApiToken", function(kco) standardGeneric("clearApiToken") )
 #' }
 #'
 setMethod("clearApiToken", "KorAPConnection",  function(kco) {
-  key_delete("RKorAPClientAPIToken", kco@KorAPUrl)
+  key_delete(apiTokenServiceName, kco@KorAPUrl)
 })
 
 #' @import keyring
