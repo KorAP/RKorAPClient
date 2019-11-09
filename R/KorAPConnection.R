@@ -79,6 +79,7 @@ setMethod("initialize", "KorAPConnection",
             .Object
           })
 
+
 apiTokenServiceName <- "RKorAPClientAPIToken"
 
 setGeneric("persistApiToken", function(kco, apiToken) standardGeneric("persistApiToken") )
@@ -157,15 +158,17 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   }
   parsed <- jsonlite::fromJSON(content(resp, "text"))
   if (!is.null(parsed$warnings)) {
-    message <- ifelse (nrow(parsed$warnings) > 1,
-                       sapply(parsed$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n")),
-                       sprintf("%s: %s", parsed$warnings[1], parsed$warnings[2]))
+    message <- if (nrow(parsed$warnings) > 1)
+      sapply(parsed$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
+    else
+      sprintf("%s: %s", parsed$warnings[1], parsed$warnings[2])
     warning(message, call. = FALSE)
   }
   if (status_code(resp) != 200) {
-    message <- ifelse (!is.null(parsed$errors),
-                       sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KorAP API request failed: %s", error[1], error[2]))),
-                       message <- sprintf("%s: KorAP API request failed.", status_code(resp)))
+    message <- if (!is.null(parsed$errors))
+                 sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KorAP API request failed: %s", error[1], error[2])))
+               else
+                 message <- sprintf("%s: KorAP API request failed.", status_code(resp))
     stop(message, call. = FALSE)
   }
   if (kco@cache) {

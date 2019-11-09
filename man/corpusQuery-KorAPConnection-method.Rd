@@ -6,17 +6,16 @@
 \alias{corpusQuery}
 \title{Method corpusQuery}
 \usage{
-\S4method{corpusQuery}{KorAPConnection}(kco,
-  query = ifelse(missing(KorAPUrl),
+\S4method{corpusQuery}{KorAPConnection}(kco, query = if
+  (missing(KorAPUrl))
   stop("At least one of the parameters query and KorAPUrl must be specified.",
-  call. = FALSE), httr::parse_url(KorAPUrl)$query$q),
-  vc = ifelse(missing(KorAPUrl), "", httr::parse_url(KorAPUrl)$query$cq),
-  KorAPUrl, metadataOnly = TRUE, ql = ifelse(missing(KorAPUrl),
-  "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
-  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace",
-  "availability", "textClass", "snippet"), accessRewriteFatal = TRUE,
-  verbose = kco@verbose, expand = length(vc) != length(query),
-  as.df = FALSE)
+  call. = FALSE) else httr::parse_url(KorAPUrl)$query$q, vc = if
+  (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq, KorAPUrl,
+  metadataOnly = TRUE, ql = if (missing(KorAPUrl)) "poliqarp" else
+  httr::parse_url(KorAPUrl)$query$ql, fields = c("corpusSigle",
+  "textSigle", "pubDate", "pubPlace", "availability", "textClass",
+  "snippet"), accessRewriteFatal = TRUE, verbose = kco@verbose,
+  expand = length(vc) != length(query), as.df = FALSE)
 }
 \arguments{
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}

@@ -134,58 +134,84 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @aliases corpusQuery
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
-  function(kco,
-           query = ifelse(missing(KorAPUrl),
-                     stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE),
-                     httr::parse_url(KorAPUrl)$query$q),
-           vc = ifelse(missing(KorAPUrl), "", httr::parse_url(KorAPUrl)$query$cq),
-           KorAPUrl,
-           metadataOnly = TRUE,
-           ql = ifelse(missing(KorAPUrl), "poliqarp", httr::parse_url(KorAPUrl)$query$ql),
-           fields = c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
-                      "availability", "textClass", "snippet"),
-           accessRewriteFatal = TRUE,
-           verbose = kco@verbose,
-           expand = length(vc) != length(query),
-           as.df = FALSE) {
-    ifelse(length(query) > 1 || length(vc) > 1, {
-        grid <- { if (expand)  expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc) }
+          function(kco,
+                   query = if (missing(KorAPUrl))
+                     stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
+                   else
+                     httr::parse_url(KorAPUrl)$query$q,
+                   vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+                   KorAPUrl,
+                   metadataOnly = TRUE,
+                   ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+                   fields = c(
+                     "corpusSigle",
+                     "textSigle",
+                     "pubDate",
+                     "pubPlace",
+                     "availability",
+                     "textClass",
+                     "snippet"
+                   ),
+                   accessRewriteFatal = TRUE,
+                   verbose = kco@verbose,
+                   expand = length(vc) != length(query),
+          as.df = FALSE) {
+  if (length(query) > 1 || length(vc) > 1) {
+
+    grid <- {
+      if (expand)
+        expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc) }
         return(
              do.call(rbind,
                      Map(function(q, cq) corpusQuery(kco, query=q, vc=cq, ql=ql,
                                                      verbose=verbose, as.df = TRUE), grid$query, grid$vc)) %>%
                remove_rownames()
-           )}, {
-             contentFields <- c("snippet")
-             if(metadataOnly) {
-                fields <- fields[!fields %in% contentFields]
-             }
-             request <- paste0('?q=', URLencode(query, reserved=TRUE),
-                      ifelse(vc != '', paste0('&cq=', URLencode(vc, reserved=TRUE)), ''), '&ql=', ql)
-             webUIRequestUrl <- paste0(kco@KorAPUrl, request)
-             requestUrl <- paste0(kco@apiUrl, 'search', request,
-                                  '&fields=', paste(fields, collapse = ","),
-                                  ifelse(metadataOnly, '&access-rewrite-disabled=true', ''))
-             log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep="")
-             res = apiCall(kco, paste0(requestUrl, '&count=0'))
-             log.info(verbose, " took ", res$meta$benchmark, "\n", sep="")
-             ifelse(as.df,
-                    return(data.frame(query=query,
-                                      totalResults=res$meta$totalResults,
-                                      vc=vc,
-                                      webUIRequestUrl=webUIRequestUrl, stringsAsFactors = FALSE)),
-                    return(KorAPQuery(
-                      korapConnection = kco,
-                      nextStartIndex = 0,
-                      fields = fields,
-                      requestUrl = requestUrl,
-                      request = request,
-                      totalResults = res$meta$totalResults,
-                      vc = vc,
-                      apiResponse = res,
-                      webUIRequestUrl = webUIRequestUrl,
-                      hasMoreMatches = (res$meta$totalResults > 0),
-                    )))})
+           )
+    } else {
+      contentFields <- c("snippet")
+      if (metadataOnly) {
+        fields <- fields[!fields %in% contentFields]
+      }
+      request <-
+        paste0('?q=',
+               URLencode(query, reserved = TRUE),
+               if (vc != '') paste0('&cq=', URLencode(vc, reserved = TRUE)) else '', '&ql=', ql)
+      webUIRequestUrl <- paste0(kco@KorAPUrl, request)
+      requestUrl <- paste0(
+        kco@apiUrl,
+        'search',
+        request,
+        '&fields=',
+        paste(fields, collapse = ","),
+        if (metadataOnly) '&access-rewrite-disabled=true' else ''
+      )
+      log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
+                 "")
+      res = apiCall(kco, paste0(requestUrl, '&count=0'))
+      log.info(verbose, " took ", res$meta$benchmark, "\n", sep =
+                 "")
+      if (as.df)
+        data.frame(
+          query = query,
+          totalResults = res$meta$totalResults,
+          vc = vc,
+          webUIRequestUrl = webUIRequestUrl,
+          stringsAsFactors = FALSE
+        )
+      else
+        KorAPQuery(
+          korapConnection = kco,
+          nextStartIndex = 0,
+          fields = fields,
+          requestUrl = requestUrl,
+          request = request,
+          totalResults = res$meta$totalResults,
+          vc = vc,
+          apiResponse = res,
+          webUIRequestUrl = webUIRequestUrl,
+          hasMoreMatches = (res$meta$totalResults > 0),
+        )
+    }
   })
 
 #' Fetch the next bunch of results of a KorAP query.
@@ -217,7 +243,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   collectedMatches <- kqo@collectedMatches
 
   repeat {
-    res <- apiCall(kqo@korapConnection, paste0(kqo@requestUrl, '&count=', min(ifelse(!is.na(maxFetch), maxFetch - results, maxResultsPerPage), maxResultsPerPage) ,'&offset=', offset + results))
+    res <- apiCall(kqo@korapConnection, paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', offset + results))
     if (res$meta$totalResults == 0) { return(kqo) }
     for (field in kqo@fields) {
       if (!field %in% colnames(res$matches)) {
