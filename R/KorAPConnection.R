@@ -120,9 +120,9 @@ setMethod("clearApiToken", "KorAPConnection",  function(kco) {
 
 #' @import keyring
 getApiToken <- function(KorAPUrl) {
-  if ("keyring" %in% installed.packages()[,1 ] && has_keyring_support()
-         && tryCatch(KorAPUrl %in% key_list(service = apiTokenServiceName), error = function(e) warning(e), finally = { return(NULL) }))
-         key_get(apiTokenServiceName, KorAPUrl)
+  keyList <- key_list(service = apiTokenServiceName)
+  if (KorAPUrl %in% keyList)
+    key_get(apiTokenServiceName, KorAPUrl)
   else
     NULL
 }
