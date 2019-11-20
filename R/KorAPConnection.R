@@ -82,7 +82,7 @@ setMethod("initialize", "KorAPConnection",
 
 apiTokenServiceName <- "RKorAPClientAPIToken"
 
-setGeneric("persistApiToken", function(kco, apiToken) standardGeneric("persistApiToken") )
+setGeneric("persistApiToken", function(kco, ...) standardGeneric("persistApiToken") )
 
 #' @aliases persistApiToken
 #' @rdname KorAPConnection-class
