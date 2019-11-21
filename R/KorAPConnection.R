@@ -120,7 +120,7 @@ setMethod("clearApiToken", "KorAPConnection",  function(kco) {
 
 #' @import keyring
 getApiToken <- function(KorAPUrl) {
-  keyList <- key_list(service = apiTokenServiceName)
+  keyList <- tryCatch(key_list(service = apiTokenServiceName), error = function(e) return(NULL))
   if (KorAPUrl %in% keyList)
     key_get(apiTokenServiceName, KorAPUrl)
   else
