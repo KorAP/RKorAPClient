@@ -3,3 +3,4 @@ frequenciesOverDomains    Box plot frequency of query expressions per topic doma
 conditionsOverTime        Plot frequency of query expressions over time under different conditions
 alternativesOverTime      Plot proportion of alternative spellings/variants over time
 regional                  Map plot regional frequencies of query expression
+mosaicplot                Visualize frequencies of alternative query terms depending on other variables
