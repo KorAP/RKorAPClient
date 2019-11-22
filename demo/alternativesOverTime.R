@@ -9,9 +9,7 @@ library(htmlwidgets)
 
 alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection", verbose=TRUE)) {
   df <- expand_grid(Variant = alternatives, year = years) %>%
-    cbind(corpusQuery(kco, .$Variant, sprintf("textType = /Zeit.*/ & pubDate in %d", .$year))) %>%
-    group_by(year) %>% mutate(tokens = sum(totalResults)) %>%
-    ci() %>%
+    cbind(frequencyQuery(kco, .$Variant, sprintf("textType = /Zeit.*/ & pubDate in %d", .$year), as.alternatives=TRUE)) %>%
     rename(share=f)
   g <- ggplot(data = df, mapping = aes(x = year, y = share, colour = Variant, fill = Variant)) +
     geom_freq_by_year_ci() +

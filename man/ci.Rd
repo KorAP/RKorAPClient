@@ -4,7 +4,7 @@
 \alias{ci}
 \title{Add confidence interval and relative frequency variables}
 \usage{
-ci(df, x = totalResults, N = tokens, conf.level = 0.95)
+ci(df, x = totalResults, N = total, conf.level = 0.95)
 }
 \arguments{
 \item{df}{table with columns for absolute and total frequencies.}
@@ -27,7 +27,7 @@ library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
 expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
   bind_cols(corpusQuery(kco, .$alternatives, sprintf("pubDate in \%d", .$year))) \%>\%
-  mutate(tokens=corpusStats(kco, vc=vc)$tokens) \%>\%
+  mutate(total=corpusStats(kco, vc=vc)$tokens) \%>\%
   ci() \%>\%
   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
     geom_point() + geom_line() + geom_ribbon(alpha=.3)

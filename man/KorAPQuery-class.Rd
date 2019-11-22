@@ -34,7 +34,7 @@
   verbose = kqo@korapConnection@verbose)
 
 \S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "",
-  conf.level = 0.95, ...)
+  conf.level = 0.95, as.alternatives = FALSE, ...)
 
 \method{format}{KorAPQuery}(x, ...)
 
@@ -78,6 +78,8 @@
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
 \item{conf.level}{confidence level of the returned confidence interval (passed throgh \code{\link{ci}}  to \code{\link{prop.test}}).}
+
+\item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
 \item{...}{further arguments passed to or from other methods}
 

@@ -13,7 +13,7 @@ freqPerDomain <- function(query, con = new("KorAPConnection", verbose = TRUE)) {
     group_by(Domain) %>%
     dplyr::filter(!is.na(Domain)) %>%
     summarise(count = dplyr::n()) %>%
-    mutate(tokens = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
+    mutate(total = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
     ci(x = count) %>%
     ipm() %>%
     { df <<- . } %>%

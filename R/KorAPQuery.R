@@ -332,11 +332,18 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
 #' @param conf.level confidence level of the returned confidence interval (passed throgh \code{\link{ci}}  to \code{\link{prop.test}}).
+#' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
 #' @export
 setMethod("frequencyQuery", "KorAPConnection",
-  function(kco, query, vc = "", conf.level = 0.95, ...) {
-      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
-      mutate(tokens=corpusStats(kco, vc=vc, as.df=TRUE)$tokens) %>%
+  function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {
+      (if (as.alternatives) {
+        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
+        group_by(vc) %>%
+        mutate(total = sum(totalResults))
+      } else {
+        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
+        mutate(total = corpusStats(kco, vc=vc, as.df=TRUE)$tokens)
+      } ) %>%
       ci(conf.level = conf.level)
 })
 

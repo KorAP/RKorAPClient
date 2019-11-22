@@ -24,12 +24,12 @@
 #' kco <- new("KorAPConnection", verbose=TRUE)
 #' expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) %>%
 #'   bind_cols(corpusQuery(kco, .$alternatives, sprintf("pubDate in %d", .$year))) %>%
-#'   mutate(tokens=corpusStats(kco, vc=vc)$tokens) %>%
+#'   mutate(total=corpusStats(kco, vc=vc)$tokens) %>%
 #'   ci() %>%
 #'   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
 #'     geom_point() + geom_line() + geom_ribbon(alpha=.3)
 #'
-ci <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
+ci <- function(df, x = totalResults, N = total, conf.level = 0.95) {
   x <- enquo(x)
   N <- enquo(N)
   df %>%
@@ -42,10 +42,10 @@ ci <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
 }
 
 ## Mute notes: "Undefined global functions or variables:"
-globalVariables(c("totalResults", "tokens", "estimate", "tst"))
+globalVariables(c("totalResults", "total", "estimate", "tst"))
 
 
-# ci.old <- function(df, x = totalResults, N = tokens, conf.level = 0.95) {
+# ci.old <- function(df, x = totalResults, N = total, conf.level = 0.95) {
 #   x <- deparse(substitute(x))
 #   N <- deparse(substitute(N))
 #   df <- data.frame(df)
