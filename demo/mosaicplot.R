@@ -30,12 +30,12 @@ mosaicplot <- function(query, vc, kco = new("KorAPConnection", verbose = TRUE)) 
     as.alternatives = TRUE
   ) %>%
   mutate(alternative = queryStringToLabel(query), condition = queryStringToLabel(vc)) %>%
-    { . ->> df } %>%
+    { . ->> queryResult } %>%
     { xtabs(totalResults ~ condition + alternative, .)} %>%
     vcd::mosaic(shade = TRUE) # , labeling = labeling_border(rot_labels = c(45,0,0,0), just_labels = c("left", "center", "center", "right")))
   df
 }
-df <- mosaicplot(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"), c("textDomain=Wirtschaft", "textDomain=Kultur", "textDomain=Sport"))
+queryResult <- mosaicplot(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"), c("textDomain=Wirtschaft", "textDomain=Kultur", "textDomain=Sport"))
 #mosaicplot(c("Asylbewerber", "Asylwerber"), c("pubPlaceKey=DE", "pubPlaceKey=AT"))
 #mosaicplot(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"), c("pubPlaceKey=DE", "pubPlaceKey=AT"))
 #mosaicplot(c("Samstag", "Sonnabend"), c("pubPlace=Hamburg", "pubPlace=Berlin"))
