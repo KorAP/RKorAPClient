@@ -4,8 +4,7 @@
 \alias{geom_freq_by_year_ci}
 \title{Experimental: Plot frequency by year graphs with confidence intervals}
 \usage{
-geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high),
-  ...)
+geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high), ...)
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.}

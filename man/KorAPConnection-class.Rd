@@ -16,11 +16,17 @@
 \alias{show,KorAPConnection-method}
 \title{Class KorAPConnection}
 \usage{
-\S4method{initialize}{KorAPConnection}(.Object,
-  KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = "v1.0",
-  apiUrl, apiToken = getApiToken(KorAPUrl),
-  userAgent = "R-KorAP-Client", timeout = 10, verbose = FALSE,
-  cache = TRUE)
+\S4method{initialize}{KorAPConnection}(
+  .Object,
+  KorAPUrl = "https://korap.ids-mannheim.de/",
+  apiVersion = "v1.0",
+  apiUrl,
+  apiToken = getApiToken(KorAPUrl),
+  userAgent = "R-KorAP-Client",
+  timeout = 10,
+  verbose = FALSE,
+  cache = TRUE
+)
 
 \S4method{persistApiToken}{KorAPConnection}(kco, apiToken = kco@apiToken)
 

@@ -3,7 +3,6 @@
 \docType{package}
 \name{RKorAPClient}
 \alias{RKorAPClient}
-\alias{RKorAPClient-package}
 \title{\code{RKorapClient} package}
 \description{
 R pakcage to access the \href{https://github.com/KorAP/}{KorAP} web service API.

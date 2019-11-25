@@ -22,7 +22,7 @@ below to see their documentation.
 \describe{
   \item{broom}{\code{\link[broom]{tidy}}}
 
-  \item{dplyr}{\code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{summarise}}}
+  \item{dplyr}{\code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
 
   \item{lubridate}{\code{\link[lubridate]{year}}}
 

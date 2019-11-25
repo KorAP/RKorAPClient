@@ -4,8 +4,7 @@
 \alias{ggplotly}
 \title{Experimental: Convert ggplot2 to plotly with hyperlinks to KorAP queries}
 \usage{
-ggplotly(p = ggplot2::last_plot(), tooltip = c("x", "y", "colour",
-  "url"), ...)
+ggplotly(p = ggplot2::last_plot(), tooltip = c("x", "y", "colour", "url"), ...)
 }
 \arguments{
 \item{p}{a ggplot object.}

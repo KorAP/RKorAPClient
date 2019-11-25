@@ -17,24 +17,41 @@
 \alias{show,KorAPQuery-method}
 \title{Class KorAPQuery}
 \usage{
-\S4method{initialize}{KorAPQuery}(.Object, korapConnection = NULL,
-  request = NULL, vc = "", totalResults = 0, nextStartIndex = 0,
-  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace",
-  "availability", "textClass", "snippet"), requestUrl = "",
-  webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE,
-  collectedMatches = NULL)
+\S4method{initialize}{KorAPQuery}(
+  .Object,
+  korapConnection = NULL,
+  request = NULL,
+  vc = "",
+  totalResults = 0,
+  nextStartIndex = 0,
+  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
+    "textClass", "snippet"),
+  requestUrl = "",
+  webUIRequestUrl = "",
+  apiResponse = NULL,
+  hasMoreMatches = FALSE,
+  collectedMatches = NULL
+)
 
-\S4method{fetchNext}{KorAPQuery}(kqo, offset = kqo@nextStartIndex,
-  maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose)
+\S4method{fetchNext}{KorAPQuery}(
+  kqo,
+  offset = kqo@nextStartIndex,
+  maxFetch = maxResultsPerPage,
+  verbose = kqo@korapConnection@verbose
+)
 
-\S4method{fetchAll}{KorAPQuery}(kqo,
-  verbose = kqo@korapConnection@verbose)
+\S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose)
 
-\S4method{fetchRest}{KorAPQuery}(kqo,
-  verbose = kqo@korapConnection@verbose)
+\S4method{fetchRest}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose)
 
-\S4method{frequencyQuery}{KorAPConnection}(kco, query, vc = "",
-  conf.level = 0.95, as.alternatives = FALSE, ...)
+\S4method{frequencyQuery}{KorAPConnection}(
+  kco,
+  query,
+  vc = "",
+  conf.level = 0.95,
+  as.alternatives = FALSE,
+  ...
+)
 
 \method{format}{KorAPQuery}(x, ...)
 
