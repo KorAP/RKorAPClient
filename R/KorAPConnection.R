@@ -12,22 +12,22 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 #' @import utils
 #' @import methods
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", apiToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
-#' @param apiToken OAuth2 API token. To use authorization based on an API token
+#' @param accessToken OAuth2 access token. To use authorization based on an access token
 #'   in subsequent queries, intialize your KorAP connection with
-#'   \code{kco <- new("KorAPConnection", apiToken="<API Token>")}.
+#'   \code{kco <- new("KorAPConnection", accessToken="<access token>")}.
 #'   In order to make the API
 #'   token persistent for the currently used \code{KorAPUrl} (you can have one
 #'   token per KorAPUrl / KorAP server instance), use
-#'   \code{persistApiToken(kco)}. This will store it in your keyring using the
+#'   \code{persistAccessToken(kco)}. This will store it in your keyring using the
 #'   \code{\link{keyring}} package. Subsequent new("KorAPConnection") calls will
 #'   then automatically retrieve the token from your keying. To stop using a
-#'   persisted token, call \code{clearApiToken(kco)}. Please note that for
+#'   persisted token, call \code{clearAccessToken(kco)}. Please note that for
 #'   DeReKo, authorized queries will behave differently inside and outside the
 #'   IDS, because of the special license situation. This concerns also cached
 #'   results which do not take into account from where a request was issued. If
@@ -49,7 +49,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' kq <- fetchAll(kq)
 #'
 #' \dontrun{
-#' kcon <- new("KorAPConnection", verbose = TRUE, apiToken="e739u6eOzkwADQPdVChxFg")
+#' kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
 #' kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 #' kq <- fetchAll(kq)
 #' kq@collectedMatches$snippet
@@ -58,7 +58,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @rdname KorAPConnection-class
 #' @export
 setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, apiToken = getApiToken(KorAPUrl), userAgent = "R-KorAP-Client", timeout=10, verbose = FALSE, cache = TRUE) {
+          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, accessToken = getAccessToken(KorAPUrl), userAgent = "R-KorAP-Client", timeout=10, verbose = FALSE, cache = TRUE) {
             .Object <- callNextMethod()
             m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
             .Object@KorAPUrl <- regmatches(KorAPUrl, m)
@@ -70,7 +70,7 @@ setMethod("initialize", "KorAPConnection",
             } else {
               .Object@apiUrl = apiUrl
             }
-            .Object@apiToken = apiToken
+            .Object@accessToken = accessToken
             .Object@apiVersion = apiVersion
             .Object@userAgent = userAgent
             .Object@timeout = timeout
@@ -80,51 +80,51 @@ setMethod("initialize", "KorAPConnection",
           })
 
 
-apiTokenServiceName <- "RKorAPClientAPIToken"
+accessTokenServiceName <- "RKorAPClientAccessToken"
 
-setGeneric("persistApiToken", function(kco, ...) standardGeneric("persistApiToken") )
+setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAccessToken") )
 
-#' @aliases persistApiToken
+#' @aliases persistAccessToken
 #' @rdname KorAPConnection-class
 #' @import keyring
 #' @export
 #' @examples
 #' \dontrun{
-#' kco <- new("KorAPConnection", apiToken="e739u6eOzkwADQPdVChxFg")
-#' persistApiToken(kco)
+#' kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
+#' persistAccessToken(kco)
 #' }
 #'
-setMethod("persistApiToken", "KorAPConnection",  function(kco, apiToken = kco@apiToken) {
-  if (is.null(apiToken))
-    stop("It seems that you have not supplied any API token that could be persisted.", call. = FALSE)
+setMethod("persistAccessToken", "KorAPConnection",  function(kco, accessToken = kco@accessToken) {
+  if (is.null(accessToken))
+    stop("It seems that you have not supplied any access token that could be persisted.", call. = FALSE)
 
-  kco@apiToken <- apiToken
-  key_set_with_value(apiTokenServiceName, kco@KorAPUrl, apiToken)
+  kco@accessToken <- accessToken
+  key_set_with_value(accessTokenServiceName, kco@KorAPUrl, accessToken)
 })
 
-setGeneric("clearApiToken", function(kco) standardGeneric("clearApiToken") )
+setGeneric("clearAccessToken", function(kco) standardGeneric("clearAccessToken") )
 
-#' @aliases clearApiToken
+#' @aliases clearAccessToken
 #' @rdname KorAPConnection-class
 #' @import keyring
 #' @export
 #' @examples
 #' \dontrun{
 #' kco <- new("KorAPConnection")
-#' clearApiToken(kco)
+#' clearAccessToken(kco)
 #' }
 #'
-setMethod("clearApiToken", "KorAPConnection",  function(kco) {
-  key_delete(apiTokenServiceName, kco@KorAPUrl)
+setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
+  key_delete(accessTokenServiceName, kco@KorAPUrl)
 })
 
 #' @import keyring
-getApiToken <- function(KorAPUrl) {
-    keyList <- withCallingHandlers(key_list(service = apiTokenServiceName),
+getAccessToken <- function(KorAPUrl) {
+    keyList <- withCallingHandlers(key_list(service = accessTokenServiceName),
                                    warning = function(w) invokeRestart("muffleWarning"),
                                    error = function(e) return(NULL))
   if (KorAPUrl %in% keyList)
-    key_get(apiTokenServiceName, KorAPUrl)
+    key_get(accessTokenServiceName, KorAPUrl)
   else
     NULL
 }
@@ -146,13 +146,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @export
 setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   if (kco@cache) {
-    parsed <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@apiToken))
+    parsed <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken))
     if (!is.null(parsed)) {
       return(parsed)
     }
   }
-  if (!is.null(kco@apiToken))
-    resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout), add_headers(Authorization = paste("Bearer", kco@apiToken)))
+  if (!is.null(kco@accessToken))
+    resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
   else
     resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
   if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
@@ -174,7 +174,7 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
     stop(message, call. = FALSE)
   }
   if (kco@cache) {
-    R.cache::saveCache(parsed, key = list(url, kco@apiToken), dir = KorAPCacheSubDir(), compress = TRUE)
+    R.cache::saveCache(parsed, key = list(url, kco@accessToken), dir = KorAPCacheSubDir(), compress = TRUE)
   }
   parsed
 })

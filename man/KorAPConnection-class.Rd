@@ -5,10 +5,10 @@
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
 \alias{initialize,KorAPConnection-method}
-\alias{persistApiToken,KorAPConnection-method}
-\alias{persistApiToken}
-\alias{clearApiToken,KorAPConnection-method}
-\alias{clearApiToken}
+\alias{persistAccessToken,KorAPConnection-method}
+\alias{persistAccessToken}
+\alias{clearAccessToken,KorAPConnection-method}
+\alias{clearAccessToken}
 \alias{apiCall,KorAPConnection-method}
 \alias{apiCall}
 \alias{clearCache,KorAPConnection-method}
@@ -21,16 +21,16 @@
   KorAPUrl = "https://korap.ids-mannheim.de/",
   apiVersion = "v1.0",
   apiUrl,
-  apiToken = getApiToken(KorAPUrl),
+  accessToken = getAccessToken(KorAPUrl),
   userAgent = "R-KorAP-Client",
   timeout = 10,
   verbose = FALSE,
   cache = TRUE
 )
 
-\S4method{persistApiToken}{KorAPConnection}(kco, apiToken = kco@apiToken)
+\S4method{persistAccessToken}{KorAPConnection}(kco, accessToken = kco@accessToken)
 
-\S4method{clearApiToken}{KorAPConnection}(kco)
+\S4method{clearAccessToken}{KorAPConnection}(kco)
 
 \S4method{apiCall}{KorAPConnection}(kco, url)
 
@@ -47,16 +47,16 @@
 
 \item{apiUrl}{URL of the KorAP web service.}
 
-\item{apiToken}{OAuth2 API token. To use authorization based on an API token
+\item{accessToken}{OAuth2 access token. To use authorization based on an access token
 in subsequent queries, intialize your KorAP connection with
-\code{kco <- new("KorAPConnection", apiToken="<API Token>")}.
+\code{kco <- new("KorAPConnection", accessToken="<access token>")}.
 In order to make the API
 token persistent for the currently used \code{KorAPUrl} (you can have one
 token per KorAPUrl / KorAP server instance), use
-\code{persistApiToken(kco)}. This will store it in your keyring using the
+\code{persistAccessToken(kco)}. This will store it in your keyring using the
 \code{\link{keyring}} package. Subsequent new("KorAPConnection") calls will
 then automatically retrieve the token from your keying. To stop using a
-persisted token, call \code{clearApiToken(kco)}. Please note that for
+persisted token, call \code{clearAccessToken(kco)}. Please note that for
 DeReKo, authorized queries will behave differently inside and outside the
 IDS, because of the special license situation. This concerns also cached
 results which do not take into account from where a request was issued. If
@@ -94,20 +94,20 @@ kq <- corpusQuery(kcon, "Ameisenplage")
 kq <- fetchAll(kq)
 
 \dontrun{
-kcon <- new("KorAPConnection", verbose = TRUE, apiToken="e739u6eOzkwADQPdVChxFg")
+kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
 kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 kq <- fetchAll(kq)
 kq@collectedMatches$snippet
 }
 
 \dontrun{
-kco <- new("KorAPConnection", apiToken="e739u6eOzkwADQPdVChxFg")
-persistApiToken(kco)
+kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
+persistAccessToken(kco)
 }
 
 \dontrun{
 kco <- new("KorAPConnection")
-clearApiToken(kco)
+clearAccessToken(kco)
 }
 
 }
