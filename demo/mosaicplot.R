@@ -7,19 +7,6 @@ library(RKorAPClient)
 library(vcd)
 library(tibble)
 library(dplyr)
-library(PTXQC)
-
-queryStringToLabel <- function(data) {
-  leftCommon = lcpCount(data)
-  while (leftCommon > 0 && grepl("[[:alpha:]]", substring(data[1], leftCommon, leftCommon))) {
-    leftCommon <- leftCommon - 1
-  }
-  rightCommon = lcsCount(data)
-  while (rightCommon > 0 && grepl("[[:alpha:]]", substring(data[1], rightCommon, rightCommon))) {
-    rightCommon <- rightCommon - 1
-  }
-  substring(data, leftCommon + 1, nchar(data) - rightCommon)
-}
 
 mosaicplot <- function(query, vc, kco = new("KorAPConnection", verbose = TRUE)) {
   frequencyQuery(
