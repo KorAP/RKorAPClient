@@ -21,6 +21,30 @@ ipm <- function(df) {
     mutate(ipm = .data$f * 10^6, conf.low = .data$conf.low * 10^6, conf.high = .data$conf.high * 10^6)
 }
 
+#' Convert corpus frequency table of alternatives to percent
+#'
+#' Convenience function for converting frequency tables of alternative variants
+#' (generated with \code{as.alternatives=T}) to percent.
+#'
+#' @param df table returned from \code{\link{frequencyQuery}}
+#'
+#' @return original table with converted columns \code{f}, \code{conf.low} and \code{conf.high}
+#' @export
+#'
+#' @importFrom dplyr .data
+#'
+#' @examples
+#' new("KorAPConnection") %>%
+#'     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
+#'     paste0("pubDate in ", 2000:2002)
+#'     as.alternatives = T,
+#'     )
+#'     %>% percent()
+percent <- function(df) {
+  df %>%
+    mutate(f = .data$f * 10^2, conf.low = .data$conf.low * 10^2, conf.high = .data$conf.high * 10^2)
+}
+
 #' Convert query or vc strings to plot labels
 #'
 #' Converts a vector of query or vc strings to typically appropriate legend labels
