@@ -21,6 +21,35 @@ ipm <- function(df) {
     mutate(ipm = .data$f * 10^6, conf.low = .data$conf.low * 10^6, conf.high = .data$conf.high * 10^6)
 }
 
+#' Convert query or vc strings to plot labels
+#'
+#' Converts a vector of query or vc strings to typically appropriate legend labels
+#' by clipping off prefixes and suffixes that are common to all query strings.
+#'
+#' @param data string or vector of query or vc definition strings
+#' @return string or vector of strings with clipped off common prefixes and suffixes
+#'
+#' @examples
+#' queryStringToLabel(paste("textType = /Zeit.*/ & pubDate in", c(2010:2019)))
+#' queryStringToLabel(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"))
+#' queryStringToLabel(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"))
+#'
+#' @importFrom PTXQC lcpCount
+#' @importFrom PTXQC lcsCount
+#'
+#' @export
+queryStringToLabel <- function(data) {
+  leftCommon = lcpCount(data)
+  while (leftCommon > 0 && grepl("[[:alnum:]]", substring(data[1], leftCommon, leftCommon))) {
+    leftCommon <- leftCommon - 1
+  }
+  rightCommon = lcsCount(data)
+  while (rightCommon > 0 && grepl("[[:alnum:]]", substring(data[1], rightCommon, rightCommon))) {
+    rightCommon <- rightCommon - 1
+  }
+  substring(data, leftCommon + 1, nchar(data) - rightCommon)
+}
+
 
 ## Mute notes: "Undefined global functions or variables:"
 globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
