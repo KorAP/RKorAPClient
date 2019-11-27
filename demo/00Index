@@ -4,3 +4,4 @@ conditionsOverTime        Plot frequency of query expressions over time under di
 alternativesOverTime      Plot proportion of alternative spellings/variants over time
 regional                  Map plot regional frequencies of query expression
 mosaicplot                Visualize frequencies of alternative query terms in relation to other variables
+rcharts-highcharts        Visualize term frqequencies over time with interactive HTML and JavaScript elements
