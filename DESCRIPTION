@@ -27,7 +27,8 @@ Imports:
     htmlwidgets,
     utils,
     httr,
-    methods
+    methods,
+    PTXQC
 Collate: 
     'KorAPConnection.R'
     'KorAPCorpusStats.R'
