@@ -120,9 +120,10 @@ setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
 
 #' @import keyring
 getAccessToken <- function(KorAPUrl) {
-    keyList <- withCallingHandlers(key_list(service = accessTokenServiceName),
+    keyList <- tryCatch(withCallingHandlers(key_list(service = accessTokenServiceName),
                                    warning = function(w) invokeRestart("muffleWarning"),
-                                   error = function(e) return(NULL))
+                                   error = function(e) return(NULL)),
+                          error = function(e) { })
   if (KorAPUrl %in% keyList)
     key_get(accessTokenServiceName, KorAPUrl)
   else
