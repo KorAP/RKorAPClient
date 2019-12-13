@@ -188,8 +188,10 @@ setMethod("corpusQuery", "KorAPConnection",
       log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
                  "")
       res = apiCall(kco, paste0(requestUrl, '&count=0'))
-      log.info(verbose, " took ", res$meta$benchmark, "\n", sep =
-                 "")
+      if(!is.null(res$meta$cached))
+        log.info(verbose, " [cached]\n")
+      else
+        log.info(verbose, " took ", res$meta$benchmark, "\n", sep = "")
       if (as.df)
         data.frame(
           query = query,
