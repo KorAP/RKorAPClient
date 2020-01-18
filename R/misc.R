@@ -50,6 +50,8 @@ percent <- function(df) {
 #' by clipping off prefixes and suffixes that are common to all query strings.
 #'
 #' @param data string or vector of query or vc definition strings
+#' @param pubDateOnly discard all but the publication date
+#' @param excludePubDate discard publication date constraints
 #' @return string or vector of strings with clipped off common prefixes and suffixes
 #'
 #' @examples
@@ -61,13 +63,18 @@ percent <- function(df) {
 #' @importFrom PTXQC lcsCount
 #'
 #' @export
-queryStringToLabel <- function(data) {
+queryStringToLabel <- function(data, pubDateOnly = F, excludePubDate = F) {
+  if (pubDateOnly) {
+    data <-substring(data, regexpr("pubDate", data)+7)
+  } else if(excludePubDate) {
+    data <-substring(data, 1, regexpr("pubDate", data))
+  }
   leftCommon = lcpCount(data)
-  while (leftCommon > 0 && grepl("[[:alnum:]]", substring(data[1], leftCommon, leftCommon))) {
+  while (leftCommon > 0 && grepl("[[:alnum:]/=.*!]", substring(data[1], leftCommon, leftCommon))) {
     leftCommon <- leftCommon - 1
   }
   rightCommon = lcsCount(data)
-  while (rightCommon > 0 && grepl("[[:alnum:]]", substring(data[1], rightCommon, rightCommon))) {
+  while (rightCommon > 0 && grepl("[[:alnum:]/=.*!]", substring(data[1], 1+nchar(data[1]) - rightCommon, 1+nchar(data[1]) - rightCommon))) {
     rightCommon <- rightCommon - 1
   }
   substring(data, leftCommon + 1, nchar(data) - rightCommon)
