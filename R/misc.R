@@ -90,7 +90,7 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
 #' expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
-#'             year = (2002:2018)) %>%
+#'             year = (2005:2011)) %>%
 #'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
 #'                             paste0(.$condition," & pubDate in ", .$year)))  %>%
 #'   ipm() %>%
