@@ -33,24 +33,33 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #'
 #' @aliases corpusStats
 #' @export
-setMethod("corpusStats", "KorAPConnection",  function(kco, vc="", verbose = kco@verbose, as.df = FALSE) {
-  ifelse(length(vc) > 1,
-    return(
-      do.call(rbind,
-              Map(function(cq) corpusStats(kco, cq, verbose, as.df = TRUE), vc))
-    ), {
-    url <- paste0(kco@apiUrl, 'statistics?cq=', URLencode(vc, reserved=TRUE))
-    log.info(verbose, "Calculating size of corpus \"", vc,"\"", sep="")
+setMethod("corpusStats", "KorAPConnection",  function(kco,
+                                                      vc = "",
+                                                      verbose = kco@verbose,
+                                                      as.df = FALSE) {
+  if (length(vc) > 1)
+    do.call(rbind, Map(function(cq)
+      corpusStats(kco, cq, verbose, as.df = TRUE), vc))
+  else {
+    url <-
+      paste0(kco@apiUrl,
+             'statistics?cq=',
+             URLencode(vc, reserved = TRUE))
+    log.info(verbose, "Calculating size of corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
     log.info(verbose, "\n")
-    ifelse(as.df,
-           return(data.frame(vc=vc, res, stringsAsFactors = FALSE)),
-           return(new("KorAPCorpusStats", vc = vc, documents = res$documents,
-                      tokens = res$tokens,
-                      sentences = res$sentences,
-                      paragraphs = res$paragraphs))
-    )
-  })
+    if (as.df)
+      data.frame(vc = vc, res, stringsAsFactors = FALSE)
+    else
+      new(
+        "KorAPCorpusStats",
+        vc = vc,
+        documents = res$documents,
+        tokens = res$tokens,
+        sentences = res$sentences,
+        paragraphs = res$paragraphs
+      )
+  }
 })
 
 #' @rdname KorAPCorpusStats-class
