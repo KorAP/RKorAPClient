@@ -4,10 +4,14 @@
 \alias{queryStringToLabel}
 \title{Convert query or vc strings to plot labels}
 \usage{
-queryStringToLabel(data)
+queryStringToLabel(data, pubDateOnly = F, excludePubDate = F)
 }
 \arguments{
 \item{data}{string or vector of query or vc definition strings}
+
+\item{pubDateOnly}{discard all but the publication date}
+
+\item{excludePubDate}{discard publication date constraints}
 }
 \value{
 string or vector of strings with clipped off common prefixes and suffixes
