@@ -346,6 +346,7 @@ setMethod("frequencyQuery", "KorAPConnection",
         corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
         mutate(total = corpusStats(kco, vc=vc, as.df=TRUE)$tokens)
       } ) %>%
+      { if (.$total == 0)  stop(paste0("Virtual corpus \"",vc, "\" is empty. Cannot calculate relative frequencies."), call. = FALSE) }
       ci(conf.level = conf.level)
 })
 
