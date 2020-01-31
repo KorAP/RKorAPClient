@@ -161,7 +161,7 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
     stop("API did not return json", call. = FALSE)
   }
-  parsed <- jsonlite::fromJSON(content(resp, "text"))
+  parsed <- jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8"))
   if (!is.null(parsed$warnings)) {
     message <- if (nrow(parsed$warnings) > 1)
       sapply(parsed$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
@@ -170,10 +170,13 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
     warning(message, call. = FALSE)
   }
   if (status_code(resp) != 200) {
-    message <- if (!is.null(parsed$errors))
-                 sapply(parsed$errors, function(error) paste0(sprintf("\n%s: KorAP API request failed: %s", error[1], error[2])))
-               else
-                 message <- sprintf("%s: KorAP API request failed.", status_code(resp))
+    if (kco@verbose) {
+      cat("\n")
+    }
+    message <- sprintf("%s KorAP API request failed", status_code(resp))
+    if (!is.null(parsed$errors)) {
+      message <- sprintf("%s - %s %s", message, parsed$errors[1], parsed$errors[2])
+    }
     stop(message, call. = FALSE)
   }
   if (kco@cache) {
