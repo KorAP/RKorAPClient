@@ -28,4 +28,16 @@ new("KorAPConnection", verbose = TRUE) \%>\%
                  as.alternatives = TRUE) \%>\%
   hc_freq_by_year_ci(as.alternatives = TRUE)
 
+kco <- new("KorAPConnection", verbose = TRUE)
+expand_grid(
+  condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
+  year = (2005:2011)
+) \%>\%
+  cbind(frequencyQuery(
+    kco,
+    "[tt/l=Heuschrecke]",
+    paste0(.$condition, " & pubDate in ", .$year)
+  ))  \%>\%
+  hc_freq_by_year_ci()
+
 }
