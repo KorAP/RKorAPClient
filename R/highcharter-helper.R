@@ -92,6 +92,9 @@ hc_freq_by_year_ci <- function(df, as.alternatives = F, ylabel = if(as.alternati
     hc_add_series_korap_frequencies(df, as.alternatives)
 }
 
+## Mute notes: "no visible binding for global variable:"
+globalVariables(c("value", "query", "condition", "vc"))
+
 hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = F) {
   index <- 0
   for(q in unique(df$condition)) {
