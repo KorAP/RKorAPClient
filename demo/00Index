@@ -7,3 +7,5 @@ mosaicplot                Visualize frequencies of alternative query terms in re
 highcharter-example       Visualize frqequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using the package highcharter as wrapper for Highcharts
 shiny-frequency-curves    Web application that plots frequency curves with highcharts and shiny
 writtenVsSpoken           Compare frequencies in written vs. spoken corpora
+displayKwics              Display query results as KWICs via html
+
