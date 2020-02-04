@@ -45,9 +45,9 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
       paste0(kco@apiUrl,
              'statistics?cq=',
              URLencode(vc, reserved = TRUE))
-    log.info(verbose, "Calculating size of corpus \"", vc, "\"", sep = "")
+    log.info(verbose, "Getting size of corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
-    log.info(verbose, "\n")
+    log.info(verbose, ": ", res$tokens, " tokens\n")
     if (as.df)
       data.frame(vc = vc, res, stringsAsFactors = FALSE)
     else
