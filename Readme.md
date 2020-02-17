@@ -28,7 +28,8 @@ library(RKorAPClient)
 new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
 ```
 
-## Example
+## Examples
+### Frequencies over time and domains using ggplot2
 ```r
 library(RKorAPClient)
 library(ggplot2)
@@ -41,6 +42,19 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
     geom_freq_by_year_ci()
 ```
 ![](man/figures/Readme-Example-1.png)<!-- -->
+
+### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
+```r
+library(RKorAPClient)
+query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
+years = c(1980:2010)
+as.alternatives = TRUE
+vc = "textType = /Zeit.*/ & pubDate in"
+new("KorAPConnection", verbose=T) %>%
+  frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) %>%
+  hc_freq_by_year_ci(as.alternatives)
+```
+[![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://raw.githubusercontent.com/KorAP/RKorAPClient/master/man/figures/Readme-Example-2.html)
 
 ## Demos
 
