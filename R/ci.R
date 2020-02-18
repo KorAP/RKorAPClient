@@ -29,16 +29,25 @@
 #'   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
 #'     geom_point() + geom_line() + geom_ribbon(alpha=.3)
 #'
-ci <- function(df, x = totalResults, N = total, conf.level = 0.95) {
+ci <- function(df,
+               x = totalResults,
+               N = total,
+               conf.level = 0.95) {
   x <- enquo(x)
   N <- enquo(N)
+  nas <- df %>%
+    dplyr::filter(total <= 0) %>%
+    mutate(f = NA, conf.low = NA, conf.high = NA)
   df %>%
+    dplyr::filter(total > 0) %>%
     rowwise %>%
-    mutate(tst = list(broom::tidy(prop.test(!!x, !!N, conf.level = conf.level)) %>%
-                        select("estimate", "conf.low", "conf.high") %>%
-                        rename(f = estimate)
+    mutate(tst = list(
+      broom::tidy(prop.test(!!x,!!N, conf.level = conf.level)) %>%
+        select(estimate, conf.low, conf.high) %>%
+        rename(f = estimate)
     )) %>%
-    tidyr::unnest(tst)
+    tidyr::unnest(tst) %>%
+    bind_rows(nas)
 }
 
 ## Mute notes: "Undefined global functions or variables:"
