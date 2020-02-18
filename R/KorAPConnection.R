@@ -131,7 +131,13 @@ getAccessToken <- function(KorAPUrl) {
 }
 
 KorAPCacheSubDir <- function() {
-  paste0("RKorAPClient_", packageVersion("RKorAPClient"))
+  paste0("RKorAPClient_",
+         gsub(
+           "^([0-9]+\\.[0-9]+).*",
+           "\\1",
+           packageVersion("RKorAPClient"),
+           perl = TRUE
+         ))
 }
 
 setGeneric("apiCall", function(kco, ...)  standardGeneric("apiCall") )
