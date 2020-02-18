@@ -94,7 +94,7 @@
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
-\item{conf.level}{confidence level of the returned confidence interval (passed throgh \code{\link{ci}}  to \code{\link{prop.test}}).}
+\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link{ci}}  to \code{\link{prop.test}}).}
 
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
@@ -108,7 +108,7 @@
 The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 }
 \description{
-\code{KorAPQuery} objetcs represent the current state of a query to a KorAP server.
+\code{KorAPQuery} objects represent the current state of a query to a KorAP server.
 New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 
 \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.

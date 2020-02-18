@@ -1,6 +1,6 @@
 #' Class KorAPQuery
 #'
-#' \code{KorAPQuery} objetcs represent the current state of a query to a KorAP server.
+#' \code{KorAPQuery} objects represent the current state of a query to a KorAP server.
 #' New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
 #'
 #' @include KorAPConnection.R
@@ -91,13 +91,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param metadataOnly logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
 #' @param ql string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.
 #' @param fields (meta)data fields that will be fetched for every match.
-#' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).
+#' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
-#' @param expand logical that deicdes if \code{query} and \code{vc} parameters are expanded to all of their combinations
+#' @param expand logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations
 #' @return Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 #' A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
-#' Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
+#' Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
@@ -333,7 +333,7 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #'
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
-#' @param conf.level confidence level of the returned confidence interval (passed throgh \code{\link{ci}}  to \code{\link{prop.test}}).
+#' @param conf.level confidence level of the returned confidence interval (passed through \code{\link{ci}}  to \code{\link{prop.test}}).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
 #' @export
 setMethod("frequencyQuery", "KorAPConnection",

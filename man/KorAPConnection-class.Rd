@@ -48,7 +48,7 @@
 \item{apiUrl}{URL of the KorAP web service.}
 
 \item{accessToken}{OAuth2 access token. To use authorization based on an access token
-in subsequent queries, intialize your KorAP connection with
+in subsequent queries, initialize your KorAP connection with
 \code{kco <- new("KorAPConnection", accessToken="<access token>")}.
 In order to make the API
 token persistent for the currently used \code{KorAPUrl} (you can have one

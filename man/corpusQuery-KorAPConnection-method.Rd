@@ -37,18 +37,18 @@
 
 \item{fields}{(meta)data fields that will be fetched for every match.}
 
-\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficent rights (not yet implemented).}
+\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).}
 
 \item{verbose}{print some info}
 
-\item{expand}{logical that deicdes if \code{query} and \code{vc} parameters are expanded to all of their combinations}
+\item{expand}{logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations}
 
 \item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
 Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
 A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
-Please make sure to check \code{$collection$rewrites} to see if any unforseen access rewrites of the query's virtual corpus had to be performed.
+Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 }
 \description{
 Perform a corpus query via a connection to a KorAP-API-server.

@@ -19,7 +19,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
 #' @param accessToken OAuth2 access token. To use authorization based on an access token
-#'   in subsequent queries, intialize your KorAP connection with
+#'   in subsequent queries, initialize your KorAP connection with
 #'   \code{kco <- new("KorAPConnection", accessToken="<access token>")}.
 #'   In order to make the API
 #'   token persistent for the currently used \code{KorAPUrl} (you can have one

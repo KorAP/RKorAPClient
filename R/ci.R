@@ -7,11 +7,11 @@
 #'
 #'
 #' @seealso
-#' \code{ci} is alread included in \code{\link{frequencyQuery}}
+#' \code{ci} is already included in \code{\link{frequencyQuery}}
 #'
 #' @param df table with columns for absolute and total frequencies.
 #' @param x  column with the observed absolute frequency.
-#' @param N  column with the total frequncies
+#' @param N  column with the total frequencies
 #' @param conf.level confidence level of the returned confidence interval. Must
 #'   be a single number between 0 and 1.
 #'
