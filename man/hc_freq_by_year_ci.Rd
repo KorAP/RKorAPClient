@@ -22,12 +22,14 @@ Experimental convenience function for plotting typical frequency by year graphs 
 \bold{Warning:} This function may be moved to a new package.
 }
 \examples{
+\donttest{year <- c(1990:2018)}\dontshow{year <- c(2013:2014)}
 new("KorAPConnection", verbose = TRUE) \%>\%
   frequencyQuery(query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn"),
-                 vc = paste("textType = /Zeit.*/ & pubDate in", c(2010:2014)),
+                 vc = paste("textType = /Zeit.*/ & pubDate in", year),
                  as.alternatives = TRUE) \%>\%
   hc_freq_by_year_ci(as.alternatives = TRUE)
 
+\donttest{
 kco <- new("KorAPConnection", verbose = TRUE)
 expand_grid(
   condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
@@ -39,5 +41,6 @@ expand_grid(
     paste0(.$condition, " & pubDate in ", .$year)
   ))  \%>\%
   hc_freq_by_year_ci()
+}
 
 }

@@ -23,13 +23,14 @@ object with hyperlinks from data points to corresponding KorAP queries.
 \examples{
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
+\donttest{year = (2003:2011)}\dontshow{year = (2005:2006)}
 g <- expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
-            year = (2002:2018)) \%>\%
+                 year) \%>\%
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
                        paste0(.$condition," & pubDate in ", .$year)))  \%>\%
   ipm() \%>\%
   ggplot(aes(year, ipm, fill = condition, color = condition)) +
-##  theme_light(base_size = 20) +
+  ##  theme_light(base_size = 20) +
   geom_freq_by_year_ci()
 p <- ggplotly(g)
 print(p)

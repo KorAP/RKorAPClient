@@ -111,6 +111,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
+#' \donttest{
 #' new("KorAPConnection", verbose=TRUE) %>%
 #'   { . ->> kco } %>%
 #'   corpusQuery("Ameisenplage") %>%
@@ -125,7 +126,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'   dplyr::select(-Count) %>%
 #'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
 #'   plot(type = "l")
-#'
+#' }
 #' @seealso \code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
 #'
 #' @references
@@ -226,6 +227,10 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @param verbose print progress information if true
 #' @return The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 #'
+#' @examples
+#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
+#' q@collectedMatches
+#'
 #' @references
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
@@ -295,8 +300,10 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 #' Fetch all results of a KorAP query.
 #'
 #' @examples
+#' \donttest{
 #' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' q@collectedMatches
+#' }
 #'
 #' @aliases fetchAll
 #' @rdname KorAPQuery-class
@@ -308,8 +315,10 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' Fetches the remaining results of a KorAP query.
 #'
 #' @examples
-#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' \donttest{
+#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchRest()
 #' q@collectedMatches
+#' }
 #'
 #' @aliases fetchRest
 #' @rdname KorAPQuery-class
@@ -328,8 +337,10 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' @aliases frequencyQuery
 #' @rdname KorAPQuery-class
 #' @examples
+#' \donttest{
 #' new("KorAPConnection", verbose = TRUE) %>%
 #'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
+#' }
 #'
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.

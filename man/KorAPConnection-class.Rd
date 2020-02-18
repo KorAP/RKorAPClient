@@ -89,9 +89,11 @@ the cache with \code{\link{clearCache}()}.}
 New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
 }
 \examples{
+\donttest{
 kcon <- new("KorAPConnection", verbose = TRUE)
 kq <- corpusQuery(kcon, "Ameisenplage")
 kq <- fetchAll(kq)
+}
 
 \dontrun{
 kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
