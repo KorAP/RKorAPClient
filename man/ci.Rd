@@ -11,7 +11,7 @@ ci(df, x = totalResults, N = total, conf.level = 0.95)
 
 \item{x}{column with the observed absolute frequency.}
 
-\item{N}{column with the total frequncies}
+\item{N}{column with the total frequencies}
 
 \item{conf.level}{confidence level of the returned confidence interval. Must
 be a single number between 0 and 1.}
@@ -35,5 +35,5 @@ expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
 }
 }
 \seealso{
-\code{ci} is alread included in \code{\link{frequencyQuery}}
+\code{ci} is already included in \code{\link{frequencyQuery}}
 }

@@ -5,7 +5,7 @@
 \alias{RKorAPClient}
 \title{\code{RKorapClient} package}
 \description{
-R pakcage to access the \href{https://github.com/KorAP/}{KorAP} web service API.
+R package to access the \href{https://github.com/KorAP/}{KorAP} web service API.
 }
 \details{
 See the README.md on

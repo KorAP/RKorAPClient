@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @param df data frame like the value of a \code{\link{frequencyQuery}}
-#' @param as.alternatives boolean decides whether queries should be treatet queries as mutually exclusive and exahustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
+#' @param as.alternatives boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
 #' @param ylabel defaults to \% if \code{as.alternatives} is \code{true} and to "ipm" otherwise.
 #'
 #' @examples
