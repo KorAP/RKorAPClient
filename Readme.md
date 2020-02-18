@@ -54,7 +54,7 @@ new("KorAPConnection", verbose=T) %>%
   frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) %>%
   hc_freq_by_year_ci(as.alternatives)
 ```
-[![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://raw.githubusercontent.com/KorAP/RKorAPClient/master/man/figures/Readme-Example-2.html)
+[![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
 
 ## Demos
 
