@@ -155,7 +155,7 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url) {
   if (kco@cache) {
     parsed <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken))
     if (!is.null(parsed)) {
-      if (!is.null(parsed$META))
+      if (!is.null(parsed$meta))
         parsed$meta$cached <- "local"
       return(parsed)
     }
