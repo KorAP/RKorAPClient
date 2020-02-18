@@ -1,3 +1,7 @@
+# RKorAPClient 0.5.1
+- Fixed many typos.
+- Removed redundant and too long running tests.
+
 # RKorAPClient 0.5.0
 
 - Initial release on CRAN.
