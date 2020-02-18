@@ -15,7 +15,9 @@
 #' @importFrom dplyr .data
 #'
 #' @examples
+#' \donttest{
 #' new("KorAPConnection") %>% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) %>% ipm()
+#' }
 ipm <- function(df) {
   df %>%
     mutate(ipm = .data$f * 10^6, conf.low = .data$conf.low * 10^6, conf.high = .data$conf.high * 10^6)
@@ -34,11 +36,13 @@ ipm <- function(df) {
 #' @importFrom dplyr .data
 #'
 #' @examples
+#' \donttest{
 #' new("KorAPConnection") %>%
 #'     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
 #'     vc=paste0("pubDate in ", 2000:2002),
 #'     as.alternatives = TRUE) %>%
 #'   percent()
+#' }
 percent <- function(df) {
   df %>%
     mutate(f = .data$f * 10^2, conf.low = .data$conf.low * 10^2, conf.high = .data$conf.high * 10^2)
@@ -96,6 +100,7 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @examples
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
+#' \donttest{
 #' expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
 #'             year = (2005:2011)) %>%
 #'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
@@ -103,7 +108,7 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #'   ipm() %>%
 #'   ggplot(aes(year, ipm, fill = condition, color = condition)) +
 #'   geom_freq_by_year_ci()
-#'
+#' }
 #' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_point theme element_text scale_x_continuous
 #'
 #' @export
@@ -173,13 +178,14 @@ tooltip2hyperlink <- function(p, attribute="webUIRequestUrl") {
 #' @examples
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
+#' \donttest{year = (2003:2011)}\dontshow{year = (2005:2006)}
 #' g <- expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
-#'             year = (2002:2018)) %>%
+#'                  year) %>%
 #'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
 #'                        paste0(.$condition," & pubDate in ", .$year)))  %>%
 #'   ipm() %>%
 #'   ggplot(aes(year, ipm, fill = condition, color = condition)) +
-#' ##  theme_light(base_size = 20) +
+#'   ##  theme_light(base_size = 20) +
 #'   geom_freq_by_year_ci()
 #' p <- ggplotly(g)
 #' print(p)

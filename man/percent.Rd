@@ -17,9 +17,11 @@ Convenience function for converting frequency tables of alternative variants
 (generated with \code{as.alternatives=T}) to percent.
 }
 \examples{
+\donttest{
 new("KorAPConnection") \%>\%
     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
     vc=paste0("pubDate in ", 2000:2002),
     as.alternatives = TRUE) \%>\%
   percent()
+}
 }

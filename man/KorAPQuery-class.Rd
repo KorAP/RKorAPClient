@@ -119,14 +119,23 @@ confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
 }
 \examples{
-q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
 q@collectedMatches
 
+\donttest{
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
+}
 
+\donttest{
+q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
+q@collectedMatches
+}
+
+\donttest{
 new("KorAPConnection", verbose = TRUE) \%>\%
   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
+}
 
 }
 \references{

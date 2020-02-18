@@ -18,6 +18,7 @@ Experimental convenience function for plotting typical frequency by year graphs 
 \examples{
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
+\donttest{
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
             year = (2005:2011)) \%>\%
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
@@ -25,5 +26,5 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
   ipm() \%>\%
   ggplot(aes(year, ipm, fill = condition, color = condition)) +
   geom_freq_by_year_ci()
-
+}
 }

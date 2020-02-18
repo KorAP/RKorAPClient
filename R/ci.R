@@ -20,6 +20,7 @@
 #' @importFrom tibble remove_rownames
 #' @importFrom dplyr enquo rename starts_with
 #' @examples
+#' \donttest{
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
 #' expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) %>%
@@ -28,7 +29,7 @@
 #'   ci() %>%
 #'   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
 #'     geom_point() + geom_line() + geom_ribbon(alpha=.3)
-#'
+#' }
 ci <- function(df,
                x = totalResults,
                N = total,

@@ -65,6 +65,7 @@ new("KorAPConnection", verbose = TRUE) \%>\%
    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 
 # Plot the time/frequency curve of "Ameisenplage"
+\donttest{
 new("KorAPConnection", verbose=TRUE) \%>\%
   { . ->> kco } \%>\%
   corpusQuery("Ameisenplage") \%>\%
@@ -79,7 +80,7 @@ new("KorAPConnection", verbose=TRUE) \%>\%
   dplyr::select(-Count) \%>\%
   complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
   plot(type = "l")
-
+}
 }
 \references{
 \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}

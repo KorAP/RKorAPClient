@@ -21,5 +21,7 @@ Given a table with columns \code{f}, \code{conf.low}, and \code{conf.high}, \cod
 und multiplies conf.low and \code{conf.high} with 10^6.
 }
 \examples{
+\donttest{
 new("KorAPConnection") \%>\% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) \%>\% ipm()
+}
 }
