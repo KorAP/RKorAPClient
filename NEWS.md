@@ -1,3 +1,6 @@
+# RKorAPClient 0.5.2
+- Further minimization of tests to make CRAN happy. Safety shouldn't suffer.
+
 # RKorAPClient 0.5.1
 - Fixed many typos.
 - Removed redundant and too long running tests.
