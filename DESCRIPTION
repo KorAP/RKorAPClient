@@ -1,7 +1,7 @@
 Package: RKorAPClient
 Type: Package
 Title: KorAP Web Service Client Package
-Version: 0.5.1
+Version: 0.5.2
 Author: KorAP-Team @ IDS Mannheim
 Maintainer: KorAP-Team <korap@ids-mannheim.de>
 Description: A simple package that makes KorAP's web service API accessible from R.
