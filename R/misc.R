@@ -178,7 +178,7 @@ tooltip2hyperlink <- function(p, attribute="webUIRequestUrl") {
 #' @examples
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
-#' \donttest{year = (2003:2011)}\dontshow{year = (2005:2006)}
+#' \donttest{year = (2003:2011)}\dontshow{year = c(2005)}
 #' g <- expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
 #'                  year) %>%
 #'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
