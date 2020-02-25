@@ -1,3 +1,7 @@
+# RKorAPClient 0.5.3
+- Further minimization of tests to make CRAN happy.
+- Make authors and maintainers machine readable.
+
 # RKorAPClient 0.5.2
 - Further minimization of tests to make CRAN happy. Safety shouldn't suffer.
 - Make license specification github and CRAN compliant.
