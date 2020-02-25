@@ -26,7 +26,7 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #' @return \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
 #'
 #' @examples
-#' corpusStats(new("KorAPConnection"))
+#' \donttest{corpusStats(new("KorAPConnection"))}
 #'
 #' kco <- new("KorAPConnection")
 #' corpusStats(kco, "pubDate in 2017 & articleType=/Zeitung.*/")

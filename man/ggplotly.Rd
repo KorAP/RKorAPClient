@@ -23,9 +23,9 @@ object with hyperlinks from data points to corresponding KorAP queries.
 \examples{
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
-\donttest{year = (2003:2011)}\dontshow{year = c(2005)}
-g <- expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
-                 year) \%>\%
+\donttest{year <- (2003:2011)}\dontshow{year <- c(2005)}
+\donttest{condition <- c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/")}\dontshow{condition <- c("textDomain = /Wirtschaft.*/")}
+g <- expand_grid(condition, year) \%>\%
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
                        paste0(.$condition," & pubDate in ", .$year)))  \%>\%
   ipm() \%>\%

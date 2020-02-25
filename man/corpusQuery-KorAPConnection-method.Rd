@@ -55,7 +55,9 @@ Perform a corpus query via a connection to a KorAP-API-server.
 }
 \examples{
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary
+\donttest{
 new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+}
 
 # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 # and show the number of query hits (but don't fetch them).

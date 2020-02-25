@@ -119,8 +119,9 @@ confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
 }
 \examples{
-q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
+\donttest{q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
 q@collectedMatches
+}
 
 \donttest{
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()

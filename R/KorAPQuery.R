@@ -101,7 +101,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'
 #' @examples
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
+#' \donttest{
 #' new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' }
 #'
 #' # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 #' # and show the number of query hits (but don't fetch them).
@@ -228,8 +230,9 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @return The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 #'
 #' @examples
-#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
+#' \donttest{q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
 #' q@collectedMatches
+#' }
 #'
 #' @references
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
