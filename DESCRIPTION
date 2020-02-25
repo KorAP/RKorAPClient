@@ -1,9 +1,17 @@
 Package: RKorAPClient
 Type: Package
 Title: KorAP Web Service Client Package
-Version: 0.5.2
-Author: KorAP-Team @ IDS Mannheim
-Maintainer: KorAP-Team <korap@ids-mannheim.de>
+Version: 0.5.3
+Authors@R:
+    c(person(given = "Marc",
+             family = "Kupietz",
+             role = c("aut", "cre"),
+             email = "kupietz@ids-mannheim.de"),
+      person(given = "KorAP-Team",
+             role = c("aut"),
+             email = "korap@ids-mannheim.de"),
+      person(given = "Leibniz-Institute for the German Language",
+             role = c("cph", "fnd")))
 Description: A simple package that makes KorAP's web service API accessible from R.
 Depends: R (>= 3.5.0)
 Language: en-US
