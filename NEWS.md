@@ -1,3 +1,6 @@
+# RKorAPClient 0.5.4
+- Fix DESCRIPTION file.
+
 # RKorAPClient 0.5.3
 - Further minimization of tests to make CRAN happy.
 - Make authors and maintainers machine readable.

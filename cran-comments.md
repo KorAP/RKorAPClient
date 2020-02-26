@@ -15,18 +15,10 @@ R CMD check succeeded
 ```
 
 ## R-hub builder
-### NOTE
-```
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: 'Marc Kupietz <kupietz@ids-mannheim.de>'
-
-New submission
-```
-According to [this stackoverflow](https://stackoverflow.com/questions/23829978/checking-cran-incoming-feasibility-note-maintainer) this note can be ignored if the maintainer is specified correctly.
 
 ```
 Possibly mis-spelled words in DESCRIPTION:
   KorAP (3:8)
   KorAP's (7:42)
 ```
-KorAP is the acronym of the project. It's spelled correctly.
+Single quoted 'KorAP' in Title and Description fields.
