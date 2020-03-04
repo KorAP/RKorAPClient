@@ -7,10 +7,11 @@ Authors@R:
              family = "Kupietz",
              role = c("aut", "cre"),
              email = "kupietz@ids-mannheim.de"),
-      person(given = "KorAP-Team",
-             role = c("aut"),
-             email = "korap@ids-mannheim.de"),
-      person(given = "Leibniz-Institute for the German Language",
+      person(given = "Nils",
+             family = "Diewald",
+             role = c("ctb"),
+             email = "diewald@ids-mannheim.de"),
+      person(given = "Leibniz Institute for the German Language",
              role = c("cph", "fnd")))
 Description: A simple package that makes the 'KorAP' web service API accessible from R.
 Depends: R (>= 3.5.0)
