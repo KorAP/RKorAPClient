@@ -1,3 +1,6 @@
+# RKorAPClient 0.5.6
+- Fix some links in Readme.md
+
 # RKorAPClient 0.5.5
 - Use TRUE and FALSE instead of T and F
 - Be more specific about authors and rights holder
