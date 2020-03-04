@@ -13,7 +13,14 @@ Authors@R:
              email = "diewald@ids-mannheim.de"),
       person(given = "Leibniz-Institute for the German Language",
              role = c("cph", "fnd")))
-Description: A simple package that makes the 'KorAP' web service API accessible from R.
+Description: A client package that makes the 'KorAP' web service API accessible from R.
+  The corpus analysis platform 'KorAP' has been developed as a scientific tool to make
+  potentially large, stratified and multiply annotated corpora, such as the 'German Reference Corpus DeReKo'
+  or the 'Corpus of the Contemporary Romanian Language CoRoLa', accessible for linguists, in order to let them verify
+  hypotheses and to find interesting patterns in real language use.
+  The 'RKorAPClient' package provides access for user created R code to access 'KorAP' and the corpora behind it,
+  as a programmatic alternative to the 'KorAP' web user-interface.
+  You can learn more about 'KorAP' and use it directly on 'DeReKo' at <https://korap.ids-mannheim.de/>.
 Depends: R (>= 3.5.0)
 Language: en-US
 License: BSD_2_clause + file LICENSE
