@@ -4,13 +4,13 @@ KorAP web service client package for R
 
 ## Description
 
-Simple R package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://ids-mannheim.de/)
+Simple R package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://www.ids-mannheim.de/)
 
 **This package is in its early stages and not stable yet! In particular, please expect that, at this early stage, objects, functions, parameters as well as their names or identifiers will still change continuously without any notification. Use it on your own risk!**
 
 ## Getting started
 
-At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtool package:
+At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtools package:
 
 ```R
 # install.packages("devtools")
@@ -68,10 +68,10 @@ Copyright (c) 2020, [Leibniz Institute for the German Language](http://www.ids-m
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language
-([IDS](http://ids-mannheim.de/)).
+([IDS](http://www.ids-mannheim.de/)).
 
 It is published under the
-[BSD-2 License](LICENSE).
+[BSD-2 License](LICENSE.md).
 
 ## Contributions
 
@@ -84,7 +84,7 @@ via GitHub.
 
 Please note that unless you explicitly state otherwise any
 contribution intentionally submitted for inclusion into this software shall –
-as this software itself – be under the [BSD-2 License](https://raw.githubusercontent.com/KorAP/Krill/master/LICENSE).
+as this software itself – be under the [BSD-2 License](LICENSE.md).
 
 ## References
 
