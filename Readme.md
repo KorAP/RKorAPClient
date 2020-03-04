@@ -64,7 +64,7 @@ More elaborate R scripts demonstrating the use of the package can be found in th
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/)
 
-Copyright (c) 2019, [IDS Mannheim](http://ids-mannheim.de/), Germany
+Copyright (c) 2020, [Leibniz-Institute for the German Language](http://ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language
