@@ -1,3 +1,9 @@
+# RKorAPClient 0.5.5
+- Use TRUE and FALSE instead of T and F
+- Be more specific about authors and rights holder
+- Elaborate Description field in DESCRIPTION file
+- Add forthcoming LREC paper to Readme.md
+
 # RKorAPClient 0.5.4
 - Fix DESCRIPTION file.
 
