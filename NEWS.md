@@ -1,3 +1,8 @@
+# RKorAPClient 0.5.5.9001
+- Fix some links in Readme.md
+- Introduce continuous integration tests via gh-actions, pulled from [highcharter](https://github.com/jbkunst/highcharter) (thanks @pachamaltese)
+- Remove redundant curl import
+
 # RKorAPClient 0.5.5
 - Use TRUE and FALSE instead of T and F
 - Be more specific about authors and rights holder
