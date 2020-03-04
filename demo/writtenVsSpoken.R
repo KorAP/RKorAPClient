@@ -2,7 +2,7 @@
 # install_github("KorAP/RKorAPClient")
 library(RKorAPClient)
 library(ggplot2)
-g <- new("KorAPConnection", verbose=T) %>%
+g <- new("KorAPConnection", verbose=TRUE) %>%
   frequencyQuery("sozusagen/i", vc=c("corpusSigle=FOLK", "corpusSigle!=FOLK")) %>%
   ipm() %>%
   mutate(corpus=c("FOLK", "DeReKo")) %>%

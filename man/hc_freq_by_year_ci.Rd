@@ -6,7 +6,7 @@
 \usage{
 hc_freq_by_year_ci(
   df,
-  as.alternatives = F,
+  as.alternatives = FALSE,
   ylabel = if (as.alternatives) "\%" else "ipm"
 )
 }

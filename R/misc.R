@@ -26,7 +26,7 @@ ipm <- function(df) {
 #' Convert corpus frequency table of alternatives to percent
 #'
 #' Convenience function for converting frequency tables of alternative variants
-#' (generated with \code{as.alternatives=T}) to percent.
+#' (generated with \code{as.alternatives=TRUE}) to percent.
 #'
 #' @param df table returned from \code{\link{frequencyQuery}}
 #'
@@ -67,7 +67,7 @@ percent <- function(df) {
 #' @importFrom PTXQC lcsCount
 #'
 #' @export
-queryStringToLabel <- function(data, pubDateOnly = F, excludePubDate = F) {
+queryStringToLabel <- function(data, pubDateOnly = FALSE, excludePubDate = FALSE) {
   if (pubDateOnly) {
     data <-substring(data, regexpr("pubDate", data)+7)
   } else if(excludePubDate) {

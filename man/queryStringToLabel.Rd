@@ -4,7 +4,7 @@
 \alias{queryStringToLabel}
 \title{Convert query or vc strings to plot labels}
 \usage{
-queryStringToLabel(data, pubDateOnly = F, excludePubDate = F)
+queryStringToLabel(data, pubDateOnly = FALSE, excludePubDate = FALSE)
 }
 \arguments{
 \item{data}{string or vector of query or vc definition strings}

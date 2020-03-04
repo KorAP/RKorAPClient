@@ -33,25 +33,25 @@
 #'   hc_freq_by_year_ci()
 #' }
 #'
-hc_freq_by_year_ci <- function(df, as.alternatives = F, ylabel = if(as.alternatives) "%" else "ipm") {
+hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alternatives) "%" else "ipm") {
   title <- ""
   df <- df %>%
     { if(! as.alternatives) ipm(.) else RKorAPClient::percent(.) }
 
   if (!"year" %in% colnames(df)) {
-    df <- df %>% mutate(year = as.integer(queryStringToLabel(df$vc, pubDateOnly = T)))
+    df <- df %>% mutate(year = as.integer(queryStringToLabel(df$vc, pubDateOnly = TRUE)))
   }
   if (!"condition" %in% colnames(df)) {
     if (length(base::unique(df$query)) > 1) {
       df <- df %>% mutate(condition = query)
-      if(length(base::unique(queryStringToLabel(df$vc, excludePubDate = T ))) > 1) {
+      if(length(base::unique(queryStringToLabel(df$vc, excludePubDate = TRUE ))) > 1) {
         df <- df %>% mutate(condition = paste(condition, " & ",
-                                              queryStringToLabel(vc, excludePubDate = T )))
+                                              queryStringToLabel(vc, excludePubDate = TRUE )))
       }
     } else {
       title <- base::unique(df$query)
-      if(length(base::unique(queryStringToLabel(df$vc, excludePubDate = T ))) > 1) {
-        df <- df %>% mutate(condition = queryStringToLabel(vc, excludePubDate = T ))
+      if(length(base::unique(queryStringToLabel(df$vc, excludePubDate = TRUE ))) > 1) {
+        df <- df %>% mutate(condition = queryStringToLabel(vc, excludePubDate = TRUE ))
       }
     }
   }
@@ -66,17 +66,17 @@ hc_freq_by_year_ci <- function(df, as.alternatives = F, ylabel = if(as.alternati
       floor = 0,
       labels = if(as.alternatives) list(format = paste0("{value}\U2009", ylabel)) else NULL
     ) %>%
-    hc_xAxis(allowDecimals=F) %>%
+    hc_xAxis(allowDecimals=FALSE) %>%
     hc_add_theme(hc_theme_google(colors=palette)) %>%
     hc_plotOptions(
-      series = list(enabled = T),
+      series = list(enabled = TRUE),
       line = list(cursor = 'pointer', point = list(events = list(
         click = JS("function() { window.open(this.click, 'korap'); }")
       )))) %>%
-    hc_credits(enabled = T,
+    hc_credits(enabled = TRUE,
                text = "KorAP R Client Pakckage",
                href = "//github.com/KorAP/RKorAPClient/") %>%
-    hc_exporting(enabled = T) %>%
+    hc_exporting(enabled = TRUE) %>%
     hc_tooltip(
       formatter = JS(paste0("function (tooltip) {
         var str = tooltip.defaultFormatter.call(this, tooltip);
@@ -88,9 +88,9 @@ hc_freq_by_year_ci <- function(df, as.alternatives = F, ylabel = if(as.alternati
        }
        return str.replace(/@/g, '", ylabel, "')
       } ")),
-      crosshairs =  T,
+      crosshairs =  TRUE,
       valueDecimals = 2,
-      shared = T,
+      shared = TRUE,
       valueSuffix = paste0('\U2009', ylabel)
     ) %>%
     hc_add_series_korap_frequencies(df, as.alternatives)
@@ -99,7 +99,7 @@ hc_freq_by_year_ci <- function(df, as.alternatives = F, ylabel = if(as.alternati
 ## Mute notes: "no visible binding for global variable:"
 globalVariables(c("value", "query", "condition", "vc"))
 
-hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = F) {
+hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE) {
   index <- 0
   for(q in unique(df$condition)) {
     dat <- df[df$condition==q,]
@@ -124,8 +124,8 @@ hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = F) {
         type = 'arearange',
         fillOpacity = 0.3,
         lineWidth = 0,
-        marker = list(enabled = F),
-        enableMouseTracking = F,
+        marker = list(enabled = FALSE),
+        enableMouseTracking = FALSE,
         linkedTo= ':previous',
         colorIndex = index,
         zIndex = 0

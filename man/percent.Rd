@@ -14,7 +14,7 @@ original table with converted columns \code{f}, \code{conf.low} and \code{conf.h
 }
 \description{
 Convenience function for converting frequency tables of alternative variants
-(generated with \code{as.alternatives=T}) to percent.
+(generated with \code{as.alternatives=TRUE}) to percent.
 }
 \examples{
 \donttest{
