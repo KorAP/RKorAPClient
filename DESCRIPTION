@@ -37,7 +37,6 @@ Imports:
     dplyr,
     purrr,
     lubridate,
-    curl,
     highcharter,
     jsonlite,
     keyring,
