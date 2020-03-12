@@ -49,9 +49,11 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
                                               queryStringToLabel(vc, excludePubDate = TRUE )))
       }
     } else {
-      title <- base::unique(df$query)
-      if(length(base::unique(queryStringToLabel(df$vc, excludePubDate = TRUE ))) > 1) {
+      if (length(base::unique(queryStringToLabel(df$vc, excludePubDate = TRUE ))) > 1) {
+        title <- base::unique(df$query)
         df <- df %>% mutate(condition = queryStringToLabel(vc, excludePubDate = TRUE ))
+      } else {
+        df <- df %>% mutate(condition = query)
       }
     }
   }
