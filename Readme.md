@@ -1,34 +1,33 @@
----
-KorAP web service client package for R
+# KorAP web service client package for R
 ---
 
 ## Description
 
-Simple R package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://www.ids-mannheim.de/)
+R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://www.ids-mannheim.de/)
 
-**This package is in its early stages and not stable yet! In particular, please expect that, at this early stage, objects, functions, parameters as well as their names or identifiers will still change continuously without any notification. Use it on your own risk!**
-
-## Getting started
-
-At this point there is no binary package on CRAN yet, so you have to install the development version from our [Gerrit server](https://korap.ids-mannheim.de/gerrit/) using the devtools package:
-
-```R
-# install.packages("devtools")
-library(devtools)
-install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient") 
-library(RKorAPClient)
-?corpusQuery
-?frequencyQuery
+## Installation
+#### CRAN version:
+```r
+install.packages("RKorAPClient")
 ```
 
-## Hello world
+#### Development version (alternatives):
+```r
+devtools::install_github("KorAP/RKorAPClient")
+remotes::install_github("KorAP/RKorAPClient")
+devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
+remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
+source("https://install-github.me/KorAP/RKorAPClient")
+```
+
+## Examples
+### Hello world
 
 ```R
 library(RKorAPClient)
 new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
 ```
 
-## Examples
 ### Frequencies over time and domains using ggplot2
 ```r
 library(RKorAPClient)
