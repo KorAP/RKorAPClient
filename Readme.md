@@ -1,5 +1,17 @@
 # KorAP web service client package for R
 ---
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/RKorAPClient?color=brightgreen)](https://cran.r-project.org/package=RKorAPClient)
+[![CRAN downloads](http://cranlogs.r-pkg.org/badges/RKorAPClient?color=brightgreen)](http://www.r-pkg.org/pkg/RKorAPClient)
+[![Project Status: Active – The project has reached a stable, usablestate and is being activelydeveloped.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Lifecycle:stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
+[![Codecov test coverage](https://codecov.io/gh/KorAP/RKorAPClient/branch/master/graph/badge.svg)](https://codecov.io/gh/KorAP/RKorAPClient?branch=master)
+[![Last commit](https://img.shields.io/github/last-commit/KorAP/RKorAPClient.svg)](https://github.com/KorAP/RKorAPClient/issues)
+[![GitHub closed issues](https://img.shields.io/github/issues-raw/KorAP/RKorAPClient.svg)](https://github.com/KorAP/RKorAPClient/issues)
+[![GitHub issues](https://img.shields.io/github/issues-closed-raw/KorAP/RKorAPClient.svg)](https://github.com/KorAP/RKorAPClient/issues)
+[![check-windows](https://github.com/KorAP/RKorAPClient/workflows/check-windows/badge.svg)](https://github.com/KorAP/RKorAPClient/actions?workflow=check-windows)
+[![check-mac](https://github.com/KorAP/RKorAPClient/workflows/check-mac/badge.svg)](https://github.com/KorAP/RKorAPClient/actions?workflow=check-mac)
+[![check-linux](https://github.com/KorAP/RKorAPClient/workflows/check-linux/badge.svg)](https://github.com/KorAP/RKorAPClient/actions?workflow=check-linux)
+[![Github Stars](https://img.shields.io/github/stars/KorAP/RKorAPClient.svg?style=social&label=Github)](https://github.com/KorAP/RKorAPClient)
 
 ## Description
 
