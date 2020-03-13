@@ -26,7 +26,7 @@ Language: en-US
 License: BSD_2_clause + file LICENSE
 Encoding: UTF-8
 LazyData: false
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Imports:
     R.cache,
     broom,
