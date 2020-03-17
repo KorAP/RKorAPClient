@@ -1,8 +1,16 @@
-# RKorAPClient 0.5.6.9002
-- Fix some links in Readme.md
-- Introduce continuous integration tests via gh-actions, pulled from [highcharter](https://github.com/jbkunst/highcharter) (thanks @pachamaltese)
-- Remove redundant curl import
-- Fix handling of single queries in highcharter-helper
+# RKorAPClient 0.5.7
+
+## Changes
+- Introduced continuous integration tests via gh-actions, pulled from [highcharter](https://github.com/jbkunst/highcharter) (thanks @pachamaltese)
+
+## Bug Fixes
+- Fixed some links in Readme.md
+- Removed redundant curl import
+- Fixed handling of single query term queries in highcharter-helper that had an empty plot and a warning 
+  ```
+  Unknown or uninitialised column: 'condition'.
+  ```
+  as consequences.
 
 # RKorAPClient 0.5.6
 - Fix some links in Readme.md
