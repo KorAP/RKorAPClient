@@ -1,7 +1,7 @@
 Package: RKorAPClient
 Type: Package
 Title: 'KorAP' Web Service Client Package
-Version: 0.5.6.9002
+Version: 0.5.7
 Authors@R:
     c(person(given = "Marc",
              family = "Kupietz",
