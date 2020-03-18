@@ -136,3 +136,11 @@ hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE) {
   }
   hc
 }
+
+.onAttach <- function(libname = find.package("RKorAPClient"),
+                      pkgname = "RKorAPClient") {
+  packageStartupMessage(
+    "If you intend to use the Highcharts plot options, please note that Highcharts (www.highcharts.com) is a Highsoft software product which is not free for commercial and governmental use."
+  )
+}
+
