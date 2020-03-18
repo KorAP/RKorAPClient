@@ -84,12 +84,15 @@ Corpus Analysis Platform at the Leibniz Institute for German Language
 It is published under the
 [BSD-2 License](LICENSE.md).
 
-### Used Packages and Libraries
+### Further Affected Licenses and Terms of Services
 
 #### Highcharts
 RKorAPClient imports parts of the [highcharter package](https://cran.r-project.org/package=highcharter) which has a dependency on Highcharts, a commercial JavaScript charting library. Highcharts offers both a commercial license as well as a free non-commercial license. Please review the licensing options and terms before using the highcharter plot options, as the `RKorAPClient` license neither provides nor implies a license for Highcharts.
 
 [Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
+
+#### German Reference Corpus DeReKo
+By using RKorAPClient to access the German Reference Corpus DeReKo, you agree that you are using it exclusively for non-commercial and academic purposes.
 
 ## Contributions
 
