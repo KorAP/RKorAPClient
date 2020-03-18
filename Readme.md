@@ -54,6 +54,7 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 ![](man/figures/Readme-Example-1.png)<!-- -->
 
 ### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
+See the [Highcharts license notes](#highcharts) below.
 ```r
 library(RKorAPClient)
 query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
@@ -82,6 +83,13 @@ Corpus Analysis Platform at the Leibniz Institute for German Language
 
 It is published under the
 [BSD-2 License](LICENSE.md).
+
+### Used Packages and Libraries
+
+#### Highcharts
+RKorAPClient imports parts of the [highcharter package](https://cran.r-project.org/package=highcharter) which has a dependency on Highcharts, a commercial JavaScript charting library. Highcharts offers both a commercial license as well as a free non-commercial license. Please review the licensing options and terms before using the highcharter plot options, as the `RKorAPClient` license neither provides nor implies a license for Highcharts.
+
+[Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
 
 ## Contributions
 
