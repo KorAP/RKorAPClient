@@ -76,8 +76,8 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
         click = JS("function() { window.open(this.click, 'korap'); }")
       )))) %>%
     hc_credits(enabled = TRUE,
-               text = "KorAP R Client Pakckage",
-               href = "//github.com/KorAP/RKorAPClient/") %>%
+               text = "KorAP R Client Package",
+               href = "https://github.com/KorAP/RKorAPClient/") %>%
     hc_exporting(enabled = TRUE) %>%
     hc_tooltip(
       formatter = JS(paste0("function (tooltip) {
