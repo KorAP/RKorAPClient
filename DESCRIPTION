@@ -45,6 +45,7 @@ Imports:
     utils,
     httr,
     methods,
+    testthat,
     PTXQC
 Collate: 
     'KorAPConnection.R'
