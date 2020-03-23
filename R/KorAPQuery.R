@@ -363,9 +363,9 @@ format.KorAPQuery <- function(x, ...) {
   cat("<KorAPQuery>\n")
   q <- x
   aurl = parse_url(q@request)
-  cat("         Query: ", aurl$query$q, "\n")
-  if (!is.null(aurl$query$vc) && aurl$query$vc != "") {
-    cat("Virtual corpus: ", aurl$query$vc, "\n")
+  cat("           Query: ", aurl$query$q, "\n")
+  if (!is.null(aurl$query$cq) && aurl$query$cq != "") {
+    cat("  Virtual corpus: ", aurl$query$cq, "\n")
   }
   if (!is.null(q@collectedMatches)) {
     cat("==============================================================================================================", "\n")
