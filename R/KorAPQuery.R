@@ -68,15 +68,6 @@ setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery
 
 maxResultsPerPage <- 50
 
-QueryParameterFromUrl <- function(url, parameter) {
-  regex <- paste0(".*[?&]", parameter, "=([^&]*).*")
-  if (grepl(regex, url)) {
-    return(gsub(regex, '\\1', url, perl = TRUE))
-  } else {
-    return("")
-  }
-}
-
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 
