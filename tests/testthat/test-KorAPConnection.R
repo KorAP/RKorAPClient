@@ -3,12 +3,16 @@ test_that("KorAPConnection is printable", {
   expect_error(print(kco), NA)
 })
 
-test_that("Opening KorAPConnection with apiToken works", {
-  kco <- new("KorAPConnection", accessToken="test token")
-  persistAccessToken(kco)
-  kco <- new("KorAPConnection")
-  expect_equal(kco@accessToken, "test token")
-  clearAccessToken(kco)
+test_that("Opening KorAPConnection prints some message.", {
+  expect_message(new("KorAPConnection"), "KorAP")
+})
+
+test_that("Opening KorAPConnection with invalid apiToken fails", {
+  expect_error(new("KorAPConnection", accessToken="test token"),
+               "401")
+})
+
+test_that("Persisting null apiToken fails", {
   kco <- new("KorAPConnection")
   expect_null(kco@accessToken)
   expect_error(persistAccessToken(kco),

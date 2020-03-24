@@ -78,6 +78,7 @@ setMethod("initialize", "KorAPConnection",
             .Object@timeout = timeout
             .Object@verbose = verbose
             .Object@cache = cache
+            message(apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE))
             .Object
           })
 
@@ -151,46 +152,53 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @rdname KorAPConnection-class
 #' @param kco KorAPConnection object
 #' @param url request url
+#' @param json logical that determines if json result is expected
 #' @importFrom jsonlite fromJSON
 #' @export
-setMethod("apiCall", "KorAPConnection",  function(kco, url) {
-  if (kco@cache) {
-    parsed <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken))
-    if (!is.null(parsed)) {
-      if (!is.null(parsed$meta))
-        parsed$meta$cached <- "local"
-      return(parsed)
+setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, cache = kco@cache) {
+  result <- ""
+  if (cache) {
+    result <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken))
+    if (!is.null(result)) {
+      if (!is.null(result$meta))
+        result$meta$cached <- "local"
+      return(result)
     }
   }
   if (!is.null(kco@accessToken))
     resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
   else
     resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
-  if (!http_type(resp) %in% c("application/json", "application/ld+json")) {
-    stop("API did not return json", call. = FALSE)
-  }
-  parsed <- jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8"))
-  if (!is.null(parsed$warnings)) {
-    message <- if (nrow(parsed$warnings) > 1)
-      sapply(parsed$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
-    else
-      sprintf("%s: %s", parsed$warnings[1], parsed$warnings[2])
-    warning(message, call. = FALSE)
+  if (json || status_code(resp) != 200) {
+    if (json && !http_type(resp) %in% c("application/json", "application/ld+json")) {
+      stop("API did not return json", call. = FALSE)
+    }
+    result <- jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8"))
+    if (!is.null(result$warnings)) {
+      message <- if (nrow(result$warnings) > 1)
+        sapply(result$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
+      else
+        sprintf("%s: %s", result$warnings[1], result$warnings[2])
+      warning(message, call. = FALSE)
+    }
   }
   if (status_code(resp) != 200) {
     if (kco@verbose) {
       cat("\n")
     }
     message <- sprintf("%s KorAP API request failed", status_code(resp))
-    if (!is.null(parsed$errors)) {
-      message <- sprintf("%s - %s %s", message, parsed$errors[1], parsed$errors[2])
+    if (!is.null(result$errors)) {
+      message <- sprintf("%s - %s %s", message, result$errors[1], result$errors[2])
     }
     stop(message, call. = FALSE)
   }
-  if (kco@cache) {
-    R.cache::saveCache(parsed, key = list(url, kco@accessToken), dir = KorAPCacheSubDir(), compress = TRUE)
+  if (!json) {
+    result <- content(resp, "text", encoding = "UTF-8")
   }
-  parsed
+  if (cache) {
+    R.cache::saveCache(result, key = list(url, kco@accessToken), dir = KorAPCacheSubDir(), compress = TRUE)
+  }
+  result
 })
 
 setGeneric("clearCache", function(kco)  standardGeneric("clearCache") )
