@@ -92,7 +92,7 @@ RKorAPClient imports parts of the [highcharter package](https://cran.r-project.o
 [Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
 
 #### German Reference Corpus DeReKo
-By using RKorAPClient to access the German Reference Corpus DeReKo, you agree that you are using it exclusively for non-commercial and academic purposes.
+By using RKorAPClient to access the German Reference Corpus DeReKo and The Reference Corpus of Contemporary Romanian CoRoLa, you agree that you are using them exclusively for non-commercial and academic purposes.
 
 ## Contributions
 
