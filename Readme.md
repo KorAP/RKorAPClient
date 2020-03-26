@@ -72,6 +72,7 @@ new("KorAPConnection", verbose=T) %>%
 More elaborate R scripts demonstrating the use of the package can be found in the [demo](demo) folder.
 
 ## Development and License
+### RKorAPClient
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/), [Nils Diewald](http://www1.ids-mannheim.de/zfo/personal/diewald/)
 
@@ -90,6 +91,9 @@ It is published under the
 RKorAPClient imports parts of the [highcharter package](https://cran.r-project.org/package=highcharter) which has a dependency on Highcharts, a commercial JavaScript charting library. Highcharts offers both a commercial license as well as a free non-commercial license. Please review the licensing options and terms before using the highcharter plot options, as the `RKorAPClient` license neither provides nor implies a license for Highcharts.
 
 [Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
+
+### Accessed API Services
+By using RKorAPClient you agree to the respective terms of use of the accessed KorAP API services which will be printed upon opening a connection (`new("KorAPConnection", ...`).
 
 ## Contributions
 
