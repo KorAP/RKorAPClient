@@ -88,6 +88,7 @@ new("KorAPConnection", verbose=T) %>%
 More elaborate R scripts demonstrating the use of the package can be found in the [demo](demo) folder.
 
 ## Development and License
+### RKorAPClient
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/), [Nils Diewald](http://www1.ids-mannheim.de/zfo/personal/diewald/)
 
@@ -107,8 +108,8 @@ RKorAPClient imports parts of the [highcharter package](https://cran.r-project.o
 
 [Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
 
-#### German Reference Corpus DeReKo
-By using RKorAPClient to access the German Reference Corpus DeReKo, you agree that you are using it exclusively for non-commercial and academic purposes.
+### Accessed API Services
+By using RKorAPClient you agree to the respective terms of use of the accessed KorAP API services which will be printed upon opening a connection (`new("KorAPConnection", ...`).
 
 ## Contributions
 
