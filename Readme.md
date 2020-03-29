@@ -18,6 +18,17 @@
 R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://www.ids-mannheim.de/)
 
 ## Installation
+### System Dependencies on Linux
+`RKorAPClient` uses some R packages with system depencies you might need to install first:
+```bash
+#### Debian / Ubuntu
+sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev
+#### Fedora / RedHat
+sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel
+#### CentOS / RedHat
+sudo yum install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel
+```
+### Package installation
 #### CRAN version:
 ```r
 install.packages("RKorAPClient")
