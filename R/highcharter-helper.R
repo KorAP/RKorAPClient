@@ -9,6 +9,7 @@
 #' @param df data frame like the value of a \code{\link{frequencyQuery}}
 #' @param as.alternatives boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
 #' @param ylabel defaults to \% if \code{as.alternatives} is \code{true} and to "ipm" otherwise.
+#' @param ... additional arguments passed to \code{\link{hc_add_series}}
 #'
 #' @examples
 #' \donttest{year <- c(1990:2018)}\dontshow{year <- c(2013:2013)}
@@ -33,7 +34,7 @@
 #'   hc_freq_by_year_ci()
 #' }
 #'
-hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alternatives) "%" else "ipm") {
+hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alternatives) "%" else "ipm", ...) {
   title <- ""
   df <- df %>%
     { if(! as.alternatives) ipm(.) else RKorAPClient::percent(.) }
@@ -95,13 +96,13 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
       shared = TRUE,
       valueSuffix = paste0('\U2009', ylabel)
     ) %>%
-    hc_add_series_korap_frequencies(df, as.alternatives)
+    hc_add_series_korap_frequencies(df, as.alternatives, ...)
 }
 
 ## Mute notes: "no visible binding for global variable:"
 globalVariables(c("value", "query", "condition", "vc"))
 
-hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE) {
+hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE, ...) {
   index <- 0
   for(q in unique(df$condition)) {
     dat <- df[df$condition==q,]
@@ -117,7 +118,8 @@ hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE) {
       hcaes(year, value),
       type = 'line',
       colorIndex = index,
-      zIndex = 1
+      zIndex = 1,
+      ...
     ) %>%
       hc_add_series(
         name = "ci",
