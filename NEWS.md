@@ -1,3 +1,6 @@
+## Changes
+- New boolean parameter `smooth` added to `hc_freq_by_year_ci`
+
 # RKorAPClient 0.5.7
 
 ## Changes
