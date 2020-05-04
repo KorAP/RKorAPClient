@@ -9,6 +9,7 @@
 #' @param df data frame like the value of a \code{\link{frequencyQuery}}
 #' @param as.alternatives boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
 #' @param ylabel defaults to \% if \code{as.alternatives} is \code{true} and to "ipm" otherwise.
+#' @param smooth boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.
 #' @param ... additional arguments passed to \code{\link{hc_add_series}}
 #'
 #' @examples
@@ -34,7 +35,10 @@
 #'   hc_freq_by_year_ci()
 #' }
 #'
-hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alternatives) "%" else "ipm", ...) {
+hc_freq_by_year_ci <- function(df, as.alternatives = FALSE,
+                               ylabel = if(as.alternatives) "%" else "ipm",
+                               smooth = FALSE,
+                               ...) {
   title <- ""
   df <- df %>%
     { if(! as.alternatives) ipm(.) else RKorAPClient::percent(.) }
@@ -62,7 +66,6 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
   palette <- c("#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5", "#C49C94", "#F7B6D2", "#C7C7C7", "#DBDB8D", "#9EDAE5")
   highcharter::highchart() %>%
     hc_title(text=title) %>%
-    hc_chart(zoomType="xy") %>%
     hc_yAxis(
       title = list(text = if (as.alternatives) "" else ylabel),
       ceiling = if (as.alternatives) 100 else NULL,
@@ -73,6 +76,9 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
     hc_add_theme(hc_theme_google(colors=palette)) %>%
     hc_plotOptions(
       series = list(enabled = TRUE),
+      spline = list(cursor = 'pointer', point = list(events = list(
+        click = JS("function() { window.open(this.click, 'korap'); }")
+      ))),
       line = list(cursor = 'pointer', point = list(events = list(
         click = JS("function() { window.open(this.click, 'korap'); }")
       )))) %>%
@@ -81,6 +87,7 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
                href = "https://github.com/KorAP/RKorAPClient/") %>%
     hc_exporting(enabled = TRUE) %>%
     hc_tooltip(
+      headerFormat = '<span style="font-size: 10pt">{point.key}</span><br/>',
       formatter = JS(paste0("function (tooltip) {
         var str = tooltip.defaultFormatter.call(this, tooltip);
         if(Array.isArray(str))  {
@@ -96,14 +103,18 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE, ylabel = if(as.alter
       shared = TRUE,
       valueSuffix = paste0('\U2009', ylabel)
     ) %>%
-    hc_add_series_korap_frequencies(df, as.alternatives, ...)
+    hc_add_series_korap_frequencies(df, smooth, as.alternatives, ...)
 }
 
 ## Mute notes: "no visible binding for global variable:"
 globalVariables(c("value", "query", "condition", "vc"))
 
-hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE, ...) {
+hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
+                                            as.alternatives = FALSE,
+                                            ...) {
   index <- 0
+  type <- ifelse(smooth, "spline", "line")
+  areatype <- ifelse(smooth, "areasplinerange", "arearange")
   for(q in unique(df$condition)) {
     dat <- df[df$condition==q,]
     hc <- hc %>% hc_add_series(
@@ -116,7 +127,7 @@ hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE, ...
         click = dat$webUIRequestUrl
       ),
       hcaes(year, value),
-      type = 'line',
+      type = type,
       colorIndex = index,
       zIndex = 1,
       ...
@@ -125,7 +136,7 @@ hc_add_series_korap_frequencies <- function(hc, df, as.alternatives = FALSE, ...
         name = "ci",
         data = dat[,c('year', 'conf.low', 'conf.high')],
         hcaes(x = year, low = conf.low, high = conf.high),
-        type = 'arearange',
+        type = areatype,
         fillOpacity = 0.3,
         lineWidth = 0,
         marker = list(enabled = FALSE),
