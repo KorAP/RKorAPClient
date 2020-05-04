@@ -8,6 +8,7 @@ hc_freq_by_year_ci(
   df,
   as.alternatives = FALSE,
   ylabel = if (as.alternatives) "\%" else "ipm",
+  smooth = FALSE,
   ...
 )
 }
@@ -17,6 +18,8 @@ hc_freq_by_year_ci(
 \item{as.alternatives}{boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).}
 
 \item{ylabel}{defaults to \% if \code{as.alternatives} is \code{true} and to "ipm" otherwise.}
+
+\item{smooth}{boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.}
 
 \item{...}{additional arguments passed to \code{\link{hc_add_series}}}
 }
