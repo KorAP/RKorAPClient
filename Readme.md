@@ -24,10 +24,10 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 #### Debian / Ubuntu
 sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev
 
-#### Fedora / CentOS >= 8
+#### Fedora / CentOS >= 8 / RHEL >= 8
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel
 
-#### CentOS < 8
+#### CentOS < 8 / RHEL < 8
 sudo yum install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel
 
 #### Arch Linux
