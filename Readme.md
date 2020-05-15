@@ -15,7 +15,7 @@
 
 ## Description
 
-R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at the [IDS Mannheim](http://www.ids-mannheim.de/)
+R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at [IDS Mannheim](http://www.ids-mannheim.de/)
 
 ## Installation
 ### System Dependencies on Linux
