@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - { os: macOS-latest, r: '4.0' }
+        - { os: macOS-latest, r: '4.0', args: "--no-manual" }
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -31,7 +31,7 @@ jobs:
         if: contains(matrix.config.args, 'no-manual') == false
 
       - name: Install system dependencies
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && contains(matrix.config.args, 'no-manual') == false
         run: |
           tlmgr install pdftexcmds
 
