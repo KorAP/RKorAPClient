@@ -4,6 +4,7 @@
 #' \bold{Warning:} This function may be moved to a new package.
 #'
 #' @import highcharter
+#' @importFrom tibble add_column
 #' @export
 #'
 #' @param df data frame like the value of a \code{\link{frequencyQuery}}
@@ -44,7 +45,7 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE,
     { if(! as.alternatives) ipm(.) else RKorAPClient::percent(.) }
 
   if (!"year" %in% colnames(df)) {
-    df <- df %>% mutate(year = as.integer(queryStringToLabel(df$vc, pubDateOnly = TRUE)))
+    df <- df %>% add_column(year = as.integer(queryStringToLabel(df$vc, pubDateOnly = TRUE)))
   }
   if (!"condition" %in% colnames(df)) {
     if (length(base::unique(df$query)) > 1) {
@@ -56,7 +57,7 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE,
     } else {
       if (length(base::unique(queryStringToLabel(df$vc, excludePubDate = TRUE ))) > 1) {
         title <- base::unique(df$query)
-        df <- df %>% mutate(condition = queryStringToLabel(vc, excludePubDate = TRUE ))
+        df <- df %>% add_column(condition = queryStringToLabel(vc, excludePubDate = TRUE ))
       } else {
         df <- df %>% mutate(condition = query)
       }
