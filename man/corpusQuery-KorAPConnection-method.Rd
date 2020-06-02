@@ -76,7 +76,7 @@ new("KorAPConnection", verbose=TRUE) \%>\%
   mutate(year = lubridate::year(pubDate)) \%>\%
   dplyr::select(year) \%>\%
   group_by(year) \%>\%
-  summarise(Count = n()) \%>\%
+  summarise(Count = dplyr::n()) \%>\%
   mutate(Freq = mapply(function(f, y)
     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
   dplyr::select(-Count) \%>\%

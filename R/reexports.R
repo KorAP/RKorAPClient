@@ -25,6 +25,9 @@ dplyr::group_by
 #' @importFrom dplyr summarise
 #' @export
 dplyr::summarise
+#' @importFrom dplyr n
+#' @export
+dplyr::n
 #' @importFrom tidyr complete
 #' @export
 tidyr::complete

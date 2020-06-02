@@ -113,7 +113,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'   mutate(year = lubridate::year(pubDate)) %>%
 #'   dplyr::select(year) %>%
 #'   group_by(year) %>%
-#'   summarise(Count = n()) %>%
+#'   summarise(Count = dplyr::n()) %>%
 #'   mutate(Freq = mapply(function(f, y)
 #'     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) %>%
 #'   dplyr::select(-Count) %>%
@@ -231,7 +231,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr rowwise bind_rows select
+#' @importFrom dplyr rowwise bind_rows select summarise n
 #' @export
 setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
