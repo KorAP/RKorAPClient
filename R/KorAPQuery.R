@@ -230,7 +230,6 @@ setMethod("corpusQuery", "KorAPConnection",
 #'
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
-#' @importFrom purrr map_dfr
 #' @importFrom dplyr rowwise bind_rows select summarise n
 #' @export
 setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
@@ -252,9 +251,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       }
     }
     currentMatches <-
-      kqo@fields %>%
-      map_dfr( ~tibble(!!.x := logical() ) ) %>%
-      bind_rows(res$matches) %>%
+      res$matches %>%
       dplyr::select(kqo@fields)
     if ("pubDate" %in% kqo@fields) {
       currentMatches$pubDate <-  currentMatches$pubDate %>% as.Date(format = "%Y-%m-%d")
