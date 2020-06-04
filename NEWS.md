@@ -1,5 +1,8 @@
 # RKorAPClient 0.5.8.9001
 
+## Changes
+- A hash for the last index revision is queried on every new connection, making sure that no stale cache results are re-used.
+
 # RKorAPClient 0.5.8
 
 ## Changes

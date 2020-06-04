@@ -32,7 +32,7 @@
 
 \S4method{clearAccessToken}{KorAPConnection}(kco)
 
-\S4method{apiCall}{KorAPConnection}(kco, url, json = TRUE, cache = kco@cache)
+\S4method{apiCall}{KorAPConnection}(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache)
 
 \S4method{clearCache}{KorAPConnection}(kco)
 
@@ -79,6 +79,8 @@ the cache with \code{\link{clearCache}()}.}
 \item{url}{request url}
 
 \item{json}{logical that determines if json result is expected}
+
+\item{getHeaders}{logical that determines if headers and content should be returned (as a list)}
 
 \item{object}{KorAPConnection object}
 }
