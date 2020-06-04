@@ -12,7 +12,7 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 #' @import utils
 #' @import methods
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
@@ -78,7 +78,9 @@ setMethod("initialize", "KorAPConnection",
             .Object@timeout = timeout
             .Object@verbose = verbose
             .Object@cache = cache
-            message(apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE))
+            welcome <- apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
+            message(welcome[[2]])
+            .Object@indexRevision <- welcome[[1]][["x-index-revision"]]
             .Object
           })
 
@@ -153,12 +155,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param kco KorAPConnection object
 #' @param url request url
 #' @param json logical that determines if json result is expected
+#' @param getHeaders logical that determines if headers and content should be returned (as a list)
 #' @importFrom jsonlite fromJSON
 #' @export
-setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, cache = kco@cache) {
+setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache) {
   result <- ""
   if (cache) {
-    result <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken))
+    result <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken, kco@indexRevision))
     if (!is.null(result)) {
       if (!is.null(result$meta))
         result$meta$cached <- "local"
@@ -196,9 +199,13 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, cache =
     result <- content(resp, "text", encoding = "UTF-8")
   }
   if (cache) {
-    R.cache::saveCache(result, key = list(url, kco@accessToken), dir = KorAPCacheSubDir(), compress = TRUE)
+    R.cache::saveCache(result, key = list(url, kco@accessToken, kco@indexRevision), dir = KorAPCacheSubDir(), compress = TRUE)
   }
-  result
+  if (getHeaders) {
+    list(httr::headers(resp), result)
+  } else {
+    result
+  }
 })
 
 setGeneric("clearCache", function(kco)  standardGeneric("clearCache") )
