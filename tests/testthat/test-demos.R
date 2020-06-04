@@ -1,7 +1,6 @@
 test_that("Alternatives over time highcharter example works", {
-  year <- c(1990:2018)
+  year <- c(2013:2018)
   alternatives <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
-
   hc <- new("KorAPConnection", verbose = TRUE) %>%
     frequencyQuery(
       query = alternatives,
@@ -59,7 +58,7 @@ test_that("Auto conditions over time highcharter example works", {
   hc <- expand_grid(
     myconditions = c("textDomain = /Wirtschaft.*/",
                   "textDomain != /Wirtschaft.*/"),
-    year = (2009:2013)
+    year = (2011:2013)
   ) %>%
     cbind(frequencyQuery(
       kco,
@@ -74,7 +73,7 @@ test_that("Single condition over time highcharter example works", {
   kco <- new("KorAPConnection", verbose=TRUE)
   hc <- expand_grid(
     condition = c("textDomain = /Wirtschaft.*/"),
-    year = (2009:2013)
+    year = (2011:2013)
   ) %>%
     cbind(frequencyQuery(
       kco,
@@ -90,7 +89,7 @@ test_that("Multiple conditions over time highcharter example works", {
   hc <- expand_grid(
     condition = c("textDomain = /Wirtschaft.*/",
                   "textDomain != /Wirtschaft.*/"),
-    year = (2009:2013)
+    year = (2011:2013)
   ) %>%
     cbind(frequencyQuery(
       kco,
@@ -107,7 +106,7 @@ test_that("Multiple conditions and queries over time highcharter example works",
     qx = c("[tt/l=Heuschrecke]", "Ameise"),
     condition = c("textDomain = /Wirtschaft.*/",
                   "textDomain != /Wirtschaft.*/"),
-    year = (2009:2013)
+    year = (2011:2013)
   ) %>%
     cbind(frequencyQuery(
       kco,
@@ -123,7 +122,7 @@ test_that("Conditions over time ggplotly example works", {
   p <- expand_grid(
     condition = c("textDomain = /Wirtschaft.*/",
                   "textDomain != /Wirtschaft.*/"),
-    year = (2009:2013)
+    year = (2010:2013)
   ) %>%
     cbind(frequencyQuery(
       kco,
