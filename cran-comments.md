@@ -1,3 +1,6 @@
+## Relation between 0.5.9 and 0.5.8
+If you haven't checked 0.5.8 yet, you can just skip it and use 0.5.9 (unless 0.5.8 is OK and 0.5.9 not)
+
 ## Test environments
 * local Fedora 32 with R version 3.6.3
 * CentOS 7.7
@@ -7,8 +10,8 @@
 
 ## local R CMD check results
 ```
-── R CMD check results ──────────────────────────── RKorAPClient 0.5.7.9001 ────
-Duration: 5m 31.9s
+── R CMD check results ───────────────────────────────── RKorAPClient 0.5.9 ────
+Duration: 3m 38.4s
 
 0 errors ✓ | 0 warnings ✓ | 0 notes ✓
 
@@ -17,10 +20,10 @@ R CMD check succeeded
 
 ## https://cran.rstudio.com//web/checks/check_results_RKorAPClient.html
 
-Fixed donttest compatibility issues with dplyr 1.0.0:
+Fixed already in v0.5.8: Donttest compatibility issues with dplyr 1.0.0:
 https://www.stats.ox.ac.uk/pub/bdr/donttest/RKorAPClient.out
 
-## R-hub on Winodows Server 2008
+## R-hub on Windows Server 2008 R2 SP1, R-devel, 32/64 bit
 … reports the following dependency issue which, however, does not appear on any other test build (win builder, mac, Ubuntu, Fedora) and seems unrelated to RKorAPClient:
 
 ```
@@ -70,3 +73,6 @@ https://www.stats.ox.ac.uk/pub/bdr/donttest/RKorAPClient.out
 
  899#> * removing 'C:/Users/USERSHFYCydkVg/R/RKorAPClient'
 ```
+
+## testthat duration
+I've tried to reduce the time required for the tests.

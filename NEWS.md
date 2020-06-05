@@ -1,7 +1,7 @@
-# RKorAPClient 0.5.8.9001
+# RKorAPClient 0.5.9
 
 ## Changes
-- A hash for the last index revision is queried on every new connection, making sure that no stale cache results are re-used.
+- The local cache is now notified of new corpus index revisions when new connections are established. As a side effect, with v0.5.9 existing caches are invalidated. 
 
 # RKorAPClient 0.5.8
 
