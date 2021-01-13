@@ -21,9 +21,9 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{broom}{\code{\link[broom]{tidy}}}
+  \item{broom}{\code{\link[broom:reexports]{tidy}}}
 
-  \item{dplyr}{\code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr]{n}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
+  \item{dplyr}{\code{\link[dplyr:bind]{bind_cols}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
 
   \item{lubridate}{\code{\link[lubridate]{year}}}
 
