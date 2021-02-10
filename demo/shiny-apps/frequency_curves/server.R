@@ -1,6 +1,6 @@
 rsr <- new("KorAPConnection", verbose = TRUE)
 vc <- "referTo ratskorpus & pubDate in"
-years <- c(1995:2019)
+years <- c(1995:2020)
 query <- "Aluhut"
 logfile <- file("frequency_curves.log", open = "a")
 
