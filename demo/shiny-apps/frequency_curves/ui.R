@@ -3,7 +3,8 @@ library(highcharter)
 library(RKorAPClient)
 library(utils)
 library(stringr)
-source("theme-ids-dark.R")
+library(idsThemeR)
+#source("theme-ids-dark.R")
 
 shinyUI(
   fluidPage(
