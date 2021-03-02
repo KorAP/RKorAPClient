@@ -5,6 +5,7 @@ library(utils)
 library(stringr)
 library(idsThemeR)
 #source("theme-ids-dark.R")
+options(shiny.autoreload = TRUE)
 
 shinyUI(
   fluidPage(
