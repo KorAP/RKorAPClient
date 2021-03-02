@@ -9,12 +9,14 @@ logfile <- file("frequency_curves.log", open = "a")
 # override log.info in RKorAPClient to get some progress info
 log.info <- function(v,  ...) {
   original = paste0(...)
-  detail <- if (str_detect(original, "in ([0-9]{4})")) {
+  detail <- if (str_detect(original, "Searching.*in ([0-9]{4})")) {
     str_replace(original, ".*in ([0-9]{4}).*", "Suche in \\1")
+  } else if (str_detect(original, "Getting size.*in ([0-9]{4})")) {
+    str_replace(original, ".*in ([0-9]{4}).*", "Korpusgröße \\1")
   } else {
     "Randverteilung"
   }
-  incProgress(1 / (2 * length(query) * length(years)), detail = detail)
+  incProgress(1 / (2 * length(query) * length(years) + length(years)), detail = detail)
   cat(original, file = logfile)
   flush(logfile)
 }
