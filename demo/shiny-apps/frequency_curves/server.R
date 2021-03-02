@@ -1,6 +1,8 @@
 rsr <- new("KorAPConnection", verbose = TRUE)
-years <- c(1995:2020)
 vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
+years <- c(2005:2020)
+from <- 2005
+to <- 2020
 query <- "Aluhut"
 logfile <- file("frequency_curves.log", open = "a")
 
@@ -43,7 +45,8 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
   hc
 }
 
-generateHighchart <- function(wordParam) {
+generateHighchart <- function(wordParam, from=2005, to=2020) {
+  years <<- c(from:to)
   if (wordParam != "") {
     query <<- str_split(wordParam, " *, *", simplify = TRUE)
     withProgress(message = 'Berechnung läuft: ', value = 0, {
@@ -57,18 +60,30 @@ generateHighchart <- function(wordParam) {
 function(input, output, session) {
   observe({
     queryParams <- parseQueryString(session$clientData$url_search)
+    if (!is.null(queryParams[['from']])) {
+      from <- queryParams[['from']]
+      updateSliderInput(session, "from", value = from)
+    } else {
+      from <- 2005
+    }
+    if (!is.null(queryParams[['to']])) {
+      to <- queryParams[['to']]
+      updateSliderInput(session, "to", value = to)
+    } else {
+      to <- 2020
+    }
     if (!is.null(queryParams[['q']])) {
       paramWord <- queryParams[['q']]
       updateTextInput(session, "q", value = paramWord)
       output$hcontainer <-
-        renderHighchart(generateHighchart(paramWord))
+        renderHighchart(generateHighchart(paramWord, from, to))
     }
   })
-  
+
   observeEvent(input$goButton,
                {
                  output$hcontainer <-
-                   renderHighchart(generateHighchart(isolate(input$q)))
+                   renderHighchart(generateHighchart(isolate(input$q), isolate(input$from), isolate(input$to)))
                })
-  
+
 }
