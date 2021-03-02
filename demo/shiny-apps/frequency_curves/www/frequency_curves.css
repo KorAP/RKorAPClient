@@ -8,7 +8,7 @@ body, input {
 .btn-primary {
   background-color: #9BAD09;
   border-color: #626F06
-  
+
 }
 
 .btn-primary:hover {
@@ -16,14 +16,19 @@ body, input {
 }
 
 .shiny-notification {
-  position: fixed; 
+  position: fixed;
   top: 50%;
-  left: 50%;  
-  width: 250px; 
+  left: 50%;
+  width: 250px;
   margin-top: -100px;
   margin-left: -125px;
 }
-  
+
+.highcharts-anchor {
+  fill: blue;
+  color: blue;
+}
+
 .progress-bar {
   background-color: #9BAD09
-} 
+}
