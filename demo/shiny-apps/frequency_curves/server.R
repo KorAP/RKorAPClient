@@ -1,6 +1,6 @@
 rsr <- new("KorAPConnection", verbose = TRUE)
-vc <- "referTo ratskorpus & pubDate in"
 years <- c(1995:2020)
+vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
 query <- "Aluhut"
 logfile <- file("frequency_curves.log", open = "a")
 
@@ -20,7 +20,8 @@ log.info <- function(v,  ...) {
 assignInNamespace("log.info", log.info, "RKorAPClient")
 
 plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
-                          vc = "referTo ratskorpus & pubDate in",
+                          vc = "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
+,
                           years = years,
                           as.alternatives = F,
                           conf.level = 0.95,
@@ -31,6 +32,14 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
                        as.alternatives = as.alternatives) %>%
     hc_freq_by_year_ci(as.alternatives, smooth = T) %>%
     hc_add_theme(hc_theme_ids_dark())
+    hc_caption(text = paste(
+      "Frequenzverläufe (mit 95%-Konfidenzbändern) im",
+      "<a href='http://www.dereko.de'>Deutschen Referenzkorpus DeReKo</a>",
+      "(virtuelles Korpus: <a href='https://korap.ids-mannheim.de/doc/corpus'>DeReKo-KorAP-2021-I</a>",
+      "eingegrenzt auf Zeitungen, Zeitschriften und Plenarprotokolle).",
+      "Klicken sie die einzelnen Datenpunkte an, um entsprechende KorAP-Suchen zu starten."
+      ))
+
   hc
 }
 
