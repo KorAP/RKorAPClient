@@ -1,4 +1,5 @@
-# RKorAPClient 0.5.10
+# RKorAPClient 0.5.900
+
 ## Changes
 - collocationScoreQuery method added
 - hc_add_onclick_korap_search function added
