@@ -75,14 +75,7 @@ hc_freq_by_year_ci <- function(df, as.alternatives = FALSE,
     ) %>%
     hc_xAxis(allowDecimals=FALSE) %>%
     hc_add_theme(hc_theme_google(colors=palette)) %>%
-    hc_plotOptions(
-      series = list(enabled = TRUE),
-      spline = list(cursor = 'pointer', point = list(events = list(
-        click = JS("function() { window.open(this.click, 'korap'); }")
-      ))),
-      line = list(cursor = 'pointer', point = list(events = list(
-        click = JS("function() { window.open(this.click, 'korap'); }")
-      )))) %>%
+    hc_add_onclick_korap_search() %>%
     hc_credits(enabled = TRUE,
                text = "KorAP R Client Package",
                href = "https://github.com/KorAP/RKorAPClient/") %>%
@@ -125,7 +118,7 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
         year = dat$year,
         value = if (as.alternatives) dat$f else dat$ipm,
         count = dat$totalResults,
-        click = dat$webUIRequestUrl
+        webUIRequestUrl = dat$webUIRequestUrl
       ),
       hcaes(year, value),
       type = type,
@@ -149,6 +142,43 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
     index <- index+1
   }
   hc
+}
+
+#' Add KorAP search click events to highchart
+#'
+#' @description
+#' Adds on-click events to data points of highcarts that were constructed with
+#' \ref{frequencyQuery} or ref \ref{collocationScoreQuery}. Clicks on data points
+#' then launch KorAP web UI queries for the given query term and virtual corpus in
+#' a separate frame.
+#'
+#' @param hc  highchart
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' library(highcharter)
+#' library(tidyr)
+#'
+#' new("KorAPConnection", verbose = TRUE) %>%
+#'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
+#'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
+#'                          pivot_longer(c("O", "E")) %>%
+#'   hchart(type="spline", hcaes(label, value, group=name)) %>%
+#'   hc_add_onclick_korap_search()
+#' }
+#'
+hc_add_onclick_korap_search <- function(hc) {
+  hc_plotOptions(
+    hc,
+    series = list(enabled = TRUE),
+    spline = list(cursor = 'pointer', point = list(events = list(
+      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
+    ))),
+    line = list(cursor = 'pointer', point = list(events = list(
+      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
+    ))))
 }
 
 .onAttach <- function(libname = find.package("RKorAPClient"),

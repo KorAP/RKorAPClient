@@ -66,6 +66,7 @@ setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
 setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
 setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
 setGeneric("collocationScoreQuery", function(kco, ...)  standardGeneric("collocationScoreQuery") )
+setGeneric("collocationScoreQueryNew", function(kco, ...)  standardGeneric("collocationScoreQueryNew") )
 
 
 maxResultsPerPage <- 50
@@ -385,27 +386,6 @@ setMethod("show", "KorAPQuery", function(object) {
 })
 
 
-#'
-#' @importFrom dplyr if_else
-#'
-ca_ll <- function(w1, w2, w12, n, true_window_size) {
-  r1 = as.double(w1) * true_window_size
-  r2 = as.double(n) - r1
-  c1 = w2
-  c2 = n - c1
-  o11 = w12
-  o12 = r1 - o11
-  o21 = c1 - w12
-  o22 = r2 - o21
-  e11 = r1 * c1 / n
-  e12 = r1 * c2 / n
-  e21 = r2 * c1 / n
-  e22 = r2 * c2 / n
-  2 * ( dplyr::if_else(o11>0, o11 * log(o11/e11), 0)
-        + dplyr::if_else(o12>0, o12 * log(o12/e12), 0)
-        + dplyr::if_else(o21>0, o21 * log(o21/e21), 0)
-        + dplyr::if_else(o22>0, o22 * log(o22/e22), 0))
-}
 
 lemmatizeWordQuery <- function(w) {
   paste0('[tt/l=', w, ']')
@@ -414,7 +394,7 @@ lemmatizeWordQuery <- function(w) {
 #' Query frequencies of a node and a collocate and calculate collocation association scores
 #'
 #' \bold{\code{collocationScoreQuery}} computes various collocation association scores
-#' based on \code{\link{frequencyQuery}}s for a target worf and a collocate.
+#' based on \code{\link{frequencyQuery}}s for a target word and a collocate.
 #'
 #' @aliases collocationScoreQuery
 #' @rdname KorAPQuery-class
@@ -427,6 +407,10 @@ lemmatizeWordQuery <- function(w) {
 #' @param lemmatizeCollocateQuery logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]
 #' @param leftContextSize    size of the left context window
 #' @param rightContextSize   size of the right context window
+#' @param scoreFunctions     named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}
+#' @param smoothingConstant  smoothing constant will be added to all observed values
+#'
+#' @return tibble with query KorAP web request URL, all observed values and association scores
 #'
 #' @examples
 #' \donttest{
@@ -435,11 +419,20 @@ lemmatizeWordQuery <- function(w) {
 #' }
 #'
 #' \donttest{
+#' new("KorAPConnection", verbose = TRUE) %>%
+#' collocationScoreQuery("Grund", c("guter", "triftiger"),
+#'    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
+#' }
+#'
+#' \donttest{
 #' library(highcharter)
+#' library(tidyr)
 #' new("KorAPConnection", verbose = TRUE) %>%
 #'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
 #'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
-#'   hchart(type="spline", hcaes(label, score, group=measure))
+#'                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") %>%
+#'   hchart(type="spline", hcaes(label, score, group=measure)) %>%
+#'   hc_add_onclick_korap_search()
 #' }
 #'
 #' @importFrom tidyr pivot_longer
@@ -452,7 +445,13 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                    lemmatizeNodeQuery = FALSE,
                    lemmatizeCollocateQuery = FALSE,
                    leftContextSize = 5,
-                   rightContextSize = 5) {
+                   rightContextSize = 5,
+                   scoreFunctions = defaultAssociationScoreFunctions(),
+                   smoothingConstant = .5
+                   ) {
+            # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+            O1 <- O2 <- O <- N <- E <- w <- 0
+
             if (leftContextSize <= 0 && rightContextSize <= 0) {
               stop("At least one of leftContextSize and rightContextSize must be > 0",
                    call. = FALSE)
@@ -470,36 +469,34 @@ setMethod("collocationScoreQuery", "KorAPConnection",
 
             if (leftContextSize > 0) {
               query <-
-                paste0(collocate, " []{0,", leftContextSize - 1, "} ", node,
-                        if (rightContextSize > 0)  " | " else "")
+                paste0(collocate,
+                       if (leftContextSize > 1) paste0(" []{0,", leftContextSize - 1, "} ") else " ",
+                       node,
+                       if (rightContextSize > 0)  " | ")
             }
 
             if (rightContextSize > 0) {
               query <-
-                paste0(query, node, " []{0,", rightContextSize - 1, "} ", collocate)
+                paste0(query, node,
+                       if (rightContextSize > 1) paste0(" []{0,", rightContextSize - 1, "} ") else " ", collocate)
             }
 
-            w <- leftContextSize + rightContextSize
 
             tibble(
               node = node,
               collocate = collocate,
               label = queryStringToLabel(vc),
               vc = vc,
-
-              O = as.double(frequencyQuery(kco, query, vc)$totalResults),
               webUIRequestUrl = frequencyQuery(kco, query, vc)$webUIRequestUrl,
-              fx = frequencyQuery(kco, node, vc)$totalResults,
-              fy = frequencyQuery(kco, collocate, vc)$totalResults,
-              N  = frequencyQuery(kco, node, vc)$total,
-              E = w * as.double(fx) * fy / N,
-              MI      = log2(O   / E),
-              MI2     = log2(O ^ 2 / E),
-              MI3     = log2(O ^ 3 / E),
-              logDice = 14 + log2(2 * O / (w * fy + fx)),
-              llr     = ca_ll(fx, fy, O, N, w)
+              w = leftContextSize + rightContextSize,
+              leftContextSize,
+              rightContextSize,
+              N  = frequencyQuery(kco, node, vc)$total + smoothingConstant,
+              O = as.double(frequencyQuery(kco, query, vc)$totalResults) + smoothingConstant,
+              O1 = frequencyQuery(kco, node, vc)$totalResults + smoothingConstant,
+              O2 = frequencyQuery(kco, collocate, vc)$totalResults + smoothingConstant,
+              E = w * as.double(O1) * O2 / N
             ) %>%
-              tidyr::pivot_longer(c(MI, MI2, MI3, logDice, llr),
-                           names_to = "measure",
-                           values_to = "score")
+              mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
+
           })
