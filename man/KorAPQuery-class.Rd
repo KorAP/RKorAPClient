@@ -15,6 +15,8 @@
 \alias{frequencyQuery}
 \alias{format.KorAPQuery}
 \alias{show,KorAPQuery-method}
+\alias{collocationScoreQuery,KorAPConnection-method}
+\alias{collocationScoreQuery}
 \title{Class KorAPQuery}
 \usage{
 \S4method{initialize}{KorAPQuery}(
@@ -56,6 +58,19 @@
 \method{format}{KorAPQuery}(x, ...)
 
 \S4method{show}{KorAPQuery}(object)
+
+\S4method{collocationScoreQuery}{KorAPConnection}(
+  kco,
+  node,
+  collocate,
+  vc = "",
+  lemmatizeNodeQuery = FALSE,
+  lemmatizeCollocateQuery = FALSE,
+  leftContextSize = 5,
+  rightContextSize = 5,
+  scoreFunctions = defaultAssociationScoreFunctions(),
+  smoothingConstant = 0.5
+)
 }
 \arguments{
 \item{.Object}{…}
@@ -64,7 +79,7 @@
 
 \item{request}{query part of the request URL}
 
-\item{vc}{definition of a virtual corpus}
+\item{vc}{string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
 \item{totalResults}{number of hits the query has yielded}
 
@@ -103,9 +118,27 @@
 \item{x}{KorAPQuery object}
 
 \item{object}{KorAPQuery object}
+
+\item{node}{target word}
+
+\item{collocate}{collocate of target word}
+
+\item{lemmatizeNodeQuery}{logical, set to TRUE if node query should be lemmatized, i.e. x -> [tt/l=x]}
+
+\item{lemmatizeCollocateQuery}{logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]}
+
+\item{leftContextSize}{size of the left context window}
+
+\item{rightContextSize}{size of the right context window}
+
+\item{scoreFunctions}{named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}}
+
+\item{smoothingConstant}{smoothing constant will be added to all observed values}
 }
 \value{
 The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
+
+tibble with query KorAP web request URL, all observed values and association scores
 }
 \description{
 \code{KorAPQuery} objects represent the current state of a query to a KorAP server.
@@ -117,6 +150,9 @@ New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQue
 \code{\link{ci}} to compute a table with the relative frequencies and
 confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
+
+\bold{\code{collocationScoreQuery}} computes various collocation association scores
+based on \code{\link{frequencyQuery}}s for a target word and a collocate.
 }
 \examples{
 \donttest{q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
@@ -136,6 +172,27 @@ q@collectedMatches
 \donttest{
 new("KorAPConnection", verbose = TRUE) \%>\%
   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
+}
+
+\donttest{
+new("KorAPConnection", verbose = TRUE) \%>\%
+  collocationScoreQuery("Grund", "triftiger")
+}
+
+\donttest{
+new("KorAPConnection", verbose = TRUE) \%>\%
+collocationScoreQuery("Grund", c("guter", "triftiger"),
+   scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
+}
+
+\donttest{
+library(highcharter)
+new("KorAPConnection", verbose = TRUE) \%>\%
+  collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
+                        lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) \%>\%
+                         pivot_longer(14:last_col(), names_to = "measure", values_to = "score") \%>\%
+  hchart(type="spline", hcaes(label, score, group=measure)) \%>\%
+  hc_add_onclick_korap_search()
 }
 
 }
