@@ -14,7 +14,7 @@ test_that("Opening KorAPConnection with invalid apiToken fails", {
 
 test_that("Persisting null apiToken fails", {
   kco <- new("KorAPConnection")
-  expect_null(kco@accessToken)
+  skip_if_not(is.null(kco@accessToken))
   expect_error(persistAccessToken(kco),
                ".*not supplied any access token.*",
                perl = TRUE)
