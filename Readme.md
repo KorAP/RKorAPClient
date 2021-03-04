@@ -103,6 +103,11 @@ It is published under the
 
 ### Further Affected Licenses and Terms of Services
 
+#### Bundled Assets
+The KorAP logo was designed by Norbert Cußler-Volz
+is released under the terms of the Creative Commons
+License BY-NC-ND 4.0.
+
 #### Highcharts
 RKorAPClient imports parts of the [highcharter package](https://cran.r-project.org/package=highcharter) which has a dependency on Highcharts, a commercial JavaScript charting library. Highcharts offers both a commercial license as well as a free non-commercial license. Please review the licensing options and terms before using the highcharter plot options, as the `RKorAPClient` license neither provides nor implies a license for Highcharts.
 

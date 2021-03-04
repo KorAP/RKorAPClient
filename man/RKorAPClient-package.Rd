@@ -6,6 +6,7 @@
 \alias{RKorAPClient-package}
 \title{RKorAPClient: 'KorAP' Web Service Client Package}
 \description{
+\if{html}{\figure{logo.png}{options: align='right' alt='logo' width='120'}}
 
 A client package that makes the 'KorAP' web service API accessible from R.
   The corpus analysis platform 'KorAP' has been developed as a scientific tool to make
