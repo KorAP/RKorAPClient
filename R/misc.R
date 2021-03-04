@@ -1,3 +1,8 @@
+#' Misc functions
+#'
+#' @name misc-functions
+NULL
+#' NULL
 
 #' Convert corpus frequency table to instances per million.
 #'
@@ -12,6 +17,7 @@
 #' @return original table with additional column \code{ipm} and converted columns \code{conf.low} and \code{conf.high}
 #' @export
 #'
+#' @rdname misc-functions
 #' @importFrom dplyr .data
 #'
 #' @examples
@@ -35,6 +41,7 @@ ipm <- function(df) {
 #'
 #' @importFrom dplyr .data
 #'
+#' @rdname misc-functions
 #' @examples
 #' \donttest{
 #' new("KorAPConnection") %>%
@@ -57,6 +64,8 @@ percent <- function(df) {
 #' @param pubDateOnly discard all but the publication date
 #' @param excludePubDate discard publication date constraints
 #' @return string or vector of strings with clipped off common prefixes and suffixes
+#'
+#' @rdname misc-functions
 #'
 #' @examples
 #' queryStringToLabel(paste("textType = /Zeit.*/ & pubDate in", c(2010:2019)))
@@ -96,6 +105,8 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #'
 #' @param mapping	Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.
 #' @param ...	 Other arguments passed to geom_ribbon, geom_line, and geom_click_point.
+#'
+#' @rdname misc-functions
 #'
 #' @examples
 #' library(ggplot2)
@@ -174,6 +185,8 @@ tooltip2hyperlink <- function(p, attribute="webUIRequestUrl") {
 #'   in the tooltip. If you want hyperlinks to KorAP queries you need to include
 #'   \code{"url"} here.
 #' @param ... Other arguments passed to \code{plotly::ggplotly}
+#'
+#' @rdname misc-functions
 #'
 #' @examples
 #' library(ggplot2)

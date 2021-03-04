@@ -6,7 +6,7 @@
 #' @include KorAPConnection.R
 #' @import httr
 #'
-#' @include RKorAPClient.R
+#' @include RKorAPClient-package.R
 
 #' @export
 KorAPQuery <- setClass("KorAPQuery", slots = c(
@@ -292,6 +292,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 })
 
 #' Fetch all results of a KorAP query.
+#'
+#' \bold{\code{fetchAll}} fetches allf results of a KorAP query.
 #'
 #' @examples
 #' \donttest{
