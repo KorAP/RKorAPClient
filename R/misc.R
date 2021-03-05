@@ -133,10 +133,12 @@ geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high), .
     scale_x_continuous(breaks = function(x) seq(ceiling(x[1]), floor(x[2]), by = 1 + floor(((x[2]-x[1])/30)))))
 }
 
+#'
 #' @importFrom ggplot2 ggproto aes GeomPoint
-GeomClickPoint <- ggproto(
+#'
+GeomClickPoint <- ggplot2::ggproto(
   "GeomPoint",
-  GeomPoint,
+  ggplot2::GeomPoint,
   required_aes = c("x", "y"),
   default_aes = aes(
     shape = 19, colour = "black", size = 1.5, fill = NA,
@@ -151,8 +153,8 @@ GeomClickPoint <- ggproto(
 
 #' @importFrom ggplot2 layer
 geom_click_point <- function(mapping = NULL, data = NULL, stat = "identity",
-                              position = "identity", na.rm = FALSE, show.legend = NA,
-                              inherit.aes = TRUE, url = NA, ...) {
+                             position = "identity", na.rm = FALSE, show.legend = NA,
+                             inherit.aes = TRUE, url = NA, ...) {
   layer(
     geom = GeomClickPoint, mapping = mapping,  data = data, stat = stat,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
@@ -160,55 +162,3 @@ geom_click_point <- function(mapping = NULL, data = NULL, stat = "identity",
   )
 }
 
-
-#' @importFrom htmlwidgets onRender
-tooltip2hyperlink <- function(p, attribute="webUIRequestUrl") {
-  pattern <- paste0(attribute, ": ([^<]+)")
-  for(i in grep(attribute, p$x$data)) {
-    x <- p[["x"]][["data"]][[i]][["text"]]
-    m <- regexpr(pattern, x)
-    matches <- sub(paste0(attribute, ": "), "", regmatches(x, m))
-    p$x$data[[i]]$customdata <- matches
-    p[["x"]][["data"]][[i]][["text"]] <- sub(paste0(attribute, ":[^<]*<br ?/?>"), "", p[["x"]][["data"]][[i]][["text"]] )
-  }
-  onRender(p, "function(el, x) { el.on('plotly_click', function(d) { var url=d.points[0].customdata; if(url) { window.open(url, 'korap') } })}")
-}
-
-#' Experimental: Convert ggplot2 to plotly with hyperlinks to KorAP queries
-#'
-#' \code{RKorAPClient::ggplotly} converts a \code{ggplot2::ggplot()} object to a plotly
-#' object with hyperlinks from data points to corresponding KorAP queries.
-#' \bold{Warning:} This function may be moved to a new package.
-#'
-#' @param p a ggplot object.
-#' @param tooltip a character vector specifying which aesthetic mappings to show
-#'   in the tooltip. If you want hyperlinks to KorAP queries you need to include
-#'   \code{"url"} here.
-#' @param ... Other arguments passed to \code{plotly::ggplotly}
-#'
-#' @rdname misc-functions
-#'
-#' @examples
-#' library(ggplot2)
-#' kco <- new("KorAPConnection", verbose=TRUE)
-#' \donttest{year <- (2003:2011)}\dontshow{year <- c(2005)}
-#' \donttest{condition <- c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/")}\dontshow{condition <- c("textDomain = /Wirtschaft.*/")}
-#' g <- expand_grid(condition, year) %>%
-#'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
-#'                        paste0(.$condition," & pubDate in ", .$year)))  %>%
-#'   ipm() %>%
-#'   ggplot(aes(year, ipm, fill = condition, color = condition)) +
-#'   ##  theme_light(base_size = 20) +
-#'   geom_freq_by_year_ci()
-#' p <- ggplotly(g)
-#' print(p)
-#' ## saveWidget(p, paste0(tmpdir(), "heuschrecke.html")
-#'
-#'
-#' @importFrom plotly ggplotly
-#' @importFrom htmlwidgets saveWidget
-#' @export
-ggplotly <- function(p = ggplot2::last_plot(), tooltip = c("x", "y", "colour", "url"), ...) {
-  pp <- plotly::ggplotly(p = p, tooltip = tooltip, ...)
-  tooltip2hyperlink(pp)
-}

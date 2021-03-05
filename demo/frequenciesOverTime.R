@@ -4,7 +4,6 @@
 #
 library(RKorAPClient)
 library(ggplot2)
-library(plotly)
 
 freqPerYear <- function(query, kco = new("KorAPConnection", verbose = TRUE)) {
   g <- data.frame(year = 2000:2018) %>%
@@ -15,8 +14,7 @@ freqPerYear <- function(query, kco = new("KorAPConnection", verbose = TRUE)) {
     geom_freq_by_year_ci() +
     xlab("TIME") +
     ylab(sprintf("Observed frequency/million of \u201c%s\u201d", query))
-  p <- RKorAPClient::ggplotly(g)
-  print(p)
+  print(g)
   df
 }
 #df <- freqPerYear("Car-Bikini")
