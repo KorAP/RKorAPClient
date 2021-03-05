@@ -1,4 +1,4 @@
-# RKorAPClient 0.5.900
+# RKorAPClient 0.6.0
 
 ## Changes
 - collocationScoreQuery method added
