@@ -3,7 +3,7 @@
 \name{corpusQuery,KorAPConnection-method}
 \alias{corpusQuery,KorAPConnection-method}
 \alias{corpusQuery}
-\title{Method corpusQuery}
+\title{\bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server}
 \usage{
 \S4method{corpusQuery}{KorAPConnection}(
   kco,
@@ -51,7 +51,7 @@ A corresponding URL to be used within a web browser is contained in \code{@webUI
 Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 }
 \description{
-Perform a corpus query via a connection to a KorAP-API-server.
+\bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
 }
 \examples{
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary

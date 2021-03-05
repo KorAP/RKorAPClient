@@ -141,10 +141,13 @@ The \code{kqo} input object with updated slots \code{collectedMatches}, \code{ap
 tibble with query KorAP web request URL, all observed values and association scores
 }
 \description{
-\code{KorAPQuery} objects represent the current state of a query to a KorAP server.
-New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
+This class provides methods to perform different kinds of queries on the KorAP API server.
+\code{KorAPQuery} objects, which are typically created by the \code{\link{corpusQuery}} method,
+represent the current state of a query to a KorAP server.
 
 \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
+
+\bold{\code{fetchAll}} fetches allf results of a KorAP query.
 
 \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
 \code{\link{ci}} to compute a table with the relative frequencies and

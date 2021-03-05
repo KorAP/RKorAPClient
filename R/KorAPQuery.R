@@ -1,12 +1,13 @@
 #' Class KorAPQuery
 #'
-#' \code{KorAPQuery} objects represent the current state of a query to a KorAP server.
-#' New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQuery}} method.
+#' This class provides methods to perform different kinds of queries on the KorAP API server.
+#' \code{KorAPQuery} objects, which are typically created by the \code{\link{corpusQuery}} method,
+#' represent the current state of a query to a KorAP server.
 #'
 #' @include KorAPConnection.R
 #' @import httr
 #'
-#' @include RKorAPClient.R
+#' @include RKorAPClient-package.R
 
 #' @export
 KorAPQuery <- setClass("KorAPQuery", slots = c(
@@ -66,17 +67,13 @@ setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
 setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
 setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
 setGeneric("collocationScoreQuery", function(kco, ...)  standardGeneric("collocationScoreQuery") )
-setGeneric("collocationScoreQueryNew", function(kco, ...)  standardGeneric("collocationScoreQueryNew") )
-
 
 maxResultsPerPage <- 50
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 
-#' Method corpusQuery
-#'
-#' Perform a corpus query via a connection to a KorAP-API-server.
+#' \bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
 #'
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
@@ -292,6 +289,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 })
 
 #' Fetch all results of a KorAP query.
+#'
+#' \bold{\code{fetchAll}} fetches allf results of a KorAP query.
 #'
 #' @examples
 #' \donttest{
