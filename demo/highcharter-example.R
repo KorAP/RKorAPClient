@@ -1,4 +1,5 @@
 library(RKorAPClient)
+library(htmlwidgets)
 
 plotHighchart <- function(query = "Schlumpf",
                           years = c(2000:2010),
