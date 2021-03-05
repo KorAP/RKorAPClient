@@ -1,9 +1,10 @@
-# RKorAPClient 0.5.900
+# RKorAPClient 0.5.10
 
 ## Changes
 - collocationScoreQuery method added
 - hc_add_onclick_korap_search function added
 - support for orphaned plotly package dropped
+- improved documentation structure
 
 # RKorAPClient 0.5.9
 
