@@ -116,27 +116,3 @@ test_that("Multiple conditions and queries over time highcharter example works",
     hc_freq_by_year_ci()
   expect_true(all(class(hc) %in% c("highchart", "htmlwidget")))
 })
-
-test_that("Conditions over time ggplotly example works", {
-  kco <- new("KorAPConnection")
-  p <- expand_grid(
-    condition = c("textDomain = /Wirtschaft.*/",
-                  "textDomain != /Wirtschaft.*/"),
-    year = (2010:2013)
-  ) %>%
-    cbind(frequencyQuery(
-      kco,
-      "[tt/l=Heuschrecke]",
-      paste(.$condition, "& pubDate in", .$year)
-    ))  %>%
-    ipm() %>%
-    ggplot(aes(
-      x = year,
-      y = ipm,
-      fill = condition,
-      colour = condition
-    )) +
-    geom_freq_by_year_ci()
-  pp <- ggplotly(p)
-  expect_error(print(pp), NA)
-})
