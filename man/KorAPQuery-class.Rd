@@ -146,6 +146,8 @@ New \code{KorAPQuery} objects are typically created by the \code{\link{corpusQue
 
 \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 
+\bold{\code{fetchAll}} fetches allf results of a KorAP query.
+
 \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
 \code{\link{ci}} to compute a table with the relative frequencies and
 confidence intervals of one ore multiple search terms across one or multiple

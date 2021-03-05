@@ -1,8 +1,23 @@
-#' Default association score functions
+#' Association score functions
 #'
-#' @family association-score-functions
+#' @param O1            observed absolute frequency of node
+#' @param O2            observed absolute frequency of collocate
+#' @param O             observed absolute frequency of collocation
+#' @param N             corpus size
+#' @param E             expected absolute frequency of collocation (already adjusted to window size)
+#' @param window_size   total window size around node (left neighbour count + right neighbour count)
 #'
-#' @return list of default association score functions
+#' @return              association score
+#' @name association-score-functions
+#' @description
+#' Functions to calculate different collocation association scores between
+#' a node (target word) and words in a window around the it.
+#' The functions are primarily used by \code{\link{collocationScoreQuery}}.
+NULL
+#' NULL
+
+#' @rdname association-score-functions
+#'
 #' @export
 #'
 #' @examples
@@ -19,47 +34,26 @@ defaultAssociationScoreFunctions <- function() {
   list(pmi=pmi, mi2=mi2, mi3=mi3, logDice=logDice, ll=ll)
 }
 
-#' Pointwise mutual information
+#' @rdname association-score-functions
 #'
-#' @family association-score-functions
-#'
-#' @param O1            observed absolute frequency of node
-#' @param O2            observed absolute frequency of collocate
-#' @param O             observed absolute frequency of collocation
-#' @param N             corpus size
-#' @param E             expected absolute frequency of collocation (already adjusted to window size)
-#' @param window_size   total window size around node (left neighbour count + right neighbour count)
-#'
-#' @return              association score
 #' @export
 #'
-
 pmi <- function(O1, O2, O, N, E, window_size) {
   log2(O / E)
 }
 
-#' Pointwise mutual information squared
+#' @rdname association-score-functions
 #'
-#' @family association-score-functions
-#'
-#' @details
-#' Also referenced to as mutual dependency (MD)
-#'
-#' @inheritParams pmi
 #' @export
 #'
 mi2 <- function(O1, O2, O, N, E, window_size) {
   log2(O ^ 2 / E)
 }
 
-#' Pointwise mutual information cubed
-#'
+#' @rdname association-score-functions
 #' @family association-score-functions
 #'
-#' @details
-#' Also referenced to as log-frequency biased mutual dependency (LFMD)
 #'
-#' @inheritParams pmi
 #' @export
 #'
 #' @references
@@ -71,16 +65,12 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
   log2(O ^ 3 / E)
 }
 
-#' log-Dice coefficient
-#'
+#' @rdname association-score-functions
 #' @family association-score-functions
-#' @inheritParams pmi
 #' @export
 #'
-#' @examples
-#'
 #' @references
-#' Rychlý, Pavel (2008): <a href="http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf">A lexicographer-friendly association score.</a> In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9.
+#' Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. <http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf>.
 #'
 
 logDice <-  function(O1, O2, O, N, E, window_size) {
@@ -90,13 +80,12 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 
 #' Log likelihood
 #'
+#' @rdname association-score-functions
 #' @family association-score-functions
 #'
 #' @export
 #'
 #' @importFrom dplyr if_else
-#'
-#' @inheritParams pmi
 #'
 #' @references
 #' Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.

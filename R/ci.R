@@ -15,6 +15,8 @@
 #' @param conf.level confidence level of the returned confidence interval. Must
 #'   be a single number between 0 and 1.
 #'
+#' @rdname misc-functions
+#'
 #' @export
 #' @importFrom stats prop.test
 #' @importFrom tibble remove_rownames

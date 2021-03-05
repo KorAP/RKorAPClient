@@ -1,8 +1,17 @@
+#' Helper functions for producing highcharts
+#'
+#' @param hc  highchart
+#'
+#' @name highcharter-helpers
+NULL
+#' NULL
+
 #' Experimental: Plot interactive frequency by year graphs with confidence intervals using highcharter
 #'
 #' Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
 #' \bold{Warning:} This function may be moved to a new package.
 #'
+#' @rdname highcharter-helpers
 #' @import highcharter
 #' @importFrom tibble add_column
 #' @export
@@ -148,12 +157,11 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
 #'
 #' @description
 #' Adds on-click events to data points of highcarts that were constructed with
-#' \ref{frequencyQuery} or ref \ref{collocationScoreQuery}. Clicks on data points
+#' \code{\link{frequencyQuery}} or \code{\link{collocationScoreQuery}}. Clicks on data points
 #' then launch KorAP web UI queries for the given query term and virtual corpus in
-#' a separate frame.
+#' a separate tab.
 #'
-#' @param hc  highchart
-#'
+#' @rdname highcharter-helpers
 #' @export
 #'
 #' @examples
