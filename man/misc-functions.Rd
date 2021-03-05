@@ -7,7 +7,6 @@
 \alias{percent}
 \alias{queryStringToLabel}
 \alias{geom_freq_by_year_ci}
-\alias{ggplotly}
 \title{Add confidence interval and relative frequency variables}
 \usage{
 ci(df, x = totalResults, N = total, conf.level = 0.95)
@@ -19,8 +18,6 @@ percent(df)
 queryStringToLabel(data, pubDateOnly = FALSE, excludePubDate = FALSE)
 
 geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high), ...)
-
-ggplotly(p = ggplot2::last_plot(), tooltip = c("x", "y", "colour", "url"), ...)
 }
 \arguments{
 \item{df}{table returned from \code{\link{frequencyQuery}}}
@@ -40,13 +37,7 @@ be a single number between 0 and 1.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.}
 
-\item{...}{Other arguments passed to \code{plotly::ggplotly}}
-
-\item{p}{a ggplot object.}
-
-\item{tooltip}{a character vector specifying which aesthetic mappings to show
-in the tooltip. If you want hyperlinks to KorAP queries you need to include
-\code{"url"} here.}
+\item{...}{Other arguments passed to geom_ribbon, geom_line, and geom_click_point.}
 }
 \value{
 original table with additional column \code{ipm} and converted columns \code{conf.low} and \code{conf.high}
@@ -71,10 +62,6 @@ Converts a vector of query or vc strings to typically appropriate legend labels
 by clipping off prefixes and suffixes that are common to all query strings.
 
 Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
-\bold{Warning:} This function may be moved to a new package.
-
-\code{RKorAPClient::ggplotly} converts a \code{ggplot2::ggplot()} object to a plotly
-object with hyperlinks from data points to corresponding KorAP queries.
 \bold{Warning:} This function may be moved to a new package.
 }
 \details{
@@ -117,22 +104,6 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
   ggplot(aes(year, ipm, fill = condition, color = condition)) +
   geom_freq_by_year_ci()
 }
-library(ggplot2)
-kco <- new("KorAPConnection", verbose=TRUE)
-\donttest{year <- (2003:2011)}\dontshow{year <- c(2005)}
-\donttest{condition <- c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/")}\dontshow{condition <- c("textDomain = /Wirtschaft.*/")}
-g <- expand_grid(condition, year) \%>\%
-  cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",
-                       paste0(.$condition," & pubDate in ", .$year)))  \%>\%
-  ipm() \%>\%
-  ggplot(aes(year, ipm, fill = condition, color = condition)) +
-  ##  theme_light(base_size = 20) +
-  geom_freq_by_year_ci()
-p <- ggplotly(g)
-print(p)
-## saveWidget(p, paste0(tmpdir(), "heuschrecke.html")
-
-
 }
 \seealso{
 \code{ci} is already included in \code{\link{frequencyQuery}}

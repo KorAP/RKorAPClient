@@ -4,8 +4,6 @@
 #
 library(RKorAPClient)
 library(ggplot2)
-library(plotly)
-library(htmlwidgets)
 
 alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection", verbose=TRUE)) {
   df <- expand_grid(Variant = alternatives, year = years) %>%
@@ -16,8 +14,7 @@ alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection
     ggtitle(paste0(alternatives, collapse = " vs. ")) +
     xlab("TIME") +
     ylab(sprintf("Observed frequency ratio"))
-  ppp <- RKorAPClient::ggplotly(g)
-  print(ppp)
+  print(g)
   df
 }
 

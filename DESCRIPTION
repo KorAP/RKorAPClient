@@ -43,7 +43,6 @@ Imports:
     highcharter,
     jsonlite,
     keyring,
-    plotly,
     htmlwidgets,
     utils,
     httr,
