@@ -1,3 +1,8 @@
+hc_theme <- if(require(idsThemeR)) {
+  idsThemeR::hc_theme_ids_light()
+} else {
+  hc_theme_hcrt()
+}
 rsr <- new("KorAPConnection", verbose = TRUE)
 vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
 years <- c(2005:2020)
@@ -36,7 +41,7 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
                        as.alternatives = as.alternatives) %>%
     hc_freq_by_year_ci(as.alternatives, smooth = T) %>%
     hc_yAxis(title = list(text = "Instanzen pro Million Wörter")) %>%
-    hc_add_theme(hc_theme_ids_light()) %>%
+    hc_add_theme(hc_theme) %>%
     hc_caption(text = paste(
       "Frequenzverläufe (mit 95%-Konfidenzbändern) im",
       "<a href='http://www.dereko.de'>Deutschen Referenzkorpus DeReKo</a>",
