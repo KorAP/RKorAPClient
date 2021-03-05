@@ -3,7 +3,6 @@ library(RKorAPClient)
 library(ggplot2)
 library(raster)
 library(broom)
-library(htmlwidgets)
 
 devAskNewPage(ask = FALSE)
 mapfile <- "demo/data/cache/map-v2.rds"
