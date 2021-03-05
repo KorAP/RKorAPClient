@@ -78,9 +78,9 @@ percent <- function(df) {
 #' @export
 queryStringToLabel <- function(data, pubDateOnly = FALSE, excludePubDate = FALSE) {
   if (pubDateOnly) {
-    data <-substring(data, regexpr("pubDate", data)+7)
+    data <-substring(data, regexpr("(pub|creat)Date", data)+7)
   } else if(excludePubDate) {
-    data <-substring(data, 1, regexpr("pubDate", data))
+    data <-substring(data, 1, regexpr("(pub|creat)Date", data))
   }
   leftCommon = lcpCount(data)
   while (leftCommon > 0 && grepl("[[:alnum:]/=.*!]", substring(data[1], leftCommon, leftCommon))) {
