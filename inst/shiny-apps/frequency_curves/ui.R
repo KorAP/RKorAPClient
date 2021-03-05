@@ -3,9 +3,9 @@ library(highcharter)
 library(RKorAPClient)
 library(utils)
 library(stringr)
-library(idsThemeR)
-#source("theme-ids-dark.R")
+library()
 options(shiny.autoreload = TRUE)
+
 
 shinyUI(
   fluidPage(

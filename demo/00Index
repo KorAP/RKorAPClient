@@ -5,4 +5,5 @@ alternativesOverTime      Plot proportion of alternative spellings/variants over
 regional                  Map plot regional frequencies of query expression
 mosaicplot                Visualize frequencies of alternative query terms in relation to other variables
 highcharter-example       Visualize frqequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using the package highcharter as wrapper for Highcharts
+shiny-frequency-curves    Web application that plots frequency curves with highcharts and shiny
 writtenVsSpoken           Compare frequencies in written vs. spoken corpora
