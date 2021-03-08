@@ -33,7 +33,7 @@ hc_add_onclick_korap_search(hc)
 Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
 \bold{Warning:} This function may be moved to a new package.
 
-Adds on-click events to data points of highcarts that were constructed with
+Adds on-click events to data points of highcharts that were constructed with
 \code{\link{frequencyQuery}} or \code{\link{collocationScoreQuery}}. Clicks on data points
 then launch KorAP web UI queries for the given query term and virtual corpus in
 a separate tab.

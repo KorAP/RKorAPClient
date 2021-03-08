@@ -19,7 +19,7 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 
 ## Installation
 ### System Dependencies on Linux
-`RKorAPClient` uses some R packages with system depencies you might need to install first:
+`RKorAPClient` uses some R packages with system dependencies you might need to install first:
 ```bash
 #### Debian / Ubuntu
 sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev

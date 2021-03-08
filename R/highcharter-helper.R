@@ -156,7 +156,7 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
 #' Add KorAP search click events to highchart
 #'
 #' @description
-#' Adds on-click events to data points of highcarts that were constructed with
+#' Adds on-click events to data points of highcharts that were constructed with
 #' \code{\link{frequencyQuery}} or \code{\link{collocationScoreQuery}}. Clicks on data points
 #' then launch KorAP web UI queries for the given query term and virtual corpus in
 #' a separate tab.
