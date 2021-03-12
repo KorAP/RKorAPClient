@@ -13,7 +13,8 @@
 ```
 
 ## Notes
-* The version bump was partially due to the dropped support for the orphaned plotly package.
+* In case v0.6.0 arrived at CRAN (for the first time, I got no confirmation mail), please ignore it 
+* The minor version bump was partially due to the dropped support for the orphaned plotly package.
   (Initially deprecating the abandoned functions seemed not necessary here, as they were marked as risky and unmaintained from the outset.)
 * Tests might be slightly slow sometimes because it's a web service client library 
 and avoiding a mock web server still seems preferable.
