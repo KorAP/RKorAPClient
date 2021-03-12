@@ -85,7 +85,7 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
 #'
 
 logDice <-  function(O1, O2, O, N, E, window_size) {
-  14 + log2(2 * O / (window_size * O2 + O1))
+  14 + log2(2 * O / (window_size * O1 + O2))
 }
 
 
