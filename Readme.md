@@ -1,5 +1,5 @@
 # KorAP web service client package for R <a href="https://korap.ids-mannheim.de/"><img src="man/figures/logo.png" align="right" alt="R-KorAP-Logo" height="128"/></a>
----
+
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/RKorAPClient?color=brightgreen)](https://cran.r-project.org/package=RKorAPClient)
 [![CRAN downloads](http://cranlogs.r-pkg.org/badges/RKorAPClient?color=brightgreen)](http://www.r-pkg.org/pkg/RKorAPClient)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
@@ -104,7 +104,7 @@ It is published under the
 ### Further Affected Licenses and Terms of Services
 
 #### Bundled Assets
-The KorAP logo was designed by Norbert Cußler-Volz
+The KorAP logo was designed by Norbert Cußler-Volz and
 is released under the terms of the Creative Commons
 License BY-NC-ND 4.0.
 

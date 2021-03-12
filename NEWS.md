@@ -2,6 +2,7 @@
 
 ## Changes
 - fixes calculation of logDice coefficient
+- updated Readme.md
 
 # RKorAPClient 0.6.0
 
