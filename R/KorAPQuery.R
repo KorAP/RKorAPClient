@@ -237,7 +237,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
     return(kqo)
   }
 
-  page <- 1
+  page <- kqo@nextStartIndex / maxResultsPerPage + 1
   results <- 0
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
