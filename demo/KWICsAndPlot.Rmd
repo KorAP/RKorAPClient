@@ -1,0 +1,55 @@
+---
+title: "RKorAPClient + R Markdown Demo"
+author: "Marc Kupietz"
+date: "2021-06-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warnings = TRUE)
+library(RKorAPClient)
+library(kableExtra)
+library(DT)
+
+
+kco <- new("KorAPConnection")
+query <- "Ameisenplage"
+qx <-kco %>%
+  corpusQuery(query, metadataOnly=F, fields=c("textSigle", "pubDate", "snippet")) %>%
+  fetchAll() 
+```
+
+```{asis, eval = TRUE, echo = !is.null(kco@accessToken)}
+### WARNING
+To receive KWICSs also from corpora with restricted licenses, you need an access token.
+To generate such a token, login to KorAP and navigite to [KorAP's OAuth settings](https://korap.ids-mannheim.de/settings/oauth#page-top). 
+
+After yo have generated an access token you can persist it with `persistAccessToken(kco, <access token>)`.
+```
+
+
+## Query results for [`r query`](`r qx@webUIRequestUrl`)
+
+### Concordances 
+Querying "`r query`" with KorAP in DeReKo has the following `r qx@totalResults` results: 
+
+```{r kwics}
+qx@collectedMatches %>%
+  datatable(escape = F,
+            extensions = c('Buttons'),
+            options = list(
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+              pageLength = 10,
+              dom = 'ftpB'
+            ))
+```
+
+### Freqency plot
+Click on the data points to open a new browser tab with a KorAP query for "`r query`" in the specified year.
+
+```{r plot}
+year <- c(2010:2018)
+frequencyQuery(kco, query, paste("pubDate in", year)) %>%
+  hc_freq_by_year_ci()
+```
+
