@@ -290,7 +290,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 
 #' Fetch all results of a KorAP query.
 #'
-#' \bold{\code{fetchAll}} fetches allf results of a KorAP query.
+#' \bold{\code{fetchAll}} fetches all results of a KorAP query.
 #'
 #' @examples
 #' \donttest{
