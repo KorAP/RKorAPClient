@@ -1,0 +1,48 @@
+---
+title: "RKorAPClient + R Markdown Demo"
+author: "Marc Kupietz"
+date: "2021-06-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = FALSE,  warning = FALSE)
+library(RKorAPClient)
+library(highcharter)
+library(kableExtra)
+library(DT)
+
+
+kco <- new("KorAPConnection")
+query <- "Ameisenplage"
+qx <-kco %>%
+  corpusQuery(query, metadataOnly=F, fields=c("textSigle", "pubDate", "snippet")) %>%
+  fetchAll() 
+```
+
+## Query results for [`r query`](`r qx@webUIRequestUrl`)
+
+### Concordances 
+Querying "`r query`" with KorAP in DeReKo has the following `r qx@totalResults` results: 
+
+```{r kwics}
+tibble(qx@collectedMatches) %>%
+  datatable(escape = F,
+            extensions = c('Buttons'),
+            options = list(
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+              pageLength = 10,
+              dom = 'ftpB'
+            ))
+```
+
+## Freqency plot
+Click on the data points to open a new browser tab with a KorAP query for "`r query`" in the specified year.
+
+```{r plot}
+year <- c(2010:2018)
+frequencyQuery(kco, query, paste("pubDate in", year)) %>%
+  hc_freq_by_year_ci()
+```
+
