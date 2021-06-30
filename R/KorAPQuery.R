@@ -243,8 +243,12 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   collectedMatches <- kqo@collectedMatches
 
   repeat {
-    res <- apiCall(kqo@korapConnection, paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', offset + results))
-    if (res$meta$totalResults == 0) { return(kqo) }
+    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', offset + results, '&cutoff=true')
+    res <- apiCall(kqo@korapConnection, query)
+    if (length(res$matches) == 0) {
+      break
+    }
+
     for (field in kqo@fields) {
       if (!field %in% colnames(res$matches)) {
         res$matches[, field] <- NA
@@ -266,24 +270,24 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       collectedMatches <- rbind(collectedMatches, currentMatches)
     }
     if (verbose) {
-      cat(paste0("Retrieved page ", page, "/", ceiling((res$meta$totalResults) / res$meta$itemsPerPage), ' in ', res$meta$benchmark, '\n'))
+      cat(paste0("Retrieved page ", page, "/", ceiling((kqo@totalResults) / res$meta$itemsPerPage), ' in ', res$meta$benchmark, '\n'))
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (offset + results >= res$meta$totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
+    if (offset + results >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
   }
-  nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, res$meta$totalResults)
+  nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, kqo@totalResults)
   KorAPQuery(nextStartIndex = nextStartIndex,
     korapConnection = kqo@korapConnection,
     fields = kqo@fields,
     requestUrl = kqo@requestUrl,
     request = kqo@request,
-    totalResults = res$meta$totalResults,
+    totalResults = kqo@totalResults,
     vc = kqo@vc,
     webUIRequestUrl = kqo@webUIRequestUrl,
-    hasMoreMatches = (res$meta$totalResults > nextStartIndex),
+    hasMoreMatches = (kqo@totalResults > nextStartIndex),
     apiResponse = res,
     collectedMatches = collectedMatches)
 })
