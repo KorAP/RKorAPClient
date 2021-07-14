@@ -129,7 +129,7 @@ getAccessToken <- function(KorAPUrl) {
                                    warning = function(w) invokeRestart("muffleWarning"),
                                    error = function(e) return(NULL)),
                           error = function(e) { })
-  if (KorAPUrl %in% keyList)
+  if (KorAPUrl %in% keyList$username)
     key_get(accessTokenServiceName, KorAPUrl)
   else
     NULL
