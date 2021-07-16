@@ -69,7 +69,8 @@
   leftContextSize = 5,
   rightContextSize = 5,
   scoreFunctions = defaultAssociationScoreFunctions(),
-  smoothingConstant = 0.5
+  smoothingConstant = 0.5,
+  observed = NULL
 )
 }
 \arguments{
@@ -147,7 +148,7 @@ represent the current state of a query to a KorAP server.
 
 \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 
-\bold{\code{fetchAll}} fetches allf results of a KorAP query.
+\bold{\code{fetchAll}} fetches all results of a KorAP query.
 
 \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
 \code{\link{ci}} to compute a table with the relative frequencies and
