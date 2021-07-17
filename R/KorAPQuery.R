@@ -242,8 +242,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
 
+  set.seed(7)
+  pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+
   repeat {
-    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', offset + results, '&cutoff=true')
+    page = length(collectedMatches[,1]) %/% maxResultsPerPage + 1
+    currentOffset = pages[page] * maxResultsPerPage
+    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
@@ -270,11 +275,22 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       collectedMatches <- rbind(collectedMatches, currentMatches)
     }
     if (verbose) {
-      cat(paste0("Retrieved page ", page, "/", ceiling((kqo@totalResults) / res$meta$itemsPerPage), ' in ', res$meta$benchmark, '\n'))
+      cat(paste0(
+        "Retrieved page ",
+        ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
+        "/",
+        if (maxFetch < kqo@totalResults)
+          sprintf("%d (%d))", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
+        else
+          sprintf("%d", ceiling(kqo@totalResults / res$meta$itemsPerPage)),
+        ' in ',
+        res$meta$benchmark,
+        '\n'
+      ))
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (offset + results >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
+    if (length(collectedMatches[,1]) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
   }
@@ -504,3 +520,4 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
 
           })
+
