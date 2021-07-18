@@ -1,15 +1,17 @@
 library(tidyverse)
 library(RKorAPClient)
+library(tictoc)
 kco <- new("KorAPConnection", verbose = TRUE)
 
 snippet2FreqTable <- function(snippet,
                               minOccurr = 5,
                               leftContextSize = 5,
                               rightContextSize = 5,
-                              stopwords = c("der", "die", "das", "ein", "eine", "einer", "den", "dem", "des", "einen", "von", "mit", "zu", "und"),
+                              stopwords = c("der", "die", "das", "ein", "eine", "einer", "den", "dem", "des", "einen", "von", "mit", "zu", "und", "in", "am", "um"),
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1))) {
   if (length(snippet) > 1) {
     message(paste("Joinging", length(snippet), "kwics"))
+    tic()
     for (s in snippet) {
       oldTable <- snippet2FreqTable(
         s,
@@ -18,13 +20,15 @@ snippet2FreqTable <- function(snippet,
         oldTable = oldTable
       )
     }
-    stopwordsTable <- tibble(word=stopwords)
-    oldTable  %>%
-      filter(frequency >= minOccurr & word != "NA") %>%
-      arrange(desc(frequency)) %>%
-      anti_join(stopwordsTable, by="word")
-
+    toc()
+    message(paste("Aggregating", length(oldTable$word), "tokens"))
+      oldTable  %>%
+      group_by(word) %>%
+      summarise(frequency=sum(frequency), .groups = "drop") %>%
+      filter(frequency >= minOccurr) %>%
+      arrange(desc(frequency))
   } else {
+    stopwordsTable <- tibble(word=stopwords)
     match <-
       str_match(
         snippet,
@@ -37,11 +41,8 @@ snippet2FreqTable <- function(snippet,
       as.data.frame() %>%
       dplyr::rename(word = 1, frequency = 2) %>%
       filter(str_detect(word, '^[:alnum:]+[:alnum:-]$')) %>%
-      full_join(oldTable, y, by = "word") %>%
-      filter(!is.na(word)) %>%
-      replace_na(list(frequency.x = 0, frequency.y = 0)) %>%
-      mutate(frequency = frequency.x + frequency.y) %>%
-      select(word, frequency)
+      anti_join(stopwordsTable, by="word")  %>%
+      bind_rows(oldTable)
   }
 }
 
@@ -52,7 +53,7 @@ collocatesQuery <-
            minOccur = 5,
            leftContextSize = 5,
            rightContextSize = 5,
-           limit = NA,
+           limit = 20000,
            ...) {
     q <- corpusQuery(kco, query, metadataOnly = F, ...) %>%
       fetchNext(maxFetch=limit)
@@ -69,7 +70,7 @@ collocationAnalysis <-
            leftContextSize = 5,
            rightContextSize = 5,
            maxCollocates = 200,
-           limit = NA,
+           limit = 20000,
            ...) {
     candidates <- collocatesQuery(kco, query, minOccur = minOccur,
                     leftContextSize = leftContextSize,
@@ -77,13 +78,15 @@ collocationAnalysis <-
                   head(maxCollocates)
     print(candidates)
     collocationScoreQuery(kco, node=query, collocate=candidates$word, leftContextSize = leftContextSize,
-                          rightContextSize = leftContextSize, observed=candidates$frequency, ...)
+                          rightContextSize = leftContextSize, observed=candidates$frequency, ...) %>% arrange(desc(logDice))
     }
 
-kco <- new("KorAPConnection", verbose = TRUE)
+kco <- new("KorAPConnection", verbose = F)
 if (is.null(kco@accessToken)) {
   message()
 }
 
-collocationAnalysis(kco,"Ameisenplage") %>% arrange(desc(logDice))
-
+#collocationAnalysis(kco,"Ameisenplage", limit=10000)
+tic()
+x<<-collocationAnalysis(kco, "Zähne", limit=20000)
+toc()
