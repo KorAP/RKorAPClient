@@ -472,7 +472,8 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                    leftContextSize = 5,
                    rightContextSize = 5,
                    scoreFunctions = defaultAssociationScoreFunctions(),
-                   smoothingConstant = .5
+                   smoothingConstant = .5,
+                   observed = NULL
                    ) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             O1 <- O2 <- O <- N <- E <- w <- 0
@@ -512,12 +513,12 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               collocate = collocate,
               label = queryStringToLabel(vc),
               vc = vc,
-              webUIRequestUrl = frequencyQuery(kco, query, vc)$webUIRequestUrl,
+              webUIRequestUrl = if(is.null(observed)) frequencyQuery(kco, query, vc)$webUIRequestUrl else rep("", length(observed)),
               w = leftContextSize + rightContextSize,
               leftContextSize,
               rightContextSize,
               N  = frequencyQuery(kco, node, vc)$total + smoothingConstant,
-              O = as.double(frequencyQuery(kco, query, vc)$totalResults) + smoothingConstant,
+              O = as.double( if(is.null(observed)) frequencyQuery(kco, query, vc)$totalResults else observed) + smoothingConstant,
               O1 = frequencyQuery(kco, node, vc)$totalResults + smoothingConstant,
               O2 = frequencyQuery(kco, collocate, vc)$totalResults + smoothingConstant,
               E = w * as.double(O1) * O2 / N
