@@ -232,7 +232,11 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @rdname KorAPQuery-class
 #' @importFrom dplyr rowwise bind_rows select summarise n
 #' @export
-setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
+setMethod("fetchNext", "KorAPQuery", function(kqo,
+                                              offset = kqo@nextStartIndex,
+                                              maxFetch = maxResultsPerPage,
+                                              verbose = kqo@korapConnection@verbose,
+                                              randomizePageOrder = FALSE) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
@@ -242,12 +246,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
 
-  set.seed(7)
-  pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+  if (randomizePageOrder) {
+    pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+  }
 
   repeat {
     page = length(collectedMatches[,1]) %/% maxResultsPerPage + 1
-    currentOffset = pages[page] * maxResultsPerPage
+    currentOffset = ifelse(randomizePageOrder, pages[page],  page) * maxResultsPerPage
     query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
@@ -280,7 +285,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
         ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
         "/",
         if (maxFetch < kqo@totalResults)
-          sprintf("%d (%d))", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
+          sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
         else
           sprintf("%d", ceiling(kqo@totalResults / res$meta$itemsPerPage)),
         ' in ',

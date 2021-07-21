@@ -55,12 +55,13 @@ collocatesQuery <-
            rightContextSize = 5,
            limit = 20000,
            ...) {
-    q <- corpusQuery(kco, query, metadataOnly = F, ...) %>%
-      fetchNext(maxFetch=limit)
+    q <- corpusQuery(kco, query, vc, metadataOnly = F, ...) %>%
+      fetchNext(maxFetch=limit, randomizePageOrder=TRUE)
     df <- snippet2FreqTable((q@collectedMatches)$snippet,
                       minOccur = minOccur,
                       leftContextSize = leftContextSize,
-                      rightContextSize = leftContextSize)
+                      rightContextSize = leftContextSize,
+                      ignoreCase = ignoreCase)
   }
 
 collocationAnalysis <-
@@ -71,11 +72,13 @@ collocationAnalysis <-
            rightContextSize = 5,
            maxCollocates = 200,
            limit = 20000,
+           seed = 7,
            ...) {
     candidates <- collocatesQuery(kco, query, minOccur = minOccur,
                     leftContextSize = leftContextSize,
                     rightContextSize = leftContextSize, limit, ...) %>%
                   head(maxCollocates)
+    set.seed(seed)
     print(candidates)
     collocationScoreQuery(kco, node=query, collocate=candidates$word, leftContextSize = leftContextSize,
                           rightContextSize = leftContextSize, observed=candidates$frequency, ...) %>% arrange(desc(logDice))
