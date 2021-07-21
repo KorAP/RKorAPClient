@@ -39,7 +39,8 @@
   kqo,
   offset = kqo@nextStartIndex,
   maxFetch = maxResultsPerPage,
-  verbose = kqo@korapConnection@verbose
+  verbose = kqo@korapConnection@verbose,
+  randomizePageOrder = FALSE
 )
 
 \S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose)
@@ -70,7 +71,8 @@
   rightContextSize = 5,
   scoreFunctions = defaultAssociationScoreFunctions(),
   smoothingConstant = 0.5,
-  observed = NULL
+  observed = NULL,
+  ignoreCollocateCase = FALSE
 )
 }
 \arguments{

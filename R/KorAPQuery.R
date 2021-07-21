@@ -378,6 +378,56 @@ setMethod("frequencyQuery", "KorAPConnection",
       ci(conf.level = conf.level)
 })
 
+
+#' Title
+#'
+#' @inheritParams KorAPQuery
+#' @export
+buildWebUIRequestUrl <- function(kco,
+                                 query = if (missing(KorAPUrl))
+                                   stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
+                                 else
+                                   httr::parse_url(KorAPUrl)$query$q,
+                                 vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+                                 KorAPUrl,
+                                 metadataOnly = TRUE,
+                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+                                 fields = c(
+                                   "corpusSigle",
+                                   "textSigle",
+                                   "pubDate",
+                                   "pubPlace",
+                                   "availability",
+                                   "textClass",
+                                   "snippet"
+                                 ),
+                                 accessRewriteFatal = TRUE) {
+  request <-
+    paste0(
+      '?q=',
+      URLencode(as.character(query), reserved = TRUE),
+      if (vc != '')
+        paste0('&cq=', URLencode(vc, reserved = TRUE))
+      else
+        '',
+      '&ql=',
+      ql
+    )
+  webUIRequestUrl <- paste0(kco@KorAPUrl, request)
+  requestUrl <- paste0(
+    kco@apiUrl,
+    'search',
+    request,
+    '&fields=',
+    paste(fields, collapse = ","),
+    if (metadataOnly)
+      '&access-rewrite-disabled=true'
+    else
+      ''
+  )
+  webUIRequestUrl
+}
+
 #´ format()
 #' @rdname KorAPQuery-class
 #' @param x KorAPQuery object
@@ -410,10 +460,62 @@ setMethod("show", "KorAPQuery", function(object) {
 })
 
 
+ignoreCollocateCaseWordQuery <- function(w) {
+  paste0(w, '/i')
+}
 
 lemmatizeWordQuery <- function(w) {
   paste0('[tt/l=', w, ']')
 }
+
+
+#' Title
+#'
+#' @inheritParams collocationScoreQuery
+#' @export
+buildCollocationQuery <- function(                   node,
+                                                     collocate,
+                                                     lemmatizeNodeQuery = FALSE,
+                                                     lemmatizeCollocateQuery = FALSE,
+                                                     leftContextSize = 5,
+                                                     rightContextSize = 5,
+                                                     ignoreCollocateCase = FALSE
+) {
+  if (leftContextSize <= 0 && rightContextSize <= 0) {
+    stop("At least one of leftContextSize and rightContextSize must be > 0",
+         call. = FALSE)
+  }
+
+  if (lemmatizeNodeQuery) {
+    node <- lemmatizeWordQuery(node)
+  }
+
+  if (ignoreCollocateCase) {
+    collocate <- ignoreCollocateCaseWordQuery(collocate)
+  }
+
+  if (lemmatizeCollocateQuery) {
+    collocate <- lemmatizeWordQuery(collocate)
+  }
+
+  query <- ""
+
+  if (leftContextSize > 0) {
+    query <-
+      paste0(collocate,
+             if (leftContextSize > 1) paste0(" []{0,", leftContextSize - 1, "} ") else " ",
+             node,
+             if (rightContextSize > 0)  " | ")
+  }
+
+  if (rightContextSize > 0) {
+    query <-
+      paste0(query, node,
+             if (rightContextSize > 1) paste0(" []{0,", rightContextSize - 1, "} ") else " ", collocate)
+  }
+  query
+}
+
 
 #' Query frequencies of a node and a collocate and calculate collocation association scores
 #'
@@ -472,40 +574,19 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                    rightContextSize = 5,
                    scoreFunctions = defaultAssociationScoreFunctions(),
                    smoothingConstant = .5,
-                   observed = NULL
+                   observed = NULL,
+                   ignoreCollocateCase = FALSE
                    ) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             O1 <- O2 <- O <- N <- E <- w <- 0
 
-            if (leftContextSize <= 0 && rightContextSize <= 0) {
-              stop("At least one of leftContextSize and rightContextSize must be > 0",
-                   call. = FALSE)
-            }
-
-            if (lemmatizeNodeQuery) {
-              node <- lemmatizeWordQuery(node)
-            }
-
-            if (lemmatizeCollocateQuery) {
-              collocate <- lemmatizeWordQuery(collocate)
-            }
-
-            query <- ""
-
-            if (leftContextSize > 0) {
-              query <-
-                paste0(collocate,
-                       if (leftContextSize > 1) paste0(" []{0,", leftContextSize - 1, "} ") else " ",
-                       node,
-                       if (rightContextSize > 0)  " | ")
-            }
-
-            if (rightContextSize > 0) {
-              query <-
-                paste0(query, node,
-                       if (rightContextSize > 1) paste0(" []{0,", rightContextSize - 1, "} ") else " ", collocate)
-            }
-
+            query <- buildCollocationQuery(node,
+                                           collocate,
+                                           lemmatizeNodeQuery,
+                                           lemmatizeCollocateQuery,
+                                           leftContextSize,
+                                           rightContextSize,
+                                           ignoreCollocateCase)
 
             tibble(
               node = node,
