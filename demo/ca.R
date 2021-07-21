@@ -10,6 +10,7 @@ snippet2FreqTable <- function(snippet,
                               rightContextSize = 5,
                               ignoreCollocateCase = FALSE,
                               stopwords = c("der", "die", "das", "ein", "eine", "einer", "den", "dem", "des", "einen", "von", "mit", "zu", "und", "in", "am", "um"),
+                              tokenizeRegex = "([! )(»«),.:?„“\'\"]+|&quot;)",
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1))) {
   if (length(snippet) > 1) {
     message(paste("Joinging", length(snippet), "kwics"))
@@ -17,8 +18,8 @@ snippet2FreqTable <- function(snippet,
     for (s in snippet) {
       oldTable <- snippet2FreqTable(
         s,
-        leftContextSize = 5,
-        rightContextSize = 5,
+        leftContextSize = leftContextSize,
+        rightContextSize = rightContextSize,
         oldTable = oldTable
       )
     }
@@ -35,12 +36,15 @@ snippet2FreqTable <- function(snippet,
     match <-
       str_match(
         snippet,
-        '<span class="context-left"><span class="more"></span>(.*[^ ]) *</span><span class="match"><mark>.*</mark></span><span class="context-right"> *([^<]*)'
+        '<span class="context-left">(<span class="more"></span>)?(.*[^ ]) *</span><span class="match"><mark>.*</mark></span><span class="context-right"> *([^<]*)'
       )
-    left <- tail(match[1, 2], leftContextSize)
-    right <- head(match[1, 3], rightContextSize)
-    str_split(paste(left, right), "([! )(»«),.:?„“\'\"]+|&quot;)")[[1]] %>%
-      table() %>%
+
+    left <- tail(unlist(str_split(match[1, 3], tokenizeRegex)), leftContextSize)
+    # cat(paste("left:", left, "\n", collapse=" "))
+    right <- head(unlist(str_split(match[1, 4], tokenizeRegex)), rightContextSize)
+    # cat(paste("right:", right, "\n", collapse=" "))
+
+    table(c(left, right)) %>%
       as.data.frame() %>%
       dplyr::rename(word = 1, frequency = 2) %>%
       mutate(word = as.character(word)) %>%
@@ -63,11 +67,12 @@ collocatesQuery <-
            ...) {
     q <- corpusQuery(kco, query, vc, metadataOnly = F, ...) %>%
       fetchNext(maxFetch=limit, randomizePageOrder=TRUE)
-    df <- snippet2FreqTable((q@collectedMatches)$snippet,
+    snippet2FreqTable((q@collectedMatches)$snippet,
                       minOccur = minOccur,
                       leftContextSize = leftContextSize,
-                      rightContextSize = leftContextSize,
-                      ignoreCollocateCase = ignoreCollocateCase)
+                      rightContextSize = rightContextSize,
+                      ignoreCollocateCase = ignoreCollocateCase) %>%
+      mutate(frequency = frequency * q@totalResults / limit)
   }
 
 collocationAnalysis <-
@@ -89,7 +94,7 @@ collocationAnalysis <-
       vc = vc,
       minOccur = minOccur,
       leftContextSize = leftContextSize,
-      rightContextSize = leftContextSize,
+      rightContextSize = rightContextSize,
       limit = limit,
       ignoreCollocateCase = ignoreCollocateCase,
       ...
@@ -102,7 +107,7 @@ collocationAnalysis <-
       collocate = candidates$word,
       vc = vc,
       leftContextSize = leftContextSize,
-      rightContextSize = leftContextSize,
+      rightContextSize = rightContextSize,
       observed = candidates$frequency,
       ignoreCollocateCase = ignoreCollocateCase,
       ...
