@@ -71,7 +71,7 @@
   rightContextSize = 5,
   scoreFunctions = defaultAssociationScoreFunctions(),
   smoothingConstant = 0.5,
-  observed = NULL,
+  observed = NA,
   ignoreCollocateCase = FALSE
 )
 }
