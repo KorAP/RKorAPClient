@@ -218,6 +218,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @param offset start offset for query results to fetch
 #' @param maxFetch maximum number of query results to fetch
 #' @param verbose print progress information if true
+#' @param randomizePageOrder fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.
 #' @return The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 #'
 #' @examples
@@ -232,7 +233,11 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @rdname KorAPQuery-class
 #' @importFrom dplyr rowwise bind_rows select summarise n
 #' @export
-setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
+setMethod("fetchNext", "KorAPQuery", function(kqo,
+                                              offset = kqo@nextStartIndex,
+                                              maxFetch = maxResultsPerPage,
+                                              verbose = kqo@korapConnection@verbose,
+                                              randomizePageOrder = FALSE) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
@@ -242,12 +247,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
 
-  set.seed(7)
-  pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+  if (randomizePageOrder) {
+    pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+  }
 
   repeat {
     page = length(collectedMatches[,1]) %/% maxResultsPerPage + 1
-    currentOffset = pages[page] * maxResultsPerPage
+    currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
     query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
@@ -279,8 +285,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
         "Retrieved page ",
         ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
         "/",
-        if (maxFetch < kqo@totalResults)
-          sprintf("%d (%d))", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
+        if (!is.na(maxFetch) && maxFetch < kqo@totalResults)
+          sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
         else
           sprintf("%d", ceiling(kqo@totalResults / res$meta$itemsPerPage)),
         ' in ',

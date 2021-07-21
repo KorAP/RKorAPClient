@@ -106,6 +106,8 @@
 
 \item{verbose}{print progress information if true}
 
+\item{randomizePageOrder}{fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.}
+
 \item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
