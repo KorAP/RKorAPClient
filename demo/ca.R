@@ -44,7 +44,7 @@ snippet2FreqTable <- function(snippet,
       as.data.frame() %>%
       dplyr::rename(word = 1, frequency = 2) %>%
       mutate(word = as.character(word)) %>%
-      filter(str_detect(word, '^[:alnum:]+[:alnum:-]$')) %>%
+      filter(str_detect(word, '^[:alnum:]+-?[:alnum:]*$')) %>%
       anti_join(stopwordsTable, by="word")  %>%
       bind_rows(oldTable)
   }
