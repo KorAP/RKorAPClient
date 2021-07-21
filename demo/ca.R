@@ -1,12 +1,14 @@
 library(tidyverse)
 library(RKorAPClient)
 library(tictoc)
+library(magrittr)
 kco <- new("KorAPConnection", verbose = TRUE)
 
 snippet2FreqTable <- function(snippet,
                               minOccurr = 5,
                               leftContextSize = 5,
                               rightContextSize = 5,
+                              ignoreCollocateCase = FALSE,
                               stopwords = c("der", "die", "das", "ein", "eine", "einer", "den", "dem", "des", "einen", "von", "mit", "zu", "und", "in", "am", "um"),
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1))) {
   if (length(snippet) > 1) {
@@ -24,6 +26,7 @@ snippet2FreqTable <- function(snippet,
     message(paste("Aggregating", length(oldTable$word), "tokens"))
       oldTable  %>%
       group_by(word) %>%
+      mutate(word = case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) %>%
       summarise(frequency=sum(frequency), .groups = "drop") %>%
       filter(frequency >= minOccurr) %>%
       arrange(desc(frequency))
@@ -40,6 +43,7 @@ snippet2FreqTable <- function(snippet,
       table() %>%
       as.data.frame() %>%
       dplyr::rename(word = 1, frequency = 2) %>%
+      mutate(word = as.character(word)) %>%
       filter(str_detect(word, '^[:alnum:]+[:alnum:-]$')) %>%
       anti_join(stopwordsTable, by="word")  %>%
       bind_rows(oldTable)
@@ -50,10 +54,12 @@ snippet2FreqTable <- function(snippet,
 collocatesQuery <-
   function(kco,
            query,
+           vc = "",
            minOccur = 5,
            leftContextSize = 5,
            rightContextSize = 5,
            limit = 20000,
+           ignoreCollocateCase = FALSE,
            ...) {
     q <- corpusQuery(kco, query, vc, metadataOnly = F, ...) %>%
       fetchNext(maxFetch=limit, randomizePageOrder=TRUE)
@@ -61,35 +67,54 @@ collocatesQuery <-
                       minOccur = minOccur,
                       leftContextSize = leftContextSize,
                       rightContextSize = leftContextSize,
-                      ignoreCase = ignoreCase)
+                      ignoreCollocateCase = ignoreCollocateCase)
   }
 
 collocationAnalysis <-
   function(kco,
-           query,
+           node,
+           vc = "",
            minOccur = 5,
            leftContextSize = 5,
            rightContextSize = 5,
            maxCollocates = 200,
            limit = 20000,
+           ignoreCollocateCase = FALSE,
            seed = 7,
            ...) {
-    candidates <- collocatesQuery(kco, query, minOccur = minOccur,
-                    leftContextSize = leftContextSize,
-                    rightContextSize = leftContextSize, limit, ...) %>%
-                  head(maxCollocates)
     set.seed(seed)
+    candidates <- collocatesQuery(
+      kco,
+      node,
+      vc = vc,
+      minOccur = minOccur,
+      leftContextSize = leftContextSize,
+      rightContextSize = leftContextSize,
+      limit = limit,
+      ignoreCollocateCase = ignoreCollocateCase,
+      ...
+    ) %>%
+      head(maxCollocates)
     print(candidates)
-    collocationScoreQuery(kco, node=query, collocate=candidates$word, leftContextSize = leftContextSize,
-                          rightContextSize = leftContextSize, observed=candidates$frequency, ...) %>% arrange(desc(logDice))
-    }
+    collocationScoreQuery(
+      kco,
+      node = node,
+      collocate = candidates$word,
+      vc = vc,
+      leftContextSize = leftContextSize,
+      rightContextSize = leftContextSize,
+      observed = candidates$frequency,
+      ignoreCollocateCase = ignoreCollocateCase,
+      ...
+    ) %>% arrange(desc(logDice))
+  }
 
-kco <- new("KorAPConnection", verbose = F)
+kco <- new("KorAPConnection", verbose = T)
 if (is.null(kco@accessToken)) {
   message()
 }
 
 #collocationAnalysis(kco,"Ameisenplage", limit=10000)
-tic()
-x<<-collocationAnalysis(kco, "Zähne", limit=20000)
-toc()
+#tic()
+#y<<-collocationAnalysis(kco, "Packung", vc="textDomain=Sport", limit=2000)
+#toc()
