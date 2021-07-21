@@ -406,11 +406,8 @@ buildWebUIRequestUrl <- function(kco,
   request <-
     paste0(
       '?q=',
-      URLencode(as.character(query), reserved = TRUE),
-      if (vc != '')
-        paste0('&cq=', URLencode(vc, reserved = TRUE))
-      else
-        '',
+      sapply(query, function(q) URLencode(as.character(q), reserved = TRUE), USE.NAMES = F),
+      ifelse (vc != '', paste0('&cq=', URLencode(vc, reserved = TRUE)), ''),
       '&ql=',
       ql
     )
@@ -421,10 +418,10 @@ buildWebUIRequestUrl <- function(kco,
     request,
     '&fields=',
     paste(fields, collapse = ","),
-    if (metadataOnly)
+    ifelse (metadataOnly,
       '&access-rewrite-disabled=true'
-    else
-      ''
+    ,
+      '')
   )
   webUIRequestUrl
 }
@@ -575,7 +572,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                    rightContextSize = 5,
                    scoreFunctions = defaultAssociationScoreFunctions(),
                    smoothingConstant = .5,
-                   observed = NULL,
+                   observed = NA,
                    ignoreCollocateCase = FALSE
                    ) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
@@ -594,12 +591,28 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               collocate = collocate,
               label = queryStringToLabel(vc),
               vc = vc,
-              webUIRequestUrl = if(is.null(observed)) frequencyQuery(kco, query, vc)$webUIRequestUrl else rep("", length(observed)),
+              webUIRequestUrl = ifelse(
+                is.na(observed),
+                frequencyQuery(kco, query, vc)$webUIRequestUrl,
+                buildWebUIRequestUrl(
+                  kco,
+                  buildCollocationQuery(
+                    node,
+                    collocate,
+                    lemmatizeNodeQuery,
+                    lemmatizeCollocateQuery,
+                    leftContextSize,
+                    rightContextSize,
+                    ignoreCollocateCase
+                  ),
+                  vc
+                )
+              ),
               w = leftContextSize + rightContextSize,
               leftContextSize,
               rightContextSize,
               N  = frequencyQuery(kco, node, vc)$total + smoothingConstant,
-              O = as.double( if(is.null(observed)) frequencyQuery(kco, query, vc)$totalResults else observed) + smoothingConstant,
+              O = as.double( ifelse(is.na(observed), frequencyQuery(kco, query, vc)$totalResults, observed)) + smoothingConstant,
               O1 = frequencyQuery(kco, node, vc)$totalResults + smoothingConstant,
               O2 = frequencyQuery(kco, collocate, vc)$totalResults + smoothingConstant,
               E = w * as.double(O1) * O2 / N
