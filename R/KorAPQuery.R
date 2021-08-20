@@ -480,7 +480,7 @@ buildCollocationQuery <- function(                   node,
                                                      ignoreCollocateCase = FALSE
 ) {
   if (leftContextSize <= 0 && rightContextSize <= 0) {
-    stop("At least one of leftContextSize and rightContextSize must be > 0",
+    stop(sprintf("At least one of leftContextSize (=%d) and rightContextSize (=%d) must be > 0", leftContextSize, rightContextSize),
          call. = FALSE)
   }
 
