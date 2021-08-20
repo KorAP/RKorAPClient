@@ -126,6 +126,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
 #' @aliases corpusQuery
+#' @rdname KorAPQuery-class
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
           function(kco,
@@ -380,9 +381,9 @@ setMethod("frequencyQuery", "KorAPConnection",
 })
 
 
-#' Title
+#' buildWebUIRequestUrl
 #'
-#' @inheritParams KorAPQuery
+#' @rdname KorAPQuery-class
 #' @export
 buildWebUIRequestUrl <- function(kco,
                                  query = if (missing(KorAPUrl))
@@ -467,9 +468,9 @@ lemmatizeWordQuery <- function(w) {
 }
 
 
-#' Title
+#' buildCollocationQuery
 #'
-#' @inheritParams collocationScoreQuery
+#' @rdname KorAPQuery-class
 #' @export
 buildCollocationQuery <- function(                   node,
                                                      collocate,
@@ -533,6 +534,8 @@ buildCollocationQuery <- function(                   node,
 #' @param rightContextSize   size of the right context window
 #' @param scoreFunctions     named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}
 #' @param smoothingConstant  smoothing constant will be added to all observed values
+#' @param observed           if collocation frequencies are already known they can be passed as a vector here, otherwise: NA
+#' @param ignoreCollocateCase     logical, set to TRUE if collocate case should be ignored
 #'
 #' @return tibble with query KorAP web request URL, all observed values and association scores
 #'
