@@ -44,13 +44,16 @@ snippet2FreqTable <- function(snippet,
     right <- head(unlist(str_split(match[1, 4], tokenizeRegex)), rightContextSize)
     # cat(paste("right:", right, "\n", collapse=" "))
 
-    table(c(left, right)) %>%
-      as.data.frame() %>%
-      dplyr::rename(word = 1, frequency = 2) %>%
-      mutate(word = as.character(word)) %>%
-      filter(str_detect(word, '^[:alnum:]+-?[:alnum:]*$')) %>%
-      anti_join(stopwordsTable, by="word")  %>%
-      bind_rows(oldTable)
+    if(is.na(left) || is.na(right)) {
+      oldTable
+    } else {
+      table(c(left, right)) %>%
+        as_tibble(.name_repair = "minimal") %>%
+        dplyr::rename(word = 1, frequency = 2) %>%
+        filter(str_detect(word, '^[:alnum:]+-?[:alnum:]*$')) %>%
+        anti_join(stopwordsTable, by="word")  %>%
+        bind_rows(oldTable)
+    }
   }
 }
 
