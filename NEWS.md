@@ -1,4 +1,5 @@
 ## Bug Fixes
+- fixed queries with umlauts on windows
 - fixed retrieval of access token when multiple access tokens are stored
 
 # RKorAPClient 0.6.1

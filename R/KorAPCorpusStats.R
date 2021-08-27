@@ -44,7 +44,7 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
     url <-
       paste0(kco@apiUrl,
              'statistics?cq=',
-             URLencode(vc, reserved = TRUE))
+             URLencode(enc2utf8(vc), reserved = TRUE))
     log.info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
     log.info(verbose, ": ", res$tokens, " tokens\n")
