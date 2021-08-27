@@ -168,8 +168,8 @@ setMethod("corpusQuery", "KorAPConnection",
       }
       request <-
         paste0('?q=',
-               URLencode(query, reserved = TRUE),
-               if (vc != '') paste0('&cq=', URLencode(vc, reserved = TRUE)) else '', '&ql=', ql)
+               URLencode(enc2utf8(query), reserved = TRUE),
+               if (vc != '') paste0('&cq=', URLencode(enc2utf8(vc), reserved = TRUE)) else '', '&ql=', ql)
       webUIRequestUrl <- paste0(kco@KorAPUrl, request)
       requestUrl <- paste0(
         kco@apiUrl,

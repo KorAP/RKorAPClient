@@ -30,6 +30,28 @@ test_that("corpusQuery returns results", {
   expect_gt(q@totalResults, 0)
 })
 
+test_that("corpusQuery can handle latin1 encoded umlauts in query and vc", {
+  query <- "Ameisenb\xe4r"
+  Encoding(query)="latin1"
+  vc <- "pubPlace=N\xfcrnberg"
+  Encoding(vc)="latin1"
+
+  q <- new("KorAPConnection") %>%
+    corpusQuery(query, vc=vc)
+  expect_gt(q@totalResults, 0)
+})
+
+test_that("corpusQuery can handle utf8 encoded umlauts in query and vc", {
+  query <- "Ameisenb\xc3\xa4r"
+  Encoding(query)="UTF-8"
+  vc <- "pubPlace=N\xc3\xbcrnberg"
+  Encoding(vc)="UTF-8"
+
+  q <- new("KorAPConnection") %>%
+    corpusQuery(query, vc=vc)
+  expect_gt(q@totalResults, 0)
+})
+
 test_that("fetchAll fetches all results", {
   q <- new("KorAPConnection", verbose = TRUE) %>%
     corpusQuery("Ameisenplage", vc = "pubDate since 2014")
