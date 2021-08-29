@@ -78,4 +78,11 @@ Dunning, T. (1993): Accurate methods for the statistics of surprise and coincide
 Evert, Stefan (2004): The Statistics of Word Cooccurrences: Word Pairs and Collocations. PhD dissertation, IMS, University of Stuttgart. Published in 2005, URN urn:nbn:de:bsz:93-opus-23714.
 Free PDF available from \url{http://purl.org/stefan.evert/PUB/Evert2004phd.pdf}
 }
+\seealso{
+Other collocation analysis functions: 
+\code{\link{collocationAnalysis,KorAPConnection-method}},
+\code{\link{collocationScoreQuery,KorAPConnection-method}},
+\code{\link{synsemanticStopwords}()}
+}
 \concept{association-score-functions}
+\concept{collocation analysis functions}
