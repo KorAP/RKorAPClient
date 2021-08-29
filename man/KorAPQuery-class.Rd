@@ -5,6 +5,8 @@
 \alias{KorAPQuery-class}
 \alias{KorAPQuery}
 \alias{initialize,KorAPQuery-method}
+\alias{corpusQuery,KorAPConnection-method}
+\alias{corpusQuery}
 \alias{fetchNext,KorAPQuery-method}
 \alias{fetchNext}
 \alias{fetchAll,KorAPQuery-method}
@@ -13,10 +15,9 @@
 \alias{fetchRest}
 \alias{frequencyQuery,KorAPConnection-method}
 \alias{frequencyQuery}
+\alias{buildWebUIRequestUrl}
 \alias{format.KorAPQuery}
 \alias{show,KorAPQuery-method}
-\alias{collocationScoreQuery,KorAPConnection-method}
-\alias{collocationScoreQuery}
 \title{Class KorAPQuery}
 \usage{
 \S4method{initialize}{KorAPQuery}(
@@ -35,16 +36,34 @@
   collectedMatches = NULL
 )
 
+\S4method{corpusQuery}{KorAPConnection}(
+  kco,
+  query = if (missing(KorAPUrl))
+    stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
+    FALSE) else httr::parse_url(KorAPUrl)$query$q,
+  vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+  KorAPUrl,
+  metadataOnly = TRUE,
+  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
+    "textClass", "snippet"),
+  accessRewriteFatal = TRUE,
+  verbose = kco@verbose,
+  expand = length(vc) != length(query),
+  as.df = FALSE
+)
+
 \S4method{fetchNext}{KorAPQuery}(
   kqo,
   offset = kqo@nextStartIndex,
   maxFetch = maxResultsPerPage,
-  verbose = kqo@korapConnection@verbose
+  verbose = kqo@korapConnection@verbose,
+  randomizePageOrder = FALSE
 )
 
-\S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose)
+\S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
 
-\S4method{fetchRest}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose)
+\S4method{fetchRest}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
 
 \S4method{frequencyQuery}{KorAPConnection}(
   kco,
@@ -55,22 +74,23 @@
   ...
 )
 
+buildWebUIRequestUrl(
+  kco,
+  query = if (missing(KorAPUrl))
+    stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
+    FALSE) else httr::parse_url(KorAPUrl)$query$q,
+  vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+  KorAPUrl,
+  metadataOnly = TRUE,
+  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
+    "textClass", "snippet"),
+  accessRewriteFatal = TRUE
+)
+
 \method{format}{KorAPQuery}(x, ...)
 
 \S4method{show}{KorAPQuery}(object)
-
-\S4method{collocationScoreQuery}{KorAPConnection}(
-  kco,
-  node,
-  collocate,
-  vc = "",
-  lemmatizeNodeQuery = FALSE,
-  lemmatizeCollocateQuery = FALSE,
-  leftContextSize = 5,
-  rightContextSize = 5,
-  scoreFunctions = defaultAssociationScoreFunctions(),
-  smoothingConstant = 0.5
-)
 }
 \arguments{
 \item{.Object}{…}
@@ -85,7 +105,7 @@
 
 \item{nextStartIndex}{at what index to start the next fetch of query results}
 
-\item{fields}{what data / metadata fields should be collected}
+\item{fields}{(meta)data fields that will be fetched for every match.}
 
 \item{requestUrl}{complete URL of the API request}
 
@@ -97,67 +117,95 @@
 
 \item{collectedMatches}{matches already fetched from the KorAP-API-server}
 
+\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
+
+\item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
+
+\item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
+
+\item{metadataOnly}{logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
+
+\item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
+
+\item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).}
+
+\item{verbose}{print progress information if true}
+
+\item{expand}{logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations}
+
+\item{as.df}{return result as data frame instead of as S4 object?}
+
 \item{kqo}{object obtained from \code{\link{corpusQuery}}}
 
 \item{offset}{start offset for query results to fetch}
 
 \item{maxFetch}{maximum number of query results to fetch}
 
-\item{verbose}{print progress information if true}
+\item{randomizePageOrder}{fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.}
 
-\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
-
-\item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
+\item{...}{further arguments passed to or from other methods}
 
 \item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link{ci}}  to \code{\link{prop.test}}).}
 
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
-\item{...}{further arguments passed to or from other methods}
-
 \item{x}{KorAPQuery object}
 
 \item{object}{KorAPQuery object}
-
-\item{node}{target word}
-
-\item{collocate}{collocate of target word}
-
-\item{lemmatizeNodeQuery}{logical, set to TRUE if node query should be lemmatized, i.e. x -> [tt/l=x]}
-
-\item{lemmatizeCollocateQuery}{logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]}
-
-\item{leftContextSize}{size of the left context window}
-
-\item{rightContextSize}{size of the right context window}
-
-\item{scoreFunctions}{named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}}
-
-\item{smoothingConstant}{smoothing constant will be added to all observed values}
 }
 \value{
-The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
+Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
+A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
+Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 
-tibble with query KorAP web request URL, all observed values and association scores
+The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 }
 \description{
 This class provides methods to perform different kinds of queries on the KorAP API server.
 \code{KorAPQuery} objects, which are typically created by the \code{\link{corpusQuery}} method,
 represent the current state of a query to a KorAP server.
 
+\bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
+
 \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 
-\bold{\code{fetchAll}} fetches allf results of a KorAP query.
+\bold{\code{fetchAll}} fetches all results of a KorAP query.
 
 \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
 \code{\link{ci}} to compute a table with the relative frequencies and
 confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
-
-\bold{\code{collocationScoreQuery}} computes various collocation association scores
-based on \code{\link{frequencyQuery}}s for a target word and a collocate.
 }
 \examples{
+# Fetch metadata of every query hit for "Ameisenplage" and show a summary
+\donttest{
+new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+}
+
+# Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
+# and show the number of query hits (but don't fetch them).
+
+new("KorAPConnection", verbose = TRUE) \%>\%
+ corpusQuery(KorAPUrl =
+   "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
+
+# Plot the time/frequency curve of "Ameisenplage"
+\donttest{
+new("KorAPConnection", verbose=TRUE) \%>\%
+  { . ->> kco } \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchAll() \%>\%
+  slot("collectedMatches") \%>\%
+  mutate(year = lubridate::year(pubDate)) \%>\%
+  dplyr::select(year) \%>\%
+  group_by(year) \%>\%
+  summarise(Count = dplyr::n()) \%>\%
+  mutate(Freq = mapply(function(f, y)
+    f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
+  dplyr::select(-Count) \%>\%
+  complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
+  plot(type = "l")
+}
 \donttest{q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
 q@collectedMatches
 }
@@ -177,29 +225,12 @@ new("KorAPConnection", verbose = TRUE) \%>\%
   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 }
 
-\donttest{
-new("KorAPConnection", verbose = TRUE) \%>\%
-  collocationScoreQuery("Grund", "triftiger")
-}
-
-\donttest{
-new("KorAPConnection", verbose = TRUE) \%>\%
-collocationScoreQuery("Grund", c("guter", "triftiger"),
-   scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
-}
-
-\donttest{
-library(highcharter)
-library(tidyr)
-new("KorAPConnection", verbose = TRUE) \%>\%
-  collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
-                        lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) \%>\%
-                         pivot_longer(14:last_col(), names_to = "measure", values_to = "score") \%>\%
-  hchart(type="spline", hcaes(label, score, group=measure)) \%>\%
-  hc_add_onclick_korap_search()
-}
-
 }
 \references{
 \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+
+\url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+}
+\seealso{
+\code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
 }

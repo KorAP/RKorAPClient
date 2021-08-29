@@ -1,3 +1,10 @@
+## New Features
+- experimental new `collocationAnalysis` method (client-sided)
+- new parameter `randomizePageOrder` to fetch result pages in randomized order 
+- new parameter `ignoreCollocateCase` in `collocationScoreQuery`
+- new parameter `withinSpan` (default: `base/s=s`) in `collocationScoreQuery`
+- number of hits logged during queries, if `verbose=TRUE`
+
 ## Bug Fixes
 - fixed umlaut queries on windows
 - fixed retrieval of access token when multiple access tokens are stored

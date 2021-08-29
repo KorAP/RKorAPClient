@@ -66,14 +66,22 @@ setGeneric("fetchAll", function(kqo, ...)  standardGeneric("fetchAll") )
 setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
 setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
 setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
-setGeneric("collocationScoreQuery", function(kco, ...)  standardGeneric("collocationScoreQuery") )
 
 maxResultsPerPage <- 50
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 
+#' Corpus query
+#'
 #' \bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
+#'
+#' @rdname KorAPQuery-class
+#' @aliases corpusQuery
+#'
+#' @importFrom urltools url_encode
+#' @importFrom purrr pmap
+#' @importFrom dplyr bind_rows
 #'
 #' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
 #' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
@@ -125,7 +133,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @references
 #' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 #'
-#' @aliases corpusQuery
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
           function(kco,
@@ -151,25 +158,19 @@ setMethod("corpusQuery", "KorAPConnection",
                    expand = length(vc) != length(query),
           as.df = FALSE) {
   if (length(query) > 1 || length(vc) > 1) {
-
-    grid <- {
-      if (expand)
-        expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc) }
-        return(
-             do.call(rbind,
-                     Map(function(q, cq) corpusQuery(kco, query=q, vc=cq, ql=ql,
-                                                     verbose=verbose, as.df = TRUE), grid$query, grid$vc)) %>%
-               remove_rownames()
-           )
-    } else {
+    grid <- if (expand) expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc)
+    purrr::pmap(grid, function(query, vc, ...)
+      corpusQuery(kco, query=query, vc=vc, ql=ql, verbose=verbose, as.df = TRUE)) %>%
+      bind_rows()
+  } else {
       contentFields <- c("snippet")
       if (metadataOnly) {
         fields <- fields[!fields %in% contentFields]
       }
       request <-
         paste0('?q=',
-               URLencode(enc2utf8(query), reserved = TRUE),
-               if (vc != '') paste0('&cq=', URLencode(enc2utf8(vc), reserved = TRUE)) else '', '&ql=', ql)
+               url_encode(enc2utf8(query)),
+               ifelse (vc != '', paste0('&cq=', url_encode(enc2utf8(vc))), ''), '&ql=', ql)
       webUIRequestUrl <- paste0(kco@KorAPUrl, request)
       requestUrl <- paste0(
         kco@apiUrl,
@@ -182,10 +183,11 @@ setMethod("corpusQuery", "KorAPConnection",
       log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
                  "")
       res = apiCall(kco, paste0(requestUrl, '&count=0'))
+      log.info(verbose, ": ", res$meta$totalResults, " hits")
       if(!is.null(res$meta$cached))
         log.info(verbose, " [cached]\n")
       else
-        log.info(verbose, " took ", res$meta$benchmark, "\n", sep = "")
+        log.info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
       if (as.df)
         data.frame(
           query = query,
@@ -218,6 +220,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @param offset start offset for query results to fetch
 #' @param maxFetch maximum number of query results to fetch
 #' @param verbose print progress information if true
+#' @param randomizePageOrder fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.
 #' @return The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 #'
 #' @examples
@@ -232,7 +235,11 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @rdname KorAPQuery-class
 #' @importFrom dplyr rowwise bind_rows select summarise n
 #' @export
-setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, maxFetch = maxResultsPerPage, verbose = kqo@korapConnection@verbose) {
+setMethod("fetchNext", "KorAPQuery", function(kqo,
+                                              offset = kqo@nextStartIndex,
+                                              maxFetch = maxResultsPerPage,
+                                              verbose = kqo@korapConnection@verbose,
+                                              randomizePageOrder = FALSE) {
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
@@ -242,8 +249,14 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
 
+  if (randomizePageOrder) {
+    pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+  }
+
   repeat {
-    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', offset + results, '&cutoff=true')
+    page = length(collectedMatches[,1]) %/% maxResultsPerPage + 1
+    currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
+    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
@@ -270,11 +283,22 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
       collectedMatches <- rbind(collectedMatches, currentMatches)
     }
     if (verbose) {
-      cat(paste0("Retrieved page ", page, "/", ceiling((kqo@totalResults) / res$meta$itemsPerPage), ' in ', res$meta$benchmark, '\n'))
+      cat(paste0(
+        "Retrieved page ",
+        ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
+        "/",
+        if (!is.na(maxFetch) && maxFetch < kqo@totalResults)
+          sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
+        else
+          sprintf("%d", ceiling(kqo@totalResults / res$meta$itemsPerPage)),
+        ' in ',
+        res$meta$benchmark,
+        '\n'
+      ))
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (offset + results >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
+    if (length(collectedMatches[,1]) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
   }
@@ -305,8 +329,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, 
 #' @aliases fetchAll
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
-  return(fetchNext(kqo, offset = 0, maxFetch = NA, verbose = verbose))
+setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
+  return(fetchNext(kqo, offset = 0, maxFetch = NA, verbose = verbose, ...))
 })
 
 #' Fetches the remaining results of a KorAP query.
@@ -320,8 +344,8 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @aliases fetchRest
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose) {
-  return(fetchNext(kqo, maxFetch = NA, verbose = verbose))
+setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
+  return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
 })
 
 #' Query relative frequency of search term(s)
@@ -357,6 +381,56 @@ setMethod("frequencyQuery", "KorAPConnection",
       ci(conf.level = conf.level)
 })
 
+
+#' buildWebUIRequestUrl
+#'
+#' @rdname KorAPQuery-class
+#' @importFrom urltools url_encode
+#' @export
+buildWebUIRequestUrl <- function(kco,
+                                 query = if (missing(KorAPUrl))
+                                   stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
+                                 else
+                                   httr::parse_url(KorAPUrl)$query$q,
+                                 vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+                                 KorAPUrl,
+                                 metadataOnly = TRUE,
+                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+                                 fields = c(
+                                   "corpusSigle",
+                                   "textSigle",
+                                   "pubDate",
+                                   "pubPlace",
+                                   "availability",
+                                   "textClass",
+                                   "snippet"
+                                 ),
+                                 accessRewriteFatal = TRUE) {
+  request <-
+    paste0(
+      '?q=',
+      urltools::url_encode(enc2utf8(as.character(query))),
+      ifelse(vc != '',
+        paste0('&cq=', urltools::url_encode(enc2utf8(vc))),
+        ''),
+      '&ql=',
+      ql
+    )
+  webUIRequestUrl <- paste0(kco@KorAPUrl, request)
+  requestUrl <- paste0(
+    kco@apiUrl,
+    'search',
+    request,
+    '&fields=',
+    paste(fields, collapse = ","),
+    if (metadataOnly)
+      '&access-rewrite-disabled=true'
+    else
+      ''
+  )
+  webUIRequestUrl
+}
+
 #´ format()
 #' @rdname KorAPQuery-class
 #' @param x KorAPQuery object
@@ -388,118 +462,3 @@ setMethod("show", "KorAPQuery", function(object) {
   format(object)
 })
 
-
-
-lemmatizeWordQuery <- function(w) {
-  paste0('[tt/l=', w, ']')
-}
-
-#' Query frequencies of a node and a collocate and calculate collocation association scores
-#'
-#' \bold{\code{collocationScoreQuery}} computes various collocation association scores
-#' based on \code{\link{frequencyQuery}}s for a target word and a collocate.
-#'
-#' @aliases collocationScoreQuery
-#' @rdname KorAPQuery-class
-#'
-#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
-#' @param node               target word
-#' @param collocate          collocate of target word
-#' @param vc                 string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
-#' @param lemmatizeNodeQuery      logical, set to TRUE if node query should be lemmatized, i.e. x -> [tt/l=x]
-#' @param lemmatizeCollocateQuery logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]
-#' @param leftContextSize    size of the left context window
-#' @param rightContextSize   size of the right context window
-#' @param scoreFunctions     named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}
-#' @param smoothingConstant  smoothing constant will be added to all observed values
-#'
-#' @return tibble with query KorAP web request URL, all observed values and association scores
-#'
-#' @examples
-#' \donttest{
-#' new("KorAPConnection", verbose = TRUE) %>%
-#'   collocationScoreQuery("Grund", "triftiger")
-#' }
-#'
-#' \donttest{
-#' new("KorAPConnection", verbose = TRUE) %>%
-#' collocationScoreQuery("Grund", c("guter", "triftiger"),
-#'    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
-#' }
-#'
-#' \donttest{
-#' library(highcharter)
-#' library(tidyr)
-#' new("KorAPConnection", verbose = TRUE) %>%
-#'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
-#'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
-#'                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") %>%
-#'   hchart(type="spline", hcaes(label, score, group=measure)) %>%
-#'   hc_add_onclick_korap_search()
-#' }
-#'
-#' @importFrom tidyr pivot_longer
-#' @export
-setMethod("collocationScoreQuery", "KorAPConnection",
-          function(kco,
-                   node,
-                   collocate,
-                   vc = "",
-                   lemmatizeNodeQuery = FALSE,
-                   lemmatizeCollocateQuery = FALSE,
-                   leftContextSize = 5,
-                   rightContextSize = 5,
-                   scoreFunctions = defaultAssociationScoreFunctions(),
-                   smoothingConstant = .5
-                   ) {
-            # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-            O1 <- O2 <- O <- N <- E <- w <- 0
-
-            if (leftContextSize <= 0 && rightContextSize <= 0) {
-              stop("At least one of leftContextSize and rightContextSize must be > 0",
-                   call. = FALSE)
-            }
-
-            if (lemmatizeNodeQuery) {
-              node <- lemmatizeWordQuery(node)
-            }
-
-            if (lemmatizeCollocateQuery) {
-              collocate <- lemmatizeWordQuery(collocate)
-            }
-
-            query <- ""
-
-            if (leftContextSize > 0) {
-              query <-
-                paste0(collocate,
-                       if (leftContextSize > 1) paste0(" []{0,", leftContextSize - 1, "} ") else " ",
-                       node,
-                       if (rightContextSize > 0)  " | ")
-            }
-
-            if (rightContextSize > 0) {
-              query <-
-                paste0(query, node,
-                       if (rightContextSize > 1) paste0(" []{0,", rightContextSize - 1, "} ") else " ", collocate)
-            }
-
-
-            tibble(
-              node = node,
-              collocate = collocate,
-              label = queryStringToLabel(vc),
-              vc = vc,
-              webUIRequestUrl = frequencyQuery(kco, query, vc)$webUIRequestUrl,
-              w = leftContextSize + rightContextSize,
-              leftContextSize,
-              rightContextSize,
-              N  = frequencyQuery(kco, node, vc)$total + smoothingConstant,
-              O = as.double(frequencyQuery(kco, query, vc)$totalResults) + smoothingConstant,
-              O1 = frequencyQuery(kco, node, vc)$totalResults + smoothingConstant,
-              O2 = frequencyQuery(kco, collocate, vc)$totalResults + smoothingConstant,
-              E = w * as.double(O1) * O2 / N
-            ) %>%
-              mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
-
-          })

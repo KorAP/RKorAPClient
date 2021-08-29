@@ -39,6 +39,7 @@ Imports:
     magrittr,
     tidyr,
     dplyr,
+    lifecycle,
     lubridate,
     highcharter,
     jsonlite,
@@ -46,7 +47,10 @@ Imports:
     utils,
     httr,
     methods,
-    PTXQC
+    PTXQC,
+    purrr,
+    stringr,
+    urltools
 Suggests:
     testthat
 Collate: 
@@ -56,6 +60,8 @@ Collate:
     'KorAPQuery.R'
     'association-scores.R'
     'ci.R'
+    'collocationAnalysis.R'
+    'collocationScoreQuery.R'
     'highcharter-helper.R'
     'misc.R'
     'reexports.R'
