@@ -9,6 +9,7 @@
 #'
 #' @return              association score
 #' @name association-score-functions
+#'
 #' @description
 #' Functions to calculate different collocation association scores between
 #' a node (target word) and words in a window around the it.
@@ -17,6 +18,8 @@ NULL
 #' NULL
 
 #' @rdname association-score-functions
+#'
+#' @family collocation analysis functions
 #'
 #' @export
 #'
