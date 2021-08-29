@@ -1,3 +1,7 @@
+## New features
+- experimental new `collocationAnalysis` method
+- new parameter `randomizePageOrder` to fetch result pages in randomized order 
+
 ## Bug Fixes
 - fixed umlaut queries on windows
 - fixed retrieval of access token when multiple access tokens are stored
