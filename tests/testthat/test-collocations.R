@@ -10,8 +10,20 @@ test_that("collocationScoreQuery works", {
 })
 
 test_that("collocationAnalysis works", {
-  kco <- new("KorAPConnection", cache = TRUE, verbose = TRUE)
-  df <- collocationAnalysis(kco, "Ameisenplage", leftContextSize=0, rightContextSize=1, topCollocatesLimit=1, exactFrequencies=FALSE)
+  kco <- new("KorAPConnection",
+             accessToken = NULL,
+             verbose = TRUE)
+  df <-
+    collocationAnalysis(
+      kco,
+      "focus([tt/p=ADJA] {Newstickeritis})",
+      vc = "corpusSigle=/W.D17/",
+      leftContextSize = 1,
+      rightContextSize = 0,
+      searchHitsSampleLimit = 100,
+      topCollocatesLimit = 1,
+      exactFrequencies = FALSE
+    )
   expect_gt(df$O, df$E)
   expect_gt(df$logDice, 1)
 })
