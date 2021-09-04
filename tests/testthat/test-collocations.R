@@ -9,27 +9,34 @@ test_that("collocationScoreQuery works", {
   expect_equal(df$logDice, logDice(df$O1, df$O2, df$O, df$N, df$E, df$w))
 })
 
-test_that("collocationAnalysis works", {
-  kco <- new("KorAPConnection",
-             accessToken = NULL,
-             verbose = TRUE)
-  df <-
-    collocationAnalysis(
-      kco,
-      "focus([tt/p=ADJA] {Newstickeritis})",
-      vc = "corpusSigle=/W.D17/",
-      leftContextSize = 1,
-      rightContextSize = 0,
-      searchHitsSampleLimit = 100,
-      topCollocatesLimit = 1,
-      exactFrequencies = FALSE
+
+test_that("collocationAnalysis works and warns about missing token", {
+    kco <- new("KorAPConnection",
+               accessToken = NULL,
+               verbose = TRUE)
+    expect_warning(
+      df <-
+        collocationAnalysis(
+          kco,
+          "focus([tt/p=ADJA] {Newstickeritis})",
+          vc = "corpusSigle=/W.D17/",
+          leftContextSize = 1,
+          rightContextSize = 0,
+          searchHitsSampleLimit = 100,
+          topCollocatesLimit = 1,
+          exactFrequencies = FALSE
+        ),
+      "access token"
     )
   expect_gt(df$O, df$E)
   expect_gt(df$logDice, 1)
 })
 
 test_that("collocationAnalysis on unaccounted strings does not error out", {
-  kco <- new("KorAPConnection", cache = TRUE, verbose = TRUE)
-  df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage")
+  kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
+  expect_warning(
+    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage"),
+    "access token"
+  )
   testthat::expect_equal(nrow(df), 0)
 })

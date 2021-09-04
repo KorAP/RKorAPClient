@@ -135,6 +135,20 @@ getAccessToken <- function(KorAPUrl) {
     NULL
 }
 
+
+warnIfNoAccessToken <- function(kco) {
+  if (is.null(kco@accessToken)) {
+    warning(
+      paste0(
+        "In order to receive KWICSs also from corpora with restricted licenses, you need an access token.\n",
+        "To generate an access token, login to KorAP and navigite to KorAP's OAuth settings <",
+        kco@KorAPUrl,
+        "settings/oauth#page-top>"
+      )
+    )
+  }
+}
+
 KorAPCacheSubDir <- function() {
   paste0("RKorAPClient_",
          gsub(
