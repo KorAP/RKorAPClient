@@ -42,6 +42,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @importFrom dplyr anti_join arrange desc slice_head bind_rows
 #' @importFrom purrr pmap
 #' @importFrom tidyr expand_grid
+#' @importFrom lifecycle badge
 #'
 #' @examples
 #' \donttest{
