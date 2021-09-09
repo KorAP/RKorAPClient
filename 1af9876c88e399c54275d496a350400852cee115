@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ace22786_47be1a4c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2021-09-09T13:32:52Z",
+      "side": 1,
+      "message": "CRAN doesn\u0027t seem to allow for RMarkdown demos. \nI\u0027d like to demonstrate the great opportunities, anyway.\nMaybe a wrapper will help and if not, the Readme.md.\n",
+      "revId": "1af9876c88e399c54275d496a350400852cee115",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
