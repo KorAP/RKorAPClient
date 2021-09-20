@@ -1,3 +1,5 @@
+# RKorAPClient 0.7.0
+
 ## New Features
 - experimental new `collocationAnalysis` method (client-sided)
 - new parameter `randomizePageOrder` to fetch result pages in randomized order 
