@@ -1,3 +1,33 @@
+# RKorAPClient 0.7.1 (CRAN release)
+- documentation migrated to roxygen2md
+- Some examples in the documentation are now wrapped with:
+  ```
+     ## Not run
+     ...
+     ## End(Not run)
+  ```
+  This was necessary to meet the time limits of automatic CRAN checks
+  under all circumstances and has otherwise no significance,
+
+## Version change invalidates cache
+The change of the minor version from 6 to 7 automatically invalidates your
+cached query results. However, since the API has not changed, you can continue
+using the old cached results by copying or renaming your cache folder.
+
+On linux, for example, this can look like this:
+```
+mv ~/.cache/R/R.cache/RKorAPClient_0.6 ~/.cache/R/R.cache/RKorAPClient_0.7
+```
+
+or like this:
+```
+mv ~/.Rcache/RKorAPClient_0.6 ~/.Rcache/RKorAPClient_0.7
+```
+To find the RKorAPClient cache directory for your environment, you can use:
+```
+R.cache::getCacheRootPath()
+```
+
 # RKorAPClient 0.7.0
 
 ## New Features
@@ -11,7 +41,7 @@
 - fixed umlaut queries on windows
 - fixed retrieval of access token when multiple access tokens are stored
 
-# RKorAPClient 0.6.1
+# RKorAPClient 0.6.1 (CRAN release)
 
 ## Changes
 - fixes calculation of logDice coefficient
