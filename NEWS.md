@@ -1,3 +1,6 @@
+# RKorAPClient 0.7.1
+- documentation migrated to roxygen2md
+
 # RKorAPClient 0.7.0
 
 ## New Features
