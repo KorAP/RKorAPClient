@@ -26,7 +26,7 @@ Language: en-US
 License: BSD_2_clause + file LICENSE
 URL: https://github.com/KorAP/RKorAPClient/,
   https://korap.ids-mannheim.de/,
-  https://www1.ids-mannheim.de/kl/projekte/korap.html
+  https://www.ids-mannheim.de/digspra/kl/projekte/korap
 BugReports: https://github.com/KorAP/RKorAPClient/issues
 Encoding: UTF-8
 LazyData: false
