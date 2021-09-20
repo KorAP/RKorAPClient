@@ -9,12 +9,12 @@ NULL
 #' Convenience function for converting frequency tables to instances per
 #' million.
 #'
-#' Given a table with columns \code{f}, \code{conf.low}, and \code{conf.high}, \code{ipm} ads a \code{column ipm}
-#' und multiplies conf.low and \code{conf.high} with 10^6.
+#' Given a table with columns `f`, `conf.low`, and `conf.high`, `ipm` ads a `column ipm`
+#' und multiplies conf.low and `conf.high` with 10^6.
 #'
-#' @param df table returned from \code{\link{frequencyQuery}}
+#' @param df table returned from [frequencyQuery()]
 #'
-#' @return original table with additional column \code{ipm} and converted columns \code{conf.low} and \code{conf.high}
+#' @return original table with additional column `ipm` and converted columns `conf.low` and `conf.high`
 #' @export
 #'
 #' @rdname misc-functions
@@ -32,11 +32,11 @@ ipm <- function(df) {
 #' Convert corpus frequency table of alternatives to percent
 #'
 #' Convenience function for converting frequency tables of alternative variants
-#' (generated with \code{as.alternatives=TRUE}) to percent.
+#' (generated with `as.alternatives=TRUE`) to percent.
 #'
-#' @param df table returned from \code{\link{frequencyQuery}}
+#' @param df table returned from [frequencyQuery()]
 #'
-#' @return original table with converted columns \code{f}, \code{conf.low} and \code{conf.high}
+#' @return original table with converted columns `f`, `conf.low` and `conf.high`
 #' @export
 #'
 #' @importFrom dplyr .data
@@ -101,7 +101,7 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' Experimental: Plot frequency by year graphs with confidence intervals
 #'
 #' Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
-#' \bold{Warning:} This function may be moved to a new package.
+#' **Warning:** This function may be moved to a new package.
 #'
 #' @param mapping	Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.
 #' @param ...	 Other arguments passed to geom_ribbon, geom_line, and geom_click_point.

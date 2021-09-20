@@ -1,26 +1,22 @@
-#' Helper functions for producing highcharts
+#' Plot interactive frequency curves with confidence intervals
 #'
-#' @param hc  highchart
+#' @description
+#' `r lifecycle::badge("experimental")`
 #'
-#' @name highcharter-helpers
-NULL
-#' NULL
-
-#' Experimental: Plot interactive frequency by year graphs with confidence intervals using highcharter
+#' Convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
 #'
-#' Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
-#' \bold{Warning:} This function may be moved to a new package.
+#' **Warning:** This function may be moved to a new package.
 #'
-#' @rdname highcharter-helpers
+#' @family  highcharter-helpers
 #' @import highcharter
 #' @importFrom tibble add_column
 #' @export
 #'
-#' @param df data frame like the value of a \code{\link{frequencyQuery}}
+#' @param df data frame like the value of a [frequencyQuery()]
 #' @param as.alternatives boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
-#' @param ylabel defaults to \% if \code{as.alternatives} is \code{true} and to "ipm" otherwise.
+#' @param ylabel defaults to `%` if `as.alternatives` is `TRUE` and to `ipm` otherwise.
 #' @param smooth boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.
-#' @param ... additional arguments passed to \code{\link{hc_add_series}}
+#' @param ... additional arguments passed to [hc_add_series()]
 #'
 #' @examples
 #' \donttest{year <- c(1990:2018)}\dontshow{year <- c(2013:2013)}
@@ -152,47 +148,3 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
   }
   hc
 }
-
-#' Add KorAP search click events to highchart
-#'
-#' @description
-#' Adds on-click events to data points of highcharts that were constructed with
-#' \code{\link{frequencyQuery}} or \code{\link{collocationScoreQuery}}. Clicks on data points
-#' then launch KorAP web UI queries for the given query term and virtual corpus in
-#' a separate tab.
-#'
-#' @rdname highcharter-helpers
-#' @export
-#'
-#' @examples
-#' \donttest{
-#' library(highcharter)
-#' library(tidyr)
-#'
-#' new("KorAPConnection", verbose = TRUE) %>%
-#'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
-#'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
-#'                          pivot_longer(c("O", "E")) %>%
-#'   hchart(type="spline", hcaes(label, value, group=name)) %>%
-#'   hc_add_onclick_korap_search()
-#' }
-#'
-hc_add_onclick_korap_search <- function(hc) {
-  hc_plotOptions(
-    hc,
-    series = list(enabled = TRUE),
-    spline = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))),
-    line = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))))
-}
-
-.onAttach <- function(libname = find.package("RKorAPClient"),
-                      pkgname = "RKorAPClient") {
-  packageStartupMessage(
-    "If you intend to use the Highcharts plot options, please note that Highcharts (www.highcharts.com) is a Highsoft software product which is not free for commercial and governmental use."
-  )
-}
-

@@ -62,6 +62,8 @@ Collate:
     'ci.R'
     'collocationAnalysis.R'
     'collocationScoreQuery.R'
-    'highcharter-helper.R'
+    'hc_add_onclick_korap_search.R'
+    'hc_freq_by_year_ci.R'
     'misc.R'
     'reexports.R'
+Roxygen: list(markdown = TRUE)

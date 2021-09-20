@@ -117,7 +117,7 @@ buildWebUIRequestUrl(
 
 \item{collectedMatches}{matches already fetched from the KorAP-API-server}
 
-\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
@@ -135,17 +135,17 @@ buildWebUIRequestUrl(
 
 \item{as.df}{return result as data frame instead of as S4 object?}
 
-\item{kqo}{object obtained from \code{\link{corpusQuery}}}
+\item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}}}
 
 \item{offset}{start offset for query results to fetch}
 
 \item{maxFetch}{maximum number of query results to fetch}
 
-\item{randomizePageOrder}{fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.}
+\item{randomizePageOrder}{fetch result pages in pseudo random order if true. Use \code{\link[=set.seed]{set.seed()}} to set seed for reproducible results.}
 
 \item{...}{further arguments passed to or from other methods}
 
-\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link{ci}}  to \code{\link{prop.test}}).}
+\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link[=ci]{ci()}}  to \code{\link[=prop.test]{prop.test()}}).}
 
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
@@ -154,25 +154,25 @@ buildWebUIRequestUrl(
 \item{object}{KorAPQuery object}
 }
 \value{
-Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
-A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
-Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
+Depending on the \code{as.df} parameter, a table or a \code{\link[=KorAPQuery]{KorAPQuery()}} object that, among other information, contains the total number of results in \verb{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link[=fetchAll]{fetchAll()}}) or the next page of results (with \code{\link[=fetchNext]{fetchNext()}}).
+A corresponding URL to be used within a web browser is contained in \verb{@webUIRequestUrl}
+Please make sure to check \verb{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 
 The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
 }
 \description{
 This class provides methods to perform different kinds of queries on the KorAP API server.
-\code{KorAPQuery} objects, which are typically created by the \code{\link{corpusQuery}} method,
+\code{KorAPQuery} objects, which are typically created by the \code{\link[=corpusQuery]{corpusQuery()}} method,
 represent the current state of a query to a KorAP server.
 
-\bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
+\strong{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
 
-\bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
+\strong{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 
-\bold{\code{fetchAll}} fetches all results of a KorAP query.
+\strong{\code{fetchAll}} fetches all results of a KorAP query.
 
-\bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
-\code{\link{ci}} to compute a table with the relative frequencies and
+\strong{\code{frequencyQuery}} combines \code{\link[=corpusQuery]{corpusQuery()}}, \code{\link[=corpusStats]{corpusStats()}} and
+\code{\link[=ci]{ci()}} to compute a table with the relative frequencies and
 confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
 }
@@ -232,5 +232,5 @@ new("KorAPConnection", verbose = TRUE) \%>\%
 \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 }
 \seealso{
-\code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
+\code{\link[=KorAPConnection]{KorAPConnection()}}, \code{\link[=fetchNext]{fetchNext()}}, \code{\link[=fetchRest]{fetchRest()}}, \code{\link[=fetchAll]{fetchAll()}}, \code{\link[=corpusStats]{corpusStats()}}
 }

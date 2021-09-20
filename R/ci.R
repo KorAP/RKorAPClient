@@ -1,13 +1,13 @@
 #' Add confidence interval and relative frequency variables
 #'
-#' Using \code{\link{prop.test}}, \code{ci} adds three columns to a data frame:
-#' 1. relative frequency (\code{f})
-#' 2. lower bound of a confidence interval (\code{ci.low})
+#' Using [prop.test()], `ci` adds three columns to a data frame:
+#' 1. relative frequency (`f`)
+#' 2. lower bound of a confidence interval (`ci.low`)
 #' 3. upper bound of a confidence interval
 #'
 #'
 #' @seealso
-#' \code{ci} is already included in \code{\link{frequencyQuery}}
+#' `ci` is already included in [frequencyQuery()]
 #'
 #' @param df table with columns for absolute and total frequencies.
 #' @param x  column with the observed absolute frequency.

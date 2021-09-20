@@ -20,7 +20,7 @@ queryStringToLabel(data, pubDateOnly = FALSE, excludePubDate = FALSE)
 geom_freq_by_year_ci(mapping = aes(ymin = conf.low, ymax = conf.high), ...)
 }
 \arguments{
-\item{df}{table returned from \code{\link{frequencyQuery}}}
+\item{df}{table returned from \code{\link[=frequencyQuery]{frequencyQuery()}}}
 
 \item{x}{column with the observed absolute frequency.}
 
@@ -47,10 +47,12 @@ original table with converted columns \code{f}, \code{conf.low} and \code{conf.h
 string or vector of strings with clipped off common prefixes and suffixes
 }
 \description{
-Using \code{\link{prop.test}}, \code{ci} adds three columns to a data frame:
-1. relative frequency (\code{f})
-2. lower bound of a confidence interval (\code{ci.low})
-3. upper bound of a confidence interval
+Using \code{\link[=prop.test]{prop.test()}}, \code{ci} adds three columns to a data frame:
+\enumerate{
+\item relative frequency (\code{f})
+\item lower bound of a confidence interval (\code{ci.low})
+\item upper bound of a confidence interval
+}
 
 Convenience function for converting frequency tables to instances per
 million.
@@ -62,10 +64,10 @@ Converts a vector of query or vc strings to typically appropriate legend labels
 by clipping off prefixes and suffixes that are common to all query strings.
 
 Experimental convenience function for plotting typical frequency by year graphs with confidence intervals using ggplot2.
-\bold{Warning:} This function may be moved to a new package.
+\strong{Warning:} This function may be moved to a new package.
 }
 \details{
-Given a table with columns \code{f}, \code{conf.low}, and \code{conf.high}, \code{ipm} ads a \code{column ipm}
+Given a table with columns \code{f}, \code{conf.low}, and \code{conf.high}, \code{ipm} ads a \verb{column ipm}
 und multiplies conf.low and \code{conf.high} with 10^6.
 }
 \examples{
@@ -106,5 +108,5 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 }
 }
 \seealso{
-\code{ci} is already included in \code{\link{frequencyQuery}}
+\code{ci} is already included in \code{\link[=frequencyQuery]{frequencyQuery()}}
 }

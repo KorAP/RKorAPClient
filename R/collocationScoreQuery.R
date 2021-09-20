@@ -10,17 +10,17 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'
 #' @description
 #' Computes various collocation association scores
-#' based on \code{\link{frequencyQuery}}s for a target word and a collocate.
+#' based on [frequencyQuery()]s for a target word and a collocate.
 #'
-#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
+#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
 #' @param node               target word
 #' @param collocate          collocate of target word
 #' @param vc                 string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
-#' @param lemmatizeNodeQuery      logical, set to TRUE if node query should be lemmatized, i.e. x -> [tt/l=x]
-#' @param lemmatizeCollocateQuery logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]
+#' @param lemmatizeNodeQuery      logical, set to TRUE if node query should be lemmatized, i.e. `x -> [tt/l=x]`
+#' @param lemmatizeCollocateQuery logical, set to TRUE if collocate query should be lemmatized, i.e. `x -> [tt/l=x]`
 #' @param leftContextSize    size of the left context window
 #' @param rightContextSize   size of the right context window
-#' @param scoreFunctions     named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. \link{pmi}
+#' @param scoreFunctions     named list of score functions of the form function(O1, O2, O, N, E, window_size), see e.g. [pmi]
 #' @param smoothingConstant  smoothing constant will be added to all observed values
 #' @param observed           if collocation frequencies are already known (or estimated from a sample) they can be passed as a vector here, otherwise: NA
 #' @param ignoreCollocateCase     logical, set to TRUE if collocate case should be ignored

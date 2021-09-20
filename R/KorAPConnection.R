@@ -5,8 +5,8 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 
 #' Class KorAPConnection
 #'
-#' \code{KorAPConnection} objects represent the connection to a KorAP server.
-#' New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
+#' `KorAPConnection` objects represent the connection to a KorAP server.
+#' New `KorAPConnection` objects can be created by `new("KorAPConnection")`.
 #'
 #' @import R.cache
 #' @import utils
@@ -20,28 +20,28 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param apiUrl URL of the KorAP web service.
 #' @param accessToken OAuth2 access token. To use authorization based on an access token
 #'   in subsequent queries, initialize your KorAP connection with
-#'   \code{kco <- new("KorAPConnection", accessToken="<access token>")}.
+#'   `kco <- new("KorAPConnection", accessToken="<access token>")`.
 #'   In order to make the API
-#'   token persistent for the currently used \code{KorAPUrl} (you can have one
+#'   token persistent for the currently used `KorAPUrl` (you can have one
 #'   token per KorAPUrl / KorAP server instance), use
-#'   \code{persistAccessToken(kco)}. This will store it in your keyring using the
-#'   \code{\link{keyring}} package. Subsequent new("KorAPConnection") calls will
+#'   `persistAccessToken(kco)`. This will store it in your keyring using the
+#'   [keyring()] package. Subsequent new("KorAPConnection") calls will
 #'   then automatically retrieve the token from your keying. To stop using a
-#'   persisted token, call \code{clearAccessToken(kco)}. Please note that for
+#'   persisted token, call `clearAccessToken(kco)`. Please note that for
 #'   DeReKo, authorized queries will behave differently inside and outside the
 #'   IDS, because of the special license situation. This concerns also cached
 #'   results which do not take into account from where a request was issued. If
-#'   you experience problems or unexpected results, please try \code{kco <-
-#'   new("KorAPConnection", cache=FALSE)} or use
-#'   \code{\link{clearCache}} to clear the cache completely.
+#'   you experience problems or unexpected results, please try `kco <-
+#'   new("KorAPConnection", cache=FALSE)` or use
+#'   [clearCache()] to clear the cache completely.
 #' @param userAgent user agent string.
 #' @param timeout time out in seconds.
 #' @param verbose logical. Decides whether following operations will default to
 #'   be verbose.
 #' @param cache logical. Decides if API calls are cached locally. You can clear
-#'   the cache with \code{\link{clearCache}()}.
-#' @return \code{\link{KorAPConnection}} object that can be used e.g. with
-#'   \code{\link{corpusQuery}}
+#'   the cache with [clearCache()].
+#' @return [KorAPConnection()] object that can be used e.g. with
+#'   [corpusQuery()]
 #'
 #' @examples
 #' \donttest{

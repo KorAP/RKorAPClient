@@ -1,7 +1,7 @@
 #' Class KorAPCorpusStats
 #'
-#' \code{KorAPCorpusStats} objects can hold information about a corpus or virtual corpus.
-#' \code{KorAPCorpusStats} objects can be obtained by the \code{\link{corpusStats}()} method.
+#' `KorAPCorpusStats` objects can hold information about a corpus or virtual corpus.
+#' `KorAPCorpusStats` objects can be obtained by the [corpusStats()] method.
 #'
 #' @include KorAPConnection.R
 #'
@@ -19,11 +19,11 @@ log.info <- function(v,  ...) {
 setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 
 #' Fetch information about a (virtual) corpus
-#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
+#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
-#' @param verbose logical. If \code{TRUE}, additional diagnostics are printed.
+#' @param verbose logical. If `TRUE`, additional diagnostics are printed.
 #' @param as.df return result as data frame instead of as S4 object?
-#' @return \code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
+#' @return `KorAPCorpusStats` object with the slots `documents`, `tokens`, `sentences`, `paragraphs`
 #'
 #' @examples
 #' \donttest{corpusStats(new("KorAPConnection"))}

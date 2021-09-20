@@ -13,7 +13,7 @@
 #' @description
 #' Functions to calculate different collocation association scores between
 #' a node (target word) and words in a window around the it.
-#' The functions are primarily used by \code{\link{collocationScoreQuery}}.
+#' The functions are primarily used by [collocationScoreQuery()].
 NULL
 #' NULL
 
@@ -40,7 +40,7 @@ defaultAssociationScoreFunctions <- function() {
 #' @rdname association-score-functions
 #'
 #' @description
-#' \bold{pmi}: pointwise mutual information
+#' **pmi**: pointwise mutual information
 #'
 #' @export
 #'
@@ -51,7 +51,7 @@ pmi <- function(O1, O2, O, N, E, window_size) {
 #' @rdname association-score-functions
 #'
 #' @description
-#' \bold{mi2}: pointwise mutual information squared (Daille 1994), also referred to as mutual dependency
+#' **mi2**: pointwise mutual information squared (Daille 1994), also referred to as mutual dependency
 #' (Thanopoulos et al. 2002)
 #' @export
 #'
@@ -63,7 +63,7 @@ mi2 <- function(O1, O2, O, N, E, window_size) {
 #' @family association-score-functions
 #'
 #' @description
-#' \bold{mi3}: pointwise mutual information cubed (Daille 1994), also referred to as log-frequency biased mutual dependency)
+#' **mi3**: pointwise mutual information cubed (Daille 1994), also referred to as log-frequency biased mutual dependency)
 #' (Thanopoulos et al. 2002)
 #'
 #' @export
@@ -80,7 +80,7 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
 #' @rdname association-score-functions
 #'
 #' @description
-#' \bold{logDice}: log-Dice coefficient, a heuristic measure that is popular in lexicography (Rychlý 2008)
+#' **logDice**: log-Dice coefficient, a heuristic measure that is popular in lexicography (Rychlý 2008)
 #' @export
 #'
 #' @references
@@ -96,7 +96,7 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 #'
 #' @rdname association-score-functions
 #' @description
-#' \bold{ll}: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
+#' **ll**: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
 #'
 #' @export
 #'
@@ -106,7 +106,7 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 #' Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.
 #'
 #' Evert, Stefan (2004): The Statistics of Word Cooccurrences: Word Pairs and Collocations. PhD dissertation, IMS, University of Stuttgart. Published in 2005, URN urn:nbn:de:bsz:93-opus-23714.
-#' Free PDF available from \url{http://purl.org/stefan.evert/PUB/Evert2004phd.pdf}
+#' Free PDF available from <http://purl.org/stefan.evert/PUB/Evert2004phd.pdf>
 #'
 ll <- function(O1, O2, O, N, E, window_size) {
   r1 = as.double(O1) * window_size

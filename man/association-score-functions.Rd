@@ -36,24 +36,25 @@ ll(O1, O2, O, N, E, window_size)
 \item{window_size}{total window size around node (left neighbour count + right neighbour count)}
 }
 \value{
-association score
+\preformatted{         association score
+}
 }
 \description{
 Functions to calculate different collocation association scores between
 a node (target word) and words in a window around the it.
-The functions are primarily used by \code{\link{collocationScoreQuery}}.
+The functions are primarily used by \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}.
 
-\bold{pmi}: pointwise mutual information
+\strong{pmi}: pointwise mutual information
 
-\bold{mi2}: pointwise mutual information squared (Daille 1994), also referred to as mutual dependency
+\strong{mi2}: pointwise mutual information squared (Daille 1994), also referred to as mutual dependency
 (Thanopoulos et al. 2002)
 
-\bold{mi3}: pointwise mutual information cubed (Daille 1994), also referred to as log-frequency biased mutual dependency)
+\strong{mi3}: pointwise mutual information cubed (Daille 1994), also referred to as log-frequency biased mutual dependency)
 (Thanopoulos et al. 2002)
 
-\bold{logDice}: log-Dice coefficient, a heuristic measure that is popular in lexicography (Rychlý 2008)
+\strong{logDice}: log-Dice coefficient, a heuristic measure that is popular in lexicography (Rychlý 2008)
 
-\bold{ll}: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
+\strong{ll}: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
 }
 \examples{
 \donttest{
@@ -71,7 +72,7 @@ Daille, B. (1994): Approche mixte pour l’extraction automatique de terminologi
 
 Thanopoulos, A., Fakotakis, N., Kokkinakis, G. (2002): Comparative evaluation of collocation extraction metrics. In: Proc. of LREC 2002: 620–625.
 
-Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. <http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf>.
+Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. \url{http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf}.
 
 Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.
 

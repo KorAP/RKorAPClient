@@ -5,7 +5,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @aliases collocationAnalysis
 #'
 #' @description
-#' \Sexpr[results=rd, stage=render]{lifecycle::badge("experimental")}
+#' `r lifecycle::badge("experimental")`
 #'
 #' Performs a collocation analysis for the given node (or query)
 #' in the given virtual corpus.
@@ -26,15 +26,15 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #'
 #' @family collocation analysis functions
 #'
-#' @param lemmatizeNodeQuery     if TRUE, node query will be lemmatized, i.e. x -> [tt/l=x]
+#' @param lemmatizeNodeQuery     if TRUE, node query will be lemmatized, i.e. `x -> [tt/l=x]`
 #' @param minOccur               minimum absolute number of observed co-occurrences to consider a collocate candidate
 #' @param topCollocatesLimit     limit analysis to the n most frequent collocates in the search hits sample
 #' @param searchHitsSampleLimit  limit the size of the search hits sample
 #' @param stopwords              vector of stopwords not to be considered as collocates
 #' @param exactFrequencies       if FALSE, extrapolate observed co-occurrence frequencies from frequencies in search hits sample, otherwise retrieve exact co-occurrence frequencies
 #' @param seed                   seed for random page collecting order
-#' @param expand                 if TRUE, \code{node} and \code{vc} parameters are expanded to all of their combinations
-#' @param ...                    more arguments will be passed to \code{\link{collocationScoreQuery}}
+#' @param expand                 if TRUE, `node` and `vc` parameters are expanded to all of their combinations
+#' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
 #'
@@ -222,7 +222,7 @@ snippet2FreqTable <- function(snippet,
 #' Preliminary synsemantic stopwords function
 #'
 #' @description
-#' \Sexpr[results=rd, stage=render]{lifecycle::badge("experimental")}
+#' `r lifecycle::badge("experimental")`
 #'
 #' Preliminary synsemantic stopwords function to be used in collocation analysis.
 #'

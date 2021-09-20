@@ -33,7 +33,7 @@ Useful links:
 \itemize{
   \item \url{https://github.com/KorAP/RKorAPClient/}
   \item \url{https://korap.ids-mannheim.de/}
-  \item \url{https://www1.ids-mannheim.de/kl/projekte/korap.html}
+  \item \url{https://www.ids-mannheim.de/digspra/kl/projekte/korap}
   \item Report bugs at \url{https://github.com/KorAP/RKorAPClient/issues}
 }
 

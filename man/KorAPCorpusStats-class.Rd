@@ -13,7 +13,7 @@
 }
 \description{
 \code{KorAPCorpusStats} objects can hold information about a corpus or virtual corpus.
-\code{KorAPCorpusStats} objects can be obtained by the \code{\link{corpusStats}()} method.
+\code{KorAPCorpusStats} objects can be obtained by the \code{\link[=corpusStats]{corpusStats()}} method.
 }
 \section{Slots}{
 

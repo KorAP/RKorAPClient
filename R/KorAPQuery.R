@@ -1,7 +1,7 @@
 #' Class KorAPQuery
 #'
 #' This class provides methods to perform different kinds of queries on the KorAP API server.
-#' \code{KorAPQuery} objects, which are typically created by the \code{\link{corpusQuery}} method,
+#' `KorAPQuery` objects, which are typically created by the [corpusQuery()] method,
 #' represent the current state of a query to a KorAP server.
 #'
 #' @include KorAPConnection.R
@@ -74,7 +74,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 
 #' Corpus query
 #'
-#' \bold{\code{corpusQuery}} performs a corpus query via a connection to a KorAP-API-server
+#' **`corpusQuery`** performs a corpus query via a connection to a KorAP-API-server
 #'
 #' @rdname KorAPQuery-class
 #' @aliases corpusQuery
@@ -83,20 +83,20 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @importFrom purrr pmap
 #' @importFrom dplyr bind_rows
 #'
-#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
-#' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
+#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
-#' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.
+#' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in `KorAPConnection`) to provide all necessary information for the query.
 #' @param metadataOnly logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
-#' @param ql string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.
+#' @param ql string to choose the query language (see [section on Query Parameters](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters) in the Kustvakt-Wiki for possible values.
 #' @param fields (meta)data fields that will be fetched for every match.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
-#' @param expand logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations
-#' @return Depending on the \code{as.df} parameter, a table or a \code{\link{KorAPQuery}} object that, among other information, contains the total number of results in \code{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link{fetchAll}}) or the next page of results (with \code{\link{fetchNext}}).
-#' A corresponding URL to be used within a web browser is contained in \code{@webUIRequestUrl}
-#' Please make sure to check \code{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
+#' @param expand logical that decides if `query` and `vc` parameters are expanded to all of their combinations
+#' @return Depending on the `as.df` parameter, a table or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
+#' A corresponding URL to be used within a web browser is contained in `@webUIRequestUrl`
+#' Please make sure to check `$collection$rewrites` to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
@@ -128,10 +128,10 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
 #'   plot(type = "l")
 #' }
-#' @seealso \code{\link{KorAPConnection}}, \code{\link{fetchNext}}, \code{\link{fetchRest}}, \code{\link{fetchAll}}, \code{\link{corpusStats}}
+#' @seealso [KorAPConnection()], [fetchNext()], [fetchRest()], [fetchAll()], [corpusStats()]
 #'
 #' @references
-#' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+#' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
 #'
 #' @export
 setMethod("corpusQuery", "KorAPConnection",
@@ -214,14 +214,14 @@ setMethod("corpusQuery", "KorAPConnection",
 
 #' Fetch the next bunch of results of a KorAP query.
 #'
-#' \bold{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
+#' **`fetchNext`** fetches the next bunch of results of a KorAP query.
 #'
-#' @param kqo object obtained from \code{\link{corpusQuery}}
+#' @param kqo object obtained from [corpusQuery()]
 #' @param offset start offset for query results to fetch
 #' @param maxFetch maximum number of query results to fetch
 #' @param verbose print progress information if true
-#' @param randomizePageOrder fetch result pages in pseudo random order if true. Use \code{\link{set.seed}} to set seed for reproducible results.
-#' @return The \code{kqo} input object with updated slots \code{collectedMatches}, \code{apiResponse}, \code{nextStartIndex}, \code{hasMoreMatches}
+#' @param randomizePageOrder fetch result pages in pseudo random order if true. Use [set.seed()] to set seed for reproducible results.
+#' @return The `kqo` input object with updated slots `collectedMatches`, `apiResponse`, `nextStartIndex`, `hasMoreMatches`
 #'
 #' @examples
 #' \donttest{q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
@@ -229,7 +229,7 @@ setMethod("corpusQuery", "KorAPConnection",
 #' }
 #'
 #' @references
-#' \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
+#' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
 #'
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
@@ -318,7 +318,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
 #' Fetch all results of a KorAP query.
 #'
-#' \bold{\code{fetchAll}} fetches all results of a KorAP query.
+#' **`fetchAll`** fetches all results of a KorAP query.
 #'
 #' @examples
 #' \donttest{
@@ -350,8 +350,8 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 
 #' Query relative frequency of search term(s)
 #'
-#' \bold{\code{frequencyQuery}} combines \code{\link{corpusQuery}}, \code{\link{corpusStats}} and
-#' \code{\link{ci}} to compute a table with the relative frequencies and
+#' **`frequencyQuery`** combines [corpusQuery()], [corpusStats()] and
+#' [ci()] to compute a table with the relative frequencies and
 #' confidence intervals of one ore multiple search terms across one or multiple
 #' virtual corpora.
 #'
@@ -363,10 +363,10 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 #' }
 #'
-#' @param kco \code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}
-#' @param query string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.
-#' @param conf.level confidence level of the returned confidence interval (passed through \code{\link{ci}}  to \code{\link{prop.test}}).
-#' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
+#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
+#' @param conf.level confidence level of the returned confidence interval (passed through [ci()]  to [prop.test()]).
+#' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
 #' @export
 setMethod("frequencyQuery", "KorAPConnection",
   function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {

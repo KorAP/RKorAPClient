@@ -22,7 +22,7 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
 \item{node}{target word}
 
@@ -30,9 +30,9 @@
 
 \item{vc}{string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
-\item{lemmatizeNodeQuery}{logical, set to TRUE if node query should be lemmatized, i.e. x -> [tt/l=x]}
+\item{lemmatizeNodeQuery}{logical, set to TRUE if node query should be lemmatized, i.e. \verb{x -> [tt/l=x]}}
 
-\item{lemmatizeCollocateQuery}{logical, set to TRUE if collocate query should be lemmatized, i.e. x -> [tt/l=x]}
+\item{lemmatizeCollocateQuery}{logical, set to TRUE if collocate query should be lemmatized, i.e. \verb{x -> [tt/l=x]}}
 
 \item{leftContextSize}{size of the left context window}
 
@@ -53,7 +53,7 @@ tibble with query KorAP web request URL, all observed values and association sco
 }
 \description{
 Computes various collocation association scores
-based on \code{\link{frequencyQuery}}s for a target word and a collocate.
+based on \code{\link[=frequencyQuery]{frequencyQuery()}}s for a target word and a collocate.
 }
 \examples{
 \donttest{

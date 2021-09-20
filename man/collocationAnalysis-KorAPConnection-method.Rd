@@ -25,13 +25,13 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link{KorAPConnection}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
 
 \item{node}{target word}
 
 \item{vc}{string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
-\item{lemmatizeNodeQuery}{if TRUE, node query will be lemmatized, i.e. x -> [tt/l=x]}
+\item{lemmatizeNodeQuery}{if TRUE, node query will be lemmatized, i.e. \verb{x -> [tt/l=x]}}
 
 \item{minOccur}{minimum absolute number of observed co-occurrences to consider a collocate candidate}
 
@@ -55,13 +55,13 @@
 
 \item{expand}{if TRUE, \code{node} and \code{vc} parameters are expanded to all of their combinations}
 
-\item{...}{more arguments will be passed to \code{\link{collocationScoreQuery}}}
+\item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}
 }
 \value{
 Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
 }
 \description{
-\Sexpr[results=rd, stage=render]{lifecycle::badge("experimental")}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
 Performs a collocation analysis for the given node (or query)
 in the given virtual corpus.
