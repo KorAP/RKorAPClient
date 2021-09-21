@@ -39,7 +39,6 @@ Imports:
     magrittr,
     tidyr,
     dplyr,
-    lifecycle,
     lubridate,
     highcharter,
     jsonlite,
@@ -52,6 +51,7 @@ Imports:
     stringr,
     urltools
 Suggests:
+    lifecycle,
     testthat
 Collate: 
     'KorAPConnection.R'
