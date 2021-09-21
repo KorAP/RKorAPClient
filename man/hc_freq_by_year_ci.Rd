@@ -30,30 +30,6 @@ Convenience function for plotting typical frequency by year graphs with confiden
 
 \strong{Warning:} This function may be moved to a new package.
 }
-\examples{
-\donttest{year <- c(1990:2018)}\dontshow{year <- c(2013:2013)}
-\donttest{alternatives <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")}\dontshow{alternatives <- c("macht []{0,3} Sinn")}
-new("KorAPConnection", verbose = TRUE) \%>\%
-  frequencyQuery(query = alternatives,
-                 vc = paste("textType = /Zeit.*/ & pubDate in", year),
-                 as.alternatives = TRUE) \%>\%
-  hc_freq_by_year_ci(as.alternatives = TRUE)
-
-\donttest{
-kco <- new("KorAPConnection", verbose = TRUE)
-expand_grid(
-  condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
-  year = (2005:2011)
-) \%>\%
-  cbind(frequencyQuery(
-    kco,
-    "[tt/l=Heuschrecke]",
-    paste0(.$condition, " & pubDate in ", .$year)
-  ))  \%>\%
-  hc_freq_by_year_ci()
-}
-
-}
 \seealso{
 Other highcharter-helpers: 
 \code{\link{hc_add_onclick_korap_search}()}

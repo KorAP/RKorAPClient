@@ -44,13 +44,15 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #'   [corpusQuery()]
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' kcon <- new("KorAPConnection", verbose = TRUE)
 #' kq <- corpusQuery(kcon, "Ameisenplage")
 #' kq <- fetchAll(kq)
 #' }
 #'
 #' \dontrun{
+#'
 #' kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
 #' kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 #' kq <- fetchAll(kq)
@@ -95,6 +97,7 @@ setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAcce
 #' @export
 #' @examples
 #' \dontrun{
+#'
 #' kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
 #' persistAccessToken(kco)
 #' }
@@ -115,6 +118,7 @@ setGeneric("clearAccessToken", function(kco) standardGeneric("clearAccessToken")
 #' @export
 #' @examples
 #' \dontrun{
+#'
 #' kco <- new("KorAPConnection")
 #' clearAccessToken(kco)
 #' }

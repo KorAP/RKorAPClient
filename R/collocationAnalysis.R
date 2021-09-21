@@ -44,7 +44,8 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @importFrom tidyr expand_grid
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #'  # Find top collocates of "Packung" inside and outside the sports domain.
 #'  new("KorAPConnection", verbose = TRUE) %>%
 #'   collocationAnalysis("Packung", vc=c("textClass=sport", "textClass!=sport"),
@@ -52,7 +53,8 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #'   dplyr::filter(logDice >= 5)
 #' }
 #'
-#' \donttest{
+#' \dontrun{
+#'
 #' # Identify the most prominent light verb construction with "in ... setzen".
 #' # Note that, currently, the use of focus function disallows exactFrequencies.
 #' new("KorAPConnection", verbose = TRUE) %>%

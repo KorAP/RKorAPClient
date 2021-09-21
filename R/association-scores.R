@@ -24,7 +24,8 @@ NULL
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' new("KorAPConnection", verbose = TRUE) %>%
 #' collocationScoreQuery("Perlen", c("verziertes", "Säue"),
 #'   scoreFunctions = append(defaultAssociationScoreFunctions(),

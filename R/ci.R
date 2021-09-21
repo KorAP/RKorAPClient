@@ -22,7 +22,8 @@
 #' @importFrom tibble remove_rownames
 #' @importFrom dplyr enquo rename starts_with
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
 #' expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) %>%

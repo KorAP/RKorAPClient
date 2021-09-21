@@ -14,7 +14,8 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' library(highcharter)
 #' library(tidyr)
 #'

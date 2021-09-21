@@ -57,7 +57,8 @@ The functions are primarily used by \code{\link[=collocationScoreQuery]{collocat
 \strong{ll}: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
 }
 \examples{
-\donttest{
+\dontrun{
+
 new("KorAPConnection", verbose = TRUE) \%>\%
 collocationScoreQuery("Perlen", c("verziertes", "Säue"),
   scoreFunctions = append(defaultAssociationScoreFunctions(),

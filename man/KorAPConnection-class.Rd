@@ -92,13 +92,15 @@ the cache with \code{\link[=clearCache]{clearCache()}}.}
 New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
 }
 \examples{
-\donttest{
+\dontrun{
+
 kcon <- new("KorAPConnection", verbose = TRUE)
 kq <- corpusQuery(kcon, "Ameisenplage")
 kq <- fetchAll(kq)
 }
 
 \dontrun{
+
 kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
 kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 kq <- fetchAll(kq)
@@ -106,11 +108,13 @@ kq@collectedMatches$snippet
 }
 
 \dontrun{
+
 kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
 persistAccessToken(kco)
 }
 
 \dontrun{
+
 kco <- new("KorAPConnection")
 clearAccessToken(kco)
 }

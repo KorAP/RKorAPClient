@@ -177,10 +177,13 @@ confidence intervals of one ore multiple search terms across one or multiple
 virtual corpora.
 }
 \examples{
+\dontrun{
+
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-\donttest{
 new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 }
+
+\dontrun{
 
 # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 # and show the number of query hits (but don't fetch them).
@@ -188,9 +191,11 @@ new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 new("KorAPConnection", verbose = TRUE) \%>\%
  corpusQuery(KorAPUrl =
    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
+}
+
+\dontrun{
 
 # Plot the time/frequency curve of "Ameisenplage"
-\donttest{
 new("KorAPConnection", verbose=TRUE) \%>\%
   { . ->> kco } \%>\%
   corpusQuery("Ameisenplage") \%>\%
@@ -206,21 +211,26 @@ new("KorAPConnection", verbose=TRUE) \%>\%
   complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
   plot(type = "l")
 }
-\donttest{q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
+\dontrun{
+
+q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
 q@collectedMatches
 }
 
-\donttest{
+\dontrun{
+
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
 }
 
-\donttest{
+\dontrun{
+
 q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
 q@collectedMatches
 }
 
-\donttest{
+\dontrun{
+
 new("KorAPConnection", verbose = TRUE) \%>\%
   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 }

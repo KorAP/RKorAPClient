@@ -21,7 +21,8 @@ NULL
 #' @importFrom dplyr .data
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' new("KorAPConnection") %>% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) %>% ipm()
 #' }
 ipm <- function(df) {
@@ -43,7 +44,8 @@ ipm <- function(df) {
 #'
 #' @rdname misc-functions
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' new("KorAPConnection") %>%
 #'     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
 #'     vc=paste0("pubDate in ", 2000:2002),
@@ -111,7 +113,8 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @examples
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
-#' \donttest{
+#' \dontrun{
+#'
 #' expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
 #'             year = (2005:2011)) %>%
 #'   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",

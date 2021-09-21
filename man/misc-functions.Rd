@@ -71,7 +71,8 @@ Given a table with columns \code{f}, \code{conf.low}, and \code{conf.high}, \cod
 und multiplies conf.low and \code{conf.high} with 10^6.
 }
 \examples{
-\donttest{
+\dontrun{
+
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
 expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
@@ -81,10 +82,12 @@ expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
   ggplot(aes(x=year, y=f, fill=query, color=query, ymin=conf.low, ymax=conf.high)) +
     geom_point() + geom_line() + geom_ribbon(alpha=.3)
 }
-\donttest{
+\dontrun{
+
 new("KorAPConnection") \%>\% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) \%>\% ipm()
 }
-\donttest{
+\dontrun{
+
 new("KorAPConnection") \%>\%
     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
     vc=paste0("pubDate in ", 2000:2002),
@@ -97,7 +100,8 @@ queryStringToLabel(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"))
 
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
-\donttest{
+\dontrun{
+
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
             year = (2005:2011)) \%>\%
   cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]",

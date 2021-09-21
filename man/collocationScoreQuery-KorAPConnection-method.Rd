@@ -56,18 +56,21 @@ Computes various collocation association scores
 based on \code{\link[=frequencyQuery]{frequencyQuery()}}s for a target word and a collocate.
 }
 \examples{
-\donttest{
+\dontrun{
+
 new("KorAPConnection", verbose = TRUE) \%>\%
   collocationScoreQuery("Grund", "triftiger")
 }
 
-\donttest{
+\dontrun{
+
 new("KorAPConnection", verbose = TRUE) \%>\%
 collocationScoreQuery("Grund", c("guter", "triftiger"),
    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
 }
 
-\donttest{
+\dontrun{
+
 library(highcharter)
 library(tidyr)
 new("KorAPConnection", verbose = TRUE) \%>\%

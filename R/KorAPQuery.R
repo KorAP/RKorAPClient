@@ -99,10 +99,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' Please make sure to check `$collection$rewrites` to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 #'
 #' @examples
+#' \dontrun{
+#'
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-#' \donttest{
 #' new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' }
+#'
+#' \dontrun{
 #'
 #' # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 #' # and show the number of query hits (but don't fetch them).
@@ -110,9 +113,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' new("KorAPConnection", verbose = TRUE) %>%
 #'  corpusQuery(KorAPUrl =
 #'    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
+#' }
+#'
+#' \dontrun{
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
-#' \donttest{
 #' new("KorAPConnection", verbose=TRUE) %>%
 #'   { . ->> kco } %>%
 #'   corpusQuery("Ameisenplage") %>%
@@ -224,7 +229,9 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @return The `kqo` input object with updated slots `collectedMatches`, `apiResponse`, `nextStartIndex`, `hasMoreMatches`
 #'
 #' @examples
-#' \donttest{q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
+#' \dontrun{
+#'
+#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
 #' q@collectedMatches
 #' }
 #'
@@ -321,7 +328,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' **`fetchAll`** fetches all results of a KorAP query.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' q@collectedMatches
 #' }
@@ -336,7 +344,8 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' Fetches the remaining results of a KorAP query.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchRest()
 #' q@collectedMatches
 #' }
@@ -358,7 +367,8 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' @aliases frequencyQuery
 #' @rdname KorAPQuery-class
 #' @examples
-#' \donttest{
+#' \dontrun{
+#'
 #' new("KorAPConnection", verbose = TRUE) %>%
 #'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 #' }

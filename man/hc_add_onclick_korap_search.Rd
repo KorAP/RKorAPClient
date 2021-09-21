@@ -18,7 +18,8 @@ then launch KorAP web UI queries for the given query term and virtual corpus in
 a separate tab.
 }
 \examples{
-\donttest{
+\dontrun{
+
 library(highcharter)
 library(tidyr)
 
