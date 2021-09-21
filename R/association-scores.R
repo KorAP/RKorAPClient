@@ -84,7 +84,7 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
 #' @export
 #'
 #' @references
-#' Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. <http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf>.
+#' Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. <https://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf>.
 #'
 
 logDice <-  function(O1, O2, O, N, E, window_size) {
