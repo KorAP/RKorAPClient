@@ -72,7 +72,7 @@ Daille, B. (1994): Approche mixte pour l’extraction automatique de terminologi
 
 Thanopoulos, A., Fakotakis, N., Kokkinakis, G. (2002): Comparative evaluation of collocation extraction metrics. In: Proc. of LREC 2002: 620–625.
 
-Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. \url{http://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf}.
+Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedings of Recent Advances in Slavonic Natural Language Processing, RASLAN, 6–9. \url{https://www.fi.muni.cz/usr/sojka/download/raslan2008/13.pdf}.
 
 Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.
 
