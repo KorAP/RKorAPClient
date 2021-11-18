@@ -17,50 +17,6 @@
 
 R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at [IDS Mannheim](http://www.ids-mannheim.de/)
 
-## Installation
-
-### Install R and RStudio
-
-#### On Windows or Mac
-
-1. Install latest R version (>= 3.6) from [CRAN](https://cran.r-project.org/bin/)
-2. Install latest RStudio from [RStudio server](https://www.rstudio.com/products/rstudio/download/#download)
-
-#### On Linux
-
-On Linux you can choose, whether to install R and RStudio from your linux distribution's package maintainer or, like described above, for Windows and Mac. However, in any case, you first need to install some system dependencies required by R packages used by RKorAPClient:
-
-```bash
-# Debian / Ubuntu
-sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev
-
-# Fedora / CentOS / RHEL (for older versions use `yum` instead of `dnf`)
-sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel
-
-# Arch Linux
-pacman -S base-devel gcc-fortran libsodium curl
-```
-
-### Install the RKorAPClient package
-#### In RStudio
-Start RStudio and click on *Install Packages…* in the *Tools* menu. Enter *RKorAPClient* in the *Packages* input field and click on the *Install* button (keeping *Install Dependencies* checked).
-
-#### Or from the command line
-Start R, then install RKorAPClient from CRAN (or development version from GitHub or KorAP's gerrit server).
-
-##### CRAN version:
-```r
-install.packages("RKorAPClient")
-```
-
-##### Development version (alternatives):
-```r
-devtools::install_github("KorAP/RKorAPClient")
-remotes::install_github("KorAP/RKorAPClient")
-devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
-remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
-```
-
 ## Examples
 ### Hello world
 
@@ -136,6 +92,50 @@ new("KorAPConnection", verbose = TRUE) %>%
 ## Demos
 
 More elaborate R scripts demonstrating the use of the package can be found in the [demo](demo) folder.
+
+## Installation
+
+### Install R and RStudio
+
+#### On Windows or Mac
+
+1. Install latest R version (>= 3.6) from [CRAN](https://cran.r-project.org/bin/)
+2. Install latest RStudio from [RStudio server](https://www.rstudio.com/products/rstudio/download/#download)
+
+#### On Linux
+
+On Linux you can choose, whether to install R and RStudio from your linux distribution's package maintainer or, like described above, for Windows and Mac. However, in any case, you first need to install some system dependencies required by R packages used by RKorAPClient:
+
+```bash
+# Debian / Ubuntu
+sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev
+
+# Fedora / CentOS / RHEL (for older versions use `yum` instead of `dnf`)
+sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel
+
+# Arch Linux
+pacman -S base-devel gcc-fortran libsodium curl
+```
+
+### Install the RKorAPClient package
+#### In RStudio
+Start RStudio and click on *Install Packages…* in the *Tools* menu. Enter *RKorAPClient* in the *Packages* input field and click on the *Install* button (keeping *Install Dependencies* checked).
+
+#### Or from the command line
+Start R, then install RKorAPClient from CRAN (or development version from GitHub or KorAP's gerrit server).
+
+##### CRAN version:
+```r
+install.packages("RKorAPClient")
+```
+
+##### Development version (alternatives):
+```r
+devtools::install_github("KorAP/RKorAPClient")
+remotes::install_github("KorAP/RKorAPClient")
+devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
+remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
+```
 
 ## Development and License
 ### RKorAPClient
