@@ -97,27 +97,24 @@ More elaborate R scripts demonstrating the use of the package can be found in th
 
 ### Install R and RStudio
 
-#### On Windows or Mac
+1. Install latest R version for your OS, following the instructions from [CRAN](https://cran.r-project.org/bin/)
+2. Download and install latest RStudio Desktop from [RStudio downloads](https://www.rstudio.com/products/rstudio/download/#download)
 
-1. Install latest R version (>= 3.6) from [CRAN](https://cran.r-project.org/bin/)
-2. Install latest RStudio from [RStudio server](https://www.rstudio.com/products/rstudio/download/#download)
 
-#### On Linux
+### Install the RKorAPClient package
 
-On Linux you can choose, whether to install R and RStudio from your linux distribution's package maintainer or, like described above, for Windows and Mac. However, in any case, you first need to install some system dependencies required by R packages used by RKorAPClient:
+#### Linux only: Install system dependencies
 
 ```bash
-# Debian / Ubuntu
+# Debian, Ubuntu, ...
 sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev
 
-# Fedora / CentOS / RHEL (for older versions use `yum` instead of `dnf`)
+# Fedora, CentOS, RHEL (for older versions use `yum` instead of `dnf`)
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel
 
 # Arch Linux
 pacman -S base-devel gcc-fortran libsodium curl
 ```
-
-### Install the RKorAPClient package
 #### In RStudio
 
 Start RStudio and click on *Install Packages…* in the *Tools* menu. Enter *RKorAPClient* in the *Packages* input field and click on the *Install* button (keeping *Install Dependencies* checked).
