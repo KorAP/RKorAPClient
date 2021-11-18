@@ -119,7 +119,10 @@ pacman -S base-devel gcc-fortran libsodium curl
 
 ### Install the RKorAPClient package
 #### In RStudio
+
 Start RStudio and click on *Install Packages…* in the *Tools* menu. Enter *RKorAPClient* in the *Packages* input field and click on the *Install* button (keeping *Install Dependencies* checked).
+
+[![Installation of RKorAPClient package in RStudio](https://korap.github.io/RKorAPClient/man/figures/RKorAPClient-RStudio-install.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/RKorAPClient-RStudio-install.mp4)
 
 #### Or from the command line
 Start R, then install RKorAPClient from CRAN (or development version from GitHub or KorAP's gerrit server).
