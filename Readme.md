@@ -21,16 +21,13 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 ### System Dependencies on Linux
 `RKorAPClient` uses some R packages with system dependencies you might need to install first:
 ```bash
-#### Debian / Ubuntu
+# Debian / Ubuntu
 sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev
 
-#### Fedora / CentOS >= 8 / RHEL >= 8
+# Fedora / CentOS / RHEL (for older versions use `yum` instead of `dnf`)
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel
 
-#### CentOS < 8 / RHEL < 8
-sudo yum install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel
-
-#### Arch Linux
+# Arch Linux
 pacman -S base-devel gcc-fortran libsodium curl
 ```
 ### Package installation
