@@ -159,6 +159,10 @@ remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 ```
 ### Full installation videos
 
+## Mac
+
+https://user-images.githubusercontent.com/11092081/142773435-ea7ef92a-7ea4-4c6d-a252-950e486352f2.mp4
+
 ## Ubuntu
 
 https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-a416-4fd59267662d.mp4
