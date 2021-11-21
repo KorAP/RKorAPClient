@@ -104,8 +104,7 @@ persistAccessToken(kco)
 
 The whole process is shown in this video:
 
-https://korap.github.io/RKorAPClient/man/figures/RKorAPClient-get-and-persists-accessToken.mp4
-
+https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
 ## Demos
 
