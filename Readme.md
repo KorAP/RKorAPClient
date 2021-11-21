@@ -157,6 +157,11 @@ remotes::install_github("KorAP/RKorAPClient")
 devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 ```
+### Full installation videos
+
+## Ubuntu
+
+https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-a416-4fd59267662d.mp4
 
 ## Development and License
 ### RKorAPClient
