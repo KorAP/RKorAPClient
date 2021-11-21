@@ -88,6 +88,20 @@ new("KorAPConnection", verbose = TRUE) %>%
 |[in Marsch setzen](https://korap.ids-mannheim.de/?q=Marsch%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                            |    6.87|  9.27|  22041.63|
 |[in Klammern setzen](https://korap.ids-mannheim.de/?q=Klammern%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                        |    6.55| 10.08|  15643.27|
 
+### Access restricted KWICs
+In order to perform the collocation analysis and other textual queries also on corpus parts where KWIC access requires a login, you need to authorize your application via an access token.
+
+In the case of DeReKo, you cat get an access token from [KorAP OAuth settings here](https://korap.ids-mannheim.de/settings/oauth#page-top). There login, register a new client application, create a new token, copy it and in R use it via the `accessToken` parameter:
+
+```
+kco <- new("KorAPConnection", accessToken="<access token>")
+```
+
+You can also persist the access token for subsequent sessions with the `persistAccessToken` function:
+```
+persistAccessToken(kco)
+```
+
 
 ## Demos
 
