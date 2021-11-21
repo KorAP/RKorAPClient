@@ -102,6 +102,10 @@ You can also persist the access token for subsequent sessions with the `persistA
 persistAccessToken(kco)
 ```
 
+The whole process is shown in this video:
+
+https://korap.github.io/RKorAPClient/man/figures/RKorAPClient-get-and-persists-accessToken.mp4
+
 
 ## Demos
 
