@@ -1,0 +1,44 @@
+---
+title: "Kookkurrenzanalyse zu aufmerksam"
+output:
+  html_document:
+    css: style.css
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warnings = FALSE)
+library(RKorAPClient)
+library(kableExtra)
+library(DT)
+library(tidyverse)
+kco <- new("KorAPConnection", verbose=T)
+if (!exists('ca')) {
+ca <- kco %>%
+  collocationAnalysis(
+    "aufmerksam",
+    leftContextSize = 2,
+    rightContextSize = 2,
+    exactFrequencies = TRUE,
+    searchHitsSampleLimit = 1000,
+    topCollocatesLimit = 10,
+    withinSpan = "",
+    maxRecurse=1
+  )
+}
+```
+
+```{r ca}
+ca %>%
+  mutate(Beispiel=sprintf('<a href="%s">%s</a>', webUIRequestUrl, example)) %>%
+  select(Beispiel, logDice, pmi, ll) %>%
+  head(50) %>%
+  datatable(escape = F,
+            extensions = c('Buttons'),
+            options = list(
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+              pageLength = 25,
+              dom = 'ftpB'
+            )) %>%
+    formatRound(columns=~logDice + pmi + ll,digits=2)
+```

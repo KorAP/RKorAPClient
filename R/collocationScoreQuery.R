@@ -96,7 +96,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                 buildWebUIRequestUrl(
                   kco,
                   buildCollocationQuery(
-                    node,
+                    removeWithinSpan(node, withinSpan),
                     collocate,
                     lemmatizeNodeQuery,
                     lemmatizeCollocateQuery,
@@ -120,6 +120,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
 
           })
 
+#' @export
 buildCollocationQuery <- function(                   node,
                                                      collocate,
                                                      lemmatizeNodeQuery = FALSE,
