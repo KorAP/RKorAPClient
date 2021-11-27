@@ -1,0 +1,50 @@
+@import url('//code.cdn.mozilla.net/fonts/fira.css');
+@import url('//korap.ids-mannheim.de/font/libertinus.css');
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fira Sans',sans-serif;
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+.title, .subtitle {
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.date, .author {
+  text-align: center;
+}
+
+body {
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    font-variant-ligatures: common-ligatures;
+}
+
+
+
+p {
+  hyphens: auto;
+	text-align: justify;
+  overflow-wrap: break-word;
+}
+
+.footnotes {
+  font-family: 'Fira Sans Condensed', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#TOC > ul {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+.caption {
+  font-family: 'Fira Sans Condensed', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+	text-align: center;
+}
