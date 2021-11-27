@@ -18,7 +18,7 @@
   ignoreCollocateCase = FALSE,
   withinSpan = ifelse(exactFrequencies, "base/s=s", ""),
   exactFrequencies = TRUE,
-  stopwords = RKorAPClient::synsemanticStopwords(),
+  stopwords = append(RKorAPClient::synsemanticStopwords(), node),
   seed = 7,
   expand = length(vc) != length(node),
   ...
