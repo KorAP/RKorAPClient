@@ -79,6 +79,9 @@ setMethod("collocationAnalysis", "KorAPConnection",
                    stopwords = append(RKorAPClient::synsemanticStopwords(), node),
                    seed = 7,
                    expand = length(vc) != length(node),
+                   maxRecurse = 0,
+                   addExamples = TRUE,
+                   localStopwords = c(),
                    ...) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             word <- frequency <- NULL
@@ -93,7 +96,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
               node <- lemmatizeWordQuery(node)
             }
 
-            if (length(node) > 1 || length(vc) > 1) {
+            result <- if (length(node) > 1 || length(vc) > 1) {
               grid <- if (expand) expand_grid(node=node, vc=vc) else tibble(node=node, vc=vc)
               purrr::pmap(grid, function(node, vc, ...)
                         collocationAnalysis(kco,
@@ -108,6 +111,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                                             withinSpan = withinSpan,
                                             exactFrequencies = exactFrequencies,
                                             stopwords = stopwords,
+                                            localStopwords = localStopwords,
                                             seed = seed,
                                             expand = expand,
                                             ...) ) %>%
@@ -123,7 +127,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 rightContextSize = rightContextSize,
                 searchHitsSampleLimit = searchHitsSampleLimit,
                 ignoreCollocateCase = ignoreCollocateCase,
-                stopwords = stopwords,
+                stopwords = append(stopwords, localStopwords),
                 ...
               )
 
@@ -149,6 +153,47 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 tibble()
               }
             }
+            if (maxRecurse > 0 & any( result$pmi > 5) ) {
+              recurseWith <- result %>%
+                filter(pmi >= 5)
+              result <- collocationAnalysis(
+                kco,
+                node = paste0("(", buildCollocationQuery(
+                  recurseWith$node,
+                  recurseWith$collocate,
+                  leftContextSize = leftContextSize,
+                  rightContextSize = rightContextSize,
+                  withinSpan = ""
+                ), ")"),
+                vc = vc,
+                minOccur = minOccur,
+                leftContextSize = leftContextSize,
+                rightContextSize = rightContextSize,
+                withinSpan = "",
+                maxRecurse = maxRecurse - 1,
+                stopwords = stopwords,
+                localStopwords = recurseWith$collocate,
+                exactFrequencies = FALSE,
+                searchHitsSampleLimit = searchHitsSampleLimit,
+                topCollocatesLimit = topCollocatesLimit
+              ) %>%
+                bind_rows(result) %>%
+                filter(logDice >= 2) %>%
+                filter(.$O >= minOccur) %>%
+                dplyr::arrange(dplyr::desc(logDice))
+            }
+            result %>%
+              mutate(example = findExample(
+                kco,
+                query = buildCollocationQuery(
+                  node,
+                  result$collocate,
+                  leftContextSize = leftContextSize,
+                  rightContextSize = rightContextSize,
+                  withinSpan = ""
+                ),
+                vc = vc
+              ))
           }
 )
 
@@ -289,6 +334,25 @@ synsemanticStopwords <- function(...) {
   )
   return(res)
 }
+
+findExample <-
+  function(kco,
+           query,
+           vc = "",
+           matchOnly = T) {
+    out <- character(length = length(query))
+    for(i in seq_along(query)) {
+      q <- corpusQuery(kco, paste0("(", query[i], ")"), vc = vc[i], metadataOnly = F)
+      qq <<- vc
+      q <- fetchNext(q, maxFetch=50, randomizePageOrder=TRUE)
+      if(matchOnly) {
+        out[i] <- str_replace((q@collectedMatches)$snippet[1], '.*<mark>(.*)</mark>.*', '\\1')
+      } else {
+        out[i] <- str_replace((q@collectedMatches)$snippet[1], '<[^>]*>', '')
+      }
+    }
+    out
+  }
 
 collocatesQuery <-
   function(kco,

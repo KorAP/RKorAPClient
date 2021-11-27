@@ -21,6 +21,9 @@
   stopwords = append(RKorAPClient::synsemanticStopwords(), node),
   seed = 7,
   expand = length(vc) != length(node),
+  maxRecurse = 0,
+  addExamples = TRUE,
+  localStopwords = c(),
   ...
 )
 }
