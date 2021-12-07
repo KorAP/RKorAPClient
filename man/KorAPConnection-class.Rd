@@ -23,7 +23,7 @@
   apiUrl,
   accessToken = getAccessToken(KorAPUrl),
   userAgent = "R-KorAP-Client",
-  timeout = 110,
+  timeout = 240,
   verbose = FALSE,
   cache = TRUE
 )
