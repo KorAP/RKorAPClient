@@ -4,6 +4,7 @@ output:
   html_document:
     css: style.css
     keep_md: yes
+    self_contained: false
 ---
 
 ```{r setup, include=FALSE}

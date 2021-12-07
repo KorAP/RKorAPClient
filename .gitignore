@@ -5,3 +5,5 @@
 cache/
 docs
 *.log
+*_files/
+*.bak
