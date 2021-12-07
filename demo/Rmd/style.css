@@ -21,9 +21,12 @@ body {
     font-size: 18px;
     font-weight: 400;
     font-variant-ligatures: common-ligatures;
+    font-variant-numeric: tabular-nums;
 }
 
-
+th {
+  color: rgb(246, 168, 0);
+}
 
 p {
   hyphens: auto;
