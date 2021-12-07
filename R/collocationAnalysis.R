@@ -233,7 +233,7 @@ snippet2FreqTable <- function(snippet,
   if (length(snippet) < 1) {
     dplyr::tibble(word=c(), frequency=c())
   } else if (length(snippet) > 1) {
-    log.info(verbose, paste("Joinging", length(snippet), "kwics\n"))
+    log.info(verbose, paste("Joining", length(snippet), "kwics\n"))
     for (s in snippet) {
       oldTable <- snippet2FreqTable(
         s,
