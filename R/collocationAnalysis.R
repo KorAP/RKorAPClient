@@ -81,6 +81,8 @@ setMethod("collocationAnalysis", "KorAPConnection",
                    expand = length(vc) != length(node),
                    maxRecurse = 0,
                    addExamples = TRUE,
+                   thresholdScore = "logDice",
+                   threshold = 2.0,
                    localStopwords = c(),
                    ...) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
@@ -154,9 +156,9 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 tibble()
               }
             }
-            if (maxRecurse > 0 & any( result$logDice >= 2) ) {
+            if (maxRecurse > 0 & any(!!as.name(thresholdScore) >= threshold)) {
               recurseWith <- result %>%
-                filter(logDice >= 2)
+                filter(!!as.name(thresholdScore) >= threshold)
               result <- collocationAnalysis(
                 kco,
                 node = paste0("(", buildCollocationQuery(

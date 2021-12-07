@@ -23,6 +23,8 @@
   expand = length(vc) != length(node),
   maxRecurse = 0,
   addExamples = TRUE,
+  thresholdScore = "logDice",
+  threshold = 2,
   localStopwords = c(),
   ...
 )
