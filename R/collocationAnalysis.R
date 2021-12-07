@@ -370,13 +370,17 @@ findExample <-
 
     for (i in seq_along(query)) {
       q <- corpusQuery(kco, paste0("(", query[i], ")"), vc = vc[i], metadataOnly = FALSE)
-      q <- fetchNext(q, maxFetch=50, randomizePageOrder=F)
-      example <- as.character((q@collectedMatches)$snippet[1])
-      out[i] <- if(matchOnly) {
+      if (q@totalResults > 0) {
+        q <- fetchNext(q, maxFetch=50, randomizePageOrder=F)
+        example <- as.character((q@collectedMatches)$snippet[1])
+        out[i] <- if(matchOnly) {
           gsub('.*<mark>(.+)</mark>.*', '\\1', example)
         } else {
           stringr::str_replace(example, '<[^>]*>', '')
         }
+      } else {
+        out[i] = ""
+      }
     }
     out
   }
