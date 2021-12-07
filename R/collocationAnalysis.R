@@ -185,7 +185,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 dplyr::arrange(dplyr::desc(logDice))
             }
             if (addExamples && length(result) > 0) {
-              result$xquery <-buildCollocationQuery(
+              result$query <-buildCollocationQuery(
                 result$node,
                 result$collocate,
                 leftContextSize = leftContextSize,
@@ -194,7 +194,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
               )
               result$example <- findExample(
                 kco,
-                query = result$xquery,
+                query = result$query,
                 vc = result$vc
               )
             }
