@@ -9,3 +9,4 @@ writtenVsSpoken             Compare frequencies in written vs. spoken corpora
 displayKwics                Display query results as KWICs via html
 light-verb-construction-ca  Collocation analysis to identify light verb constructions matching the pattern "in NN setzen", with result rendered as HTML DataTable
 highcharter-example         Visualize frequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using the package highcharter as wrapper for Highcharts
+recursiveCA                 Show result dataframe of recursvie collocation analysis as pretty HTML tableb y Knitr via Markdown.
