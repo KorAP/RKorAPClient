@@ -21,15 +21,14 @@
 #' @examples
 #' \dontrun{
 #'
-#' year <- c(1990:2018)}
-#' alternatives <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")}\dontshow{alternatives <- c("macht []{0,3} Sinn")}
+#' year <- c(1990:2018)
+#' alternatives <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
 #' new("KorAPConnection", verbose = TRUE) %>%
 #'   frequencyQuery(query = alternatives,
 #'                  vc = paste("textType = /Zeit.*/ & pubDate in", year),
 #'                  as.alternatives = TRUE) %>%
 #'   hc_freq_by_year_ci(as.alternatives = TRUE)
 #'
-#' \dontrun{
 #'
 #' kco <- new("KorAPConnection", verbose = TRUE)
 #' expand_grid(
