@@ -26,6 +26,7 @@
   thresholdScore = "logDice",
   threshold = 2,
   localStopwords = c(),
+  collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
   ...
 )
 }
@@ -59,6 +60,8 @@
 \item{seed}{seed for random page collecting order}
 
 \item{expand}{if TRUE, \code{node} and \code{vc} parameters are expanded to all of their combinations}
+
+\item{collocateFilterRegex}{allow only collocates matching the regular expression}
 
 \item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}
 }

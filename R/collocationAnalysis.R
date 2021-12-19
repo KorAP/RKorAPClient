@@ -34,6 +34,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @param exactFrequencies       if FALSE, extrapolate observed co-occurrence frequencies from frequencies in search hits sample, otherwise retrieve exact co-occurrence frequencies
 #' @param seed                   seed for random page collecting order
 #' @param expand                 if TRUE, `node` and `vc` parameters are expanded to all of their combinations
+#' @param collocateFilterRegex   allow only collocates matching the regular expression
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
@@ -84,6 +85,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                    thresholdScore = "logDice",
                    threshold = 2.0,
                    localStopwords = c(),
+                   collocateFilterRegex = '^[:alnum:]+-?[:alnum:]*$',
                    ...) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             word <- frequency <- NULL
@@ -227,6 +229,7 @@ snippet2FreqTable <- function(snippet,
                               ignoreCollocateCase = FALSE,
                               stopwords = c(),
                               tokenizeRegex = "([! )(\uc2\uab,.:?\u201e\u201c\'\"]+|&quot;)",
+                              collocateFilterRegex =  '^[:alnum:]+-?[:alnum:]*$',
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1)),
                               verbose = TRUE) {
   word <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
@@ -241,6 +244,7 @@ snippet2FreqTable <- function(snippet,
         s,
         leftContextSize = leftContextSize,
         rightContextSize = rightContextSize,
+        collocateFilterRegex = collocateFilterRegex,
         oldTable = oldTable,
         stopwords = stopwords
       )
@@ -277,7 +281,7 @@ snippet2FreqTable <- function(snippet,
       table(c(left, right)) %>%
         dplyr::as_tibble(.name_repair = "minimal") %>%
         dplyr::rename(word = 1, frequency = 2) %>%
-        dplyr::filter(str_detect(word, '^[:alnum:]+-?[:alnum:]*$')) %>%
+        dplyr::filter(str_detect(word, collocateFilterRegex)) %>%
         dplyr::anti_join(stopwordsTable, by="word")  %>%
         dplyr::bind_rows(oldTable)
     }
@@ -408,6 +412,7 @@ collocatesQuery <-
                         rightContextSize = rightContextSize,
                         ignoreCollocateCase = ignoreCollocateCase,
                         stopwords = stopwords,
+                        ...,
                         verbose = kco@verbose) %>%
         mutate(frequency = frequency * q@totalResults / min(q@totalResults, searchHitsSampleLimit)) %>%
         filter(frequency >= minOccur)
