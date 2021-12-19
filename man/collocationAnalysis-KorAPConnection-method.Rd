@@ -61,6 +61,16 @@
 
 \item{expand}{if TRUE, \code{node} and \code{vc} parameters are expanded to all of their combinations}
 
+\item{maxRecurse}{apply collocation analysis recursively \code{maxRecurse} times}
+
+\item{addExamples}{If TRUE, examples for instances of collocations will be added in a column \code{example}. This makes a different in particular if the 'node' as specified as a lemma.}
+
+\item{thresholdScore}{association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls}
+
+\item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively}
+
+\item{localStopwords}{vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls}
+
 \item{collocateFilterRegex}{allow only collocates matching the regular expression}
 
 \item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}

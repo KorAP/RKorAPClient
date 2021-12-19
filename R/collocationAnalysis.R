@@ -34,6 +34,11 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @param exactFrequencies       if FALSE, extrapolate observed co-occurrence frequencies from frequencies in search hits sample, otherwise retrieve exact co-occurrence frequencies
 #' @param seed                   seed for random page collecting order
 #' @param expand                 if TRUE, `node` and `vc` parameters are expanded to all of their combinations
+#' @param maxRecurse             apply collocation analysis recursively `maxRecurse` times
+#' @param addExamples            If TRUE, examples for instances of collocations will be added in a column `example`. This makes a different in particular if the 'node' as specified as a lemma.
+#' @param thresholdScore         association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls
+#' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively
+#' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
