@@ -120,7 +120,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
 
           })
 
-#' @export
+# #' @export
 buildCollocationQuery <- function(                   node,
                                                      collocate,
                                                      lemmatizeNodeQuery = FALSE,

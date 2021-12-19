@@ -204,7 +204,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
           }
 )
 
-#' @export
+# #' @export
 removeWithinSpan <- function(query, withinSpan) {
   if (withinSpan == "") {
     return(query)
@@ -357,7 +357,7 @@ synsemanticStopwords <- function(...) {
 }
 
 
-#' @export
+# #' @export
 findExample <-
   function(kco,
            query,
