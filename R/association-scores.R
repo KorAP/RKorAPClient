@@ -107,7 +107,7 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 #' Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.
 #'
 #' Evert, Stefan (2004): The Statistics of Word Cooccurrences: Word Pairs and Collocations. PhD dissertation, IMS, University of Stuttgart. Published in 2005, URN urn:nbn:de:bsz:93-opus-23714.
-#' Free PDF available from <http://purl.org/stefan.evert/PUB/Evert2004phd.pdf>
+#' Free PDF available from <https://purl.org/stefan.evert/PUB/Evert2004phd.pdf>
 #'
 ll <- function(O1, O2, O, N, E, window_size) {
   r1 = as.double(O1) * window_size
