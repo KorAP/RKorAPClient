@@ -1,6 +1,7 @@
 library(RKorAPClient)
 library(tidyverse)
 library(knitr)
+library(rmarkdown)
 
 nodeWordform <- 'aufmerksam'
 mdFile <- tempfile(nodeWordform, fileext = ".md")
