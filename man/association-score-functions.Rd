@@ -78,7 +78,7 @@ Rychlý, Pavel (2008):  A lexicographer-friendly association score. In Proceedin
 Dunning, T. (1993): Accurate methods for the statistics of surprise and coincidence. Comput. Linguist. 19, 1 (March 1993), 61-74.
 
 Evert, Stefan (2004): The Statistics of Word Cooccurrences: Word Pairs and Collocations. PhD dissertation, IMS, University of Stuttgart. Published in 2005, URN urn:nbn:de:bsz:93-opus-23714.
-Free PDF available from \url{http://purl.org/stefan.evert/PUB/Evert2004phd.pdf}
+Free PDF available from \url{https://purl.org/stefan.evert/PUB/Evert2004phd.pdf}
 }
 \seealso{
 Other collocation analysis functions: 
