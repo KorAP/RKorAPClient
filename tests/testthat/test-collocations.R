@@ -35,8 +35,14 @@ test_that("collocationAnalysis works and warns about missing token", {
 test_that("collocationAnalysis on unaccounted strings does not error out", {
   kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
   expect_warning(
-    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage"),
+    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc=c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/")),
     "access token"
   )
   testthat::expect_equal(nrow(df), 0)
+})
+
+test_that("temoveWithinSpanWorks", {
+  expect_equal(
+    removeWithinSpan("contains(<base/s=s>, (machen []{0,1} aufmerksam | aufmerksam []{0,1} machen))", "base/s=s"),
+    "(machen []{0,1} aufmerksam | aufmerksam []{0,1} machen)")
 })
