@@ -22,7 +22,7 @@
   seed = 7,
   expand = length(vc) != length(node),
   maxRecurse = 0,
-  addExamples = TRUE,
+  addExamples = FALSE,
   thresholdScore = "logDice",
   threshold = 2,
   localStopwords = c(),
