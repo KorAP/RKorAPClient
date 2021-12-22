@@ -24,7 +24,8 @@ test_that("collocationAnalysis works and warns about missing token", {
           rightContextSize = 0,
           searchHitsSampleLimit = 100,
           topCollocatesLimit = 1,
-          exactFrequencies = FALSE
+          exactFrequencies = FALSE,
+          maxRecurse = 2
         ),
       "access token"
     )
@@ -35,7 +36,7 @@ test_that("collocationAnalysis works and warns about missing token", {
 test_that("collocationAnalysis on unaccounted strings does not error out", {
   kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
   expect_warning(
-    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc=c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/")),
+    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc=c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/"), maxRecurse = 2),
     "access token"
   )
   testthat::expect_equal(nrow(df), 0)

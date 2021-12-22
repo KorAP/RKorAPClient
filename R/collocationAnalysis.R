@@ -163,7 +163,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 tibble()
               }
             }
-            if (maxRecurse > 0 & any(!!as.name(thresholdScore) >= threshold)) {
+            if (maxRecurse > 0 & length(result) > 0 && any(!!as.name(thresholdScore) >= threshold)) {
               recurseWith <- result %>%
                 filter(!!as.name(thresholdScore) >= threshold)
               result <- collocationAnalysis(
