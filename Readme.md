@@ -104,6 +104,12 @@ The whole process is shown in this video:
 
 https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
+In order to use the access token for plain corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for instance:
+
+```R
+new("KorAPConnection") %>% corpusQuery("Ameisenplage", metadataOnly = FALSE) %>% fetchAll()
+```
+
 ## Demos
 
 More elaborate R scripts demonstrating the use of the package can be found in the [demo](demo) folder.
