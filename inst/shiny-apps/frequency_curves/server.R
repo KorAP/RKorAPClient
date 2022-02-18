@@ -56,7 +56,7 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
 generateHighchart <- function(wordParam, from=2005, to=2020) {
   years <<- c(from:to)
   if (wordParam != "") {
-    query <<- str_split(wordParam, " *, *", simplify = TRUE)
+    query <<- strsplit(wordParam, " *, *")
     withProgress(message = 'Berechnung läuft: ', value = 0, {
       hc <- plotHighchart(query, vc , years)
     })
