@@ -3,7 +3,7 @@ hc_theme <- if(require(idsThemeR)) {
 } else {
   hc_theme_hcrt()
 }
-rsr <- new("KorAPConnection", verbose = TRUE)
+rsr <- new("KorAPConnection", verbose = TRUE, accessToken = NULL)
 vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
 years <- c(2005:2020)
 from <- 2005
