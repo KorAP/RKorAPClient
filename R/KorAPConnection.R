@@ -2,6 +2,7 @@
 # Use setClassUnion to define the unholy NULL-data union as a virtual class.
 ################################################################################
 setClassUnion("characterOrNULL", c("character", "NULL"))
+setClassUnion("listOrNULL", c("list", "NULL"))
 
 #' Class KorAPConnection
 #'
@@ -12,7 +13,7 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 #' @import utils
 #' @import methods
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical", welcome="listOrNULL"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
@@ -80,9 +81,11 @@ setMethod("initialize", "KorAPConnection",
             .Object@timeout = timeout
             .Object@verbose = verbose
             .Object@cache = cache
-            welcome <- apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
-            message(welcome[[2]])
-            .Object@indexRevision <- welcome[[1]][["x-index-revision"]]
+            .Object@welcome = connectOrFailGracefully(.Object@apiUrl, timeout, .Object@accessToken )
+            if (!is.null(.Object@welcome)) {
+              message(.Object@welcome[[2]])
+            }
+            .Object@indexRevision <- .Object@welcome[[1]][["x-index-revision"]]
             .Object
           })
 
@@ -186,6 +189,7 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHead
       return(result)
     }
   }
+
   if (!is.null(kco@accessToken))
     resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
   else
@@ -242,6 +246,46 @@ setMethod("show", "KorAPConnection", function(object) {
   cat("<KorAPConnection>", "\n")
   cat("apiUrl: ", object@apiUrl, "\n")
 })
+
+## From https://community.rstudio.com/t/internet-resources-should-fail-gracefully/49199/11
+## Thanks to kvasilopoulos
+##
+#' @importFrom curl has_internet
+connectOrFailGracefully <- function(url, timeout=10, accessToken=NULL) {
+  try_GET <- function(x, ...) {
+    tryCatch(
+      GET(url = x, timeout(timeout), ...),
+      error = function(e) conditionMessage(e),
+      warning = function(w) conditionMessage(w)
+    )
+  }
+  is_response <- function(x) {
+    class(x) == "response"
+  }
+
+  # First check internet connection
+  if (!curl::has_internet()) {
+    message("No internet connection.")
+    return(invisible(NULL))
+  }
+  # Then try for timeout problems
+  if (!is.null(accessToken))
+    resp <- try_GET(url, add_headers(Authorization = paste("Bearer", accessToken)))
+  else
+    resp <- try_GET(url)
+  if (!is_response(resp)) {
+    message(resp)
+    return(invisible(NULL))
+  }
+  # Then stop if status > 400
+  if (httr::http_error(resp)) {
+    message_for_status(resp)
+    return(invisible(NULL))
+  }
+
+  result <- content(resp, "text", encoding = "UTF-8")
+  list(httr::headers(resp), result)
+}
 
 ##' Funtion KorAPConnection()
 ##'

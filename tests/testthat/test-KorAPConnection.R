@@ -1,5 +1,10 @@
+test_that("KorAPConnection fails gracefully on timeout", {
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/2", timeout = 1), "Timeout")
+})
+
 test_that("KorAPConnection is printable", {
-  kco <- new("KorAPConnection")
+  kco <- new("KorAPConnection", timeout = 10)
+  skip_if(is.null(kco@welcome))
   expect_error(print(kco), NA)
 })
 
@@ -7,14 +12,15 @@ test_that("Opening KorAPConnection prints some message.", {
   expect_message(new("KorAPConnection"), "KorAP")
 })
 
-test_that("Opening KorAPConnection with invalid apiToken fails", {
-  expect_error(new("KorAPConnection", accessToken="test token"),
-               "401")
+test_that("Opening KorAPConnection with invalid apiToken fails gracefully", {
+  expect_message(new("KorAPConnection", accessToken="test token", timeout = 10),
+               "401|Timeout")
 })
 
 test_that("Persisting null apiToken fails", {
-  kco <- new("KorAPConnection")
+  kco <- new("KorAPConnection", timeout = 10)
   skip_if_not(is.null(kco@accessToken))
+  skip_if(is.null(kco@welcome))
   expect_error(persistAccessToken(kco),
                ".*not supplied any access token.*",
                perl = TRUE)
