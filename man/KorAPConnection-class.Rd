@@ -32,7 +32,14 @@
 
 \S4method{clearAccessToken}{KorAPConnection}(kco)
 
-\S4method{apiCall}{KorAPConnection}(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache)
+\S4method{apiCall}{KorAPConnection}(
+  kco,
+  url,
+  json = TRUE,
+  getHeaders = FALSE,
+  cache = kco@cache,
+  timeout = kco@timeout
+)
 
 \S4method{clearCache}{KorAPConnection}(kco)
 
