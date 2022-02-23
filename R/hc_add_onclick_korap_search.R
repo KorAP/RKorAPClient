@@ -34,6 +34,9 @@ hc_add_onclick_korap_search <- function(hc) {
     spline = list(cursor = 'pointer', point = list(events = list(
       click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
     ))),
+    column = list(cursor = 'pointer', point = list(events = list(
+      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
+    ))),
     line = list(cursor = 'pointer', point = list(events = list(
       click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
     ))))
