@@ -40,8 +40,12 @@ ci <- function(df,
   x <- enquo(x)
   N <- enquo(N)
   nas <- df %>%
-    dplyr::filter(total <= 0) %>%
+    dplyr::filter(is.na(total) | total <= 0) %>%
     mutate(f = NA, conf.low = NA, conf.high = NA)
+
+  if (nrow(df) == nrow(nas))
+    return(nas)
+
   df %>%
     dplyr::filter(total > 0) %>%
     rowwise %>%

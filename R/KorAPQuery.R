@@ -188,15 +188,22 @@ setMethod("corpusQuery", "KorAPConnection",
       log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
                  "")
       res = apiCall(kco, paste0(requestUrl, '&count=0'))
-      log.info(verbose, ": ", res$meta$totalResults, " hits")
-      if(!is.null(res$meta$cached))
-        log.info(verbose, " [cached]\n")
-      else
-        log.info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+      if (is.null(res)) {
+        log.info(verbose, " [failed]\n")
+        message("API call failed.")
+        totalResults <- 0
+      } else {
+        totalResults <-res$meta$totalResults
+        log.info(verbose, ": ", totalResults, " hits")
+        if(!is.null(res$meta$cached))
+          log.info(verbose, " [cached]\n")
+        else
+          log.info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+      }
       if (as.df)
         data.frame(
           query = query,
-          totalResults = res$meta$totalResults,
+          totalResults = totalResults,
           vc = vc,
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
@@ -208,11 +215,11 @@ setMethod("corpusQuery", "KorAPConnection",
           fields = fields,
           requestUrl = requestUrl,
           request = request,
-          totalResults = res$meta$totalResults,
+          totalResults = totalResults,
           vc = vc,
           apiResponse = res,
           webUIRequestUrl = webUIRequestUrl,
-          hasMoreMatches = (res$meta$totalResults > 0),
+          hasMoreMatches = (totalResults > 0),
         )
     }
   })

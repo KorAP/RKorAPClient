@@ -2,6 +2,7 @@
 # Use setClassUnion to define the unholy NULL-data union as a virtual class.
 ################################################################################
 setClassUnion("characterOrNULL", c("character", "NULL"))
+setClassUnion("listOrNULL", c("list", "NULL"))
 
 #' Class KorAPConnection
 #'
@@ -12,7 +13,7 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 #' @import utils
 #' @import methods
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical", welcome="listOrNULL"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl the URL of the KorAP server instance you want to access.
@@ -80,9 +81,11 @@ setMethod("initialize", "KorAPConnection",
             .Object@timeout = timeout
             .Object@verbose = verbose
             .Object@cache = cache
-            welcome <- apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
-            message(welcome[[2]])
-            .Object@indexRevision <- welcome[[1]][["x-index-revision"]]
+            .Object@welcome = apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
+            if (!is.null(.Object@welcome)) {
+              message(.Object@welcome[[2]])
+            }
+            .Object@indexRevision <- .Object@welcome[[1]][["x-index-revision"]]
             .Object
           })
 
@@ -175,8 +178,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param json logical that determines if json result is expected
 #' @param getHeaders logical that determines if headers and content should be returned (as a list)
 #' @importFrom jsonlite fromJSON
+#' @importFrom curl has_internet
 #' @export
-setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache) {
+setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout=kco@timeout) {
   result <- ""
   if (cache) {
     result <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken, kco@indexRevision))
@@ -186,32 +190,60 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHead
       return(result)
     }
   }
+
+  # From https://community.rstudio.com/t/internet-resources-should-fail-gracefully/49199/11
+  # Thanks to kvasilopoulos
+  try_GET <- function(x, ...) {
+    tryCatch(
+      GET(url = x, timeout(timeout), ...),
+      error = function(e) conditionMessage(e),
+      warning = function(w) conditionMessage(w)
+    )
+  }
+  is_response <- function(x) {
+    class(x) == "response"
+  }
+
+  # First check internet connection
+  if (!curl::has_internet()) {
+    message("No internet connection.")
+    return(invisible(NULL))
+  }
+
   if (!is.null(kco@accessToken))
-    resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
+    resp <- try_GET(url, user_agent(kco@userAgent), timeout(timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
   else
-    resp <- GET(url, user_agent(kco@userAgent), timeout(kco@timeout))
+    resp <- try_GET(url, user_agent(kco@userAgent), timeout(timeout))
+
+  if (!is_response(resp)) {
+    message(resp)
+    return(invisible(NULL))
+  }
   if (json || status_code(resp) != 200) {
     if (json && !http_type(resp) %in% c("application/json", "application/ld+json")) {
-      stop("API did not return json", call. = FALSE)
+      # message("API did not return json")
+      return(invisible(NULL))
     }
     result <- jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8"))
     if (!is.null(result$warnings)) {
-      message <- if (nrow(result$warnings) > 1)
+      msg <- if (nrow(result$warnings) > 1)
         sapply(result$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
       else
         sprintf("%s: %s", result$warnings[1], result$warnings[2])
-      warning(message, call. = FALSE)
+      message(msg)
     }
   }
   if (status_code(resp) != 200) {
     if (kco@verbose) {
       cat("\n")
     }
-    message <- sprintf("%s KorAP API request failed", status_code(resp))
+    msg <- sprintf("%s KorAP API request failed", status_code(resp))
     if (!is.null(result$errors)) {
-      message <- sprintf("%s - %s %s", message, result$errors[1], result$errors[2])
+      errormsg <- unlist(result$errors)
+      msg <- sprintf("%s: %s %s", msg, errormsg[5], errormsg[2])
     }
-    stop(message, call. = FALSE)
+    message(msg)
+    return(invisible(NULL))
   }
   if (!json) {
     result <- content(resp, "text", encoding = "UTF-8")
