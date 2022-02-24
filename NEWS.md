@@ -1,5 +1,6 @@
 # RKorAPClient 0.7.1.9000 (unreleased development version)
 
+- fail gracefully with an informative message if API server not accessible
 - new parameters added to `collocationAnalysis` function:
   - `maxRecurse` - apply collocation analysis recursively `maxRecurse` times
   - `addExamples` -  If `TRUE`, examples for instances of collocations will be added in a column `example`. This makes a difference in particular if 'node' is given as a lemma query.
