@@ -23,11 +23,9 @@
 Fetch information about a (virtual) corpus
 }
 \examples{
-\dontrun{
-corpusStats(new("KorAPConnection"))
+\donttest{corpusStats(new("KorAPConnection"))}
 
-new("KorAPConnection") \%>\%
-  corpusStats("pubDate in 2017 & textType=/Zeit.*/")
-}
+kco <- new("KorAPConnection")
+corpusStats(kco, "pubDate in 2017 & articleType=/Zeitung.*/")
 
 }
