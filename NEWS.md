@@ -1,4 +1,4 @@
-# RKorAPClient 0.7.1.9000 (unreleased development version)
+# RKorAPClient 0.7.2 (CRAN release)
 
 - now fails gracefully with an informative message if the API server is not accessible
 - fixed shiny demo
