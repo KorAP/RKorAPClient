@@ -1,13 +1,14 @@
 ## Test environments
 
-* local Fedora 34 with R version 4.0.5
+* local Fedora 35 with R version 4.1.2
 * CentOS-release-7-9.2009.1.el7.centos.x86_64 with R version 3.6.0
-* R-hub: Windows Server 2008 R2 SP1, R-devel, 32/64 bit
-* R-hub: Ubuntu Linux 20.04.1 LTS, R-release, GCC
+* R-hub: Windows Server 2008 R2 SP1, R-release, 32/64 bit
+* R-hub: Windows Server 2022, R-devel, 64 bit
 * R-hub: Fedora Linux, R-devel, clang, gfortran
 * github workflow on Windows with R 4.1.1 and 4.0.5
-* github workflow on macOS with R 4.0.5
+* github workflow on macOS with R 4.1.2
 * github workflow on Ubuntu with R 4.0.5
+* github workflow on Ubuntu with R 4.1.2
 
 
 ## Check results on all platforms
@@ -18,7 +19,7 @@
 
 ## Notes
 
-* Tests might be slightly slow sometimes because it's a web service client library 
-and avoiding a mock web server still seems preferable.
-* In 0.7.1, I've replaced most donttests with dontruns because otherwise I cannot guarantee that
-checks with `--run-donttest` pass in time.
+* CRAN Package Check problems starting from Februar 20 have been fixed.
+* Now fully compliant with CRAN policy: *Packages which use Internet resources should fail gracefully with an informative message if the resource is not available or has changed (and not give a check warning nor error).*
+  * The fixes requested in the mail from Brian Ripley of 23 Feb have been implemented.
+* Tests that require API server connection are now skipped if no connection is available.
