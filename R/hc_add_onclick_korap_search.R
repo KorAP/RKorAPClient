@@ -28,16 +28,15 @@
 #' }
 #'
 hc_add_onclick_korap_search <- function(hc) {
+  js <- JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
+  point_events <- list(events = list(click = js))
+  onclick_hc_options <- list(cursor = 'pointer', point = point_events)
   hc_plotOptions(
     hc,
     series = list(enabled = TRUE),
-    spline = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))),
-    column = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))),
-    line = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))))
+    line = onclick_hc_options,
+    spline = onclick_hc_options,
+    column = onclick_hc_options,
+    bar = onclick_hc_options,
+    pie = onclick_hc_options)
 }

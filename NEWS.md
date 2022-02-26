@@ -2,6 +2,7 @@
 
 - now fails gracefully with an informative message if the API server is not accessible
 - fixed shiny demo
+- `hc_add_onclick_korap_search()` now also works with bar, column and pie highcharts
 - new parameters added to `collocationAnalysis` function:
   - `maxRecurse` - apply collocation analysis recursively `maxRecurse` times
   - `addExamples` -  If `TRUE`, examples for instances of collocations will be added in a column `example`. This makes a difference in particular if 'node' is given as a lemma query.
