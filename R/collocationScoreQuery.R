@@ -110,10 +110,10 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               w = leftContextSize + rightContextSize,
               leftContextSize,
               rightContextSize,
-              N  = frequencyQuery(kco, node, vc)$total + smoothingConstant,
+              N  = frequencyQuery(kco, lemmatizeWordQuery(node, lemmatizeNodeQuery), vc)$total + smoothingConstant,
               O = as.double( if(is.na(observed[1])) frequencyQuery(kco, query, vc)$totalResults else observed) + smoothingConstant,
-              O1 = frequencyQuery(kco, node, vc)$totalResults + smoothingConstant,
-              O2 = frequencyQuery(kco, collocate, vc)$totalResults + smoothingConstant,
+              O1 = frequencyQuery(kco, lemmatizeWordQuery(node, lemmatizeNodeQuery), vc)$totalResults + smoothingConstant,
+              O2 = frequencyQuery(kco, lemmatizeWordQuery(collocate, lemmatizeCollocateQuery), vc)$totalResults + smoothingConstant,
               E = w * as.double(O1) * O2 / N
             ) %>%
               mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
@@ -174,6 +174,9 @@ ignoreCollocateCaseWordQuery <- function(w) {
   paste0(w, '/i')
 }
 
-lemmatizeWordQuery <- function(w) {
-  paste0('[tt/l=', w, ']')
+lemmatizeWordQuery <- function(w, apply = TRUE) {
+  if (apply)
+    paste0('[tt/l=', w, ']')
+  else
+    w
 }
