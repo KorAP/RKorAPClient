@@ -27,17 +27,20 @@
 #'   hc_add_onclick_korap_search()
 #' }
 #'
-hc_add_onclick_korap_search <- function(hc) {
+hc_add_onclick_korap_search <- function(hc,
+                                        type = (if(exists("hc$x$hc_opts$series[[1]]$type"))
+                                          "hc$x$hc_opts$series[[1]]$type"
+                                        else
+                                          "spline"),
+                                        js = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }"),
+                                        options = list(cursor = 'pointer', point = list(events = list(
+                                          click = js)))) {
+  t = eval(type)
   hc_plotOptions(
     hc,
     series = list(enabled = TRUE),
-    spline = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))),
-    column = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))),
-    line = list(cursor = 'pointer', point = list(events = list(
-      click = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-    ))))
+    line = options,
+    spline = options,
+    column = options,
+    bar = options)
 }

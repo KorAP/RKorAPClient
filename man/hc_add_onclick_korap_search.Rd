@@ -4,7 +4,13 @@
 \alias{hc_add_onclick_korap_search}
 \title{Add KorAP search click events to highchart plots}
 \usage{
-hc_add_onclick_korap_search(hc)
+hc_add_onclick_korap_search(
+  hc,
+  type = (if (exists("hc$x$hc_opts$series[[1]]$type")) "hc$x$hc_opts$series[[1]]$type"
+    else "spline"),
+  js = JS("function() { window.open(this.webUIRequestUrl, 'korap'); }"),
+  options = list(cursor = "pointer", point = list(events = list(click = js)))
+)
 }
 \arguments{
 \item{hc}{higchart object}
