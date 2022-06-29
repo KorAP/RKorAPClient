@@ -29,6 +29,12 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
+      - name: Install system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt install libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev
+
       - uses: actions/checkout@v2
 
       - uses: r-lib/actions/setup-pandoc@v2
