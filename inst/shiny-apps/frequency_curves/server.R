@@ -5,9 +5,9 @@ hc_theme <- if(require(idsThemeR)) {
 }
 rsr <- new("KorAPConnection", verbose = TRUE, accessToken = NULL)
 vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"
-years <- c(2005:2020)
+years <- c(2005:2021)
 from <- 2005
-to <- 2020
+to <- 2021
 query <- "Aluhut"
 logfile <- file("frequency_curves.log", open = "a")
 
@@ -45,7 +45,7 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
     hc_caption(text = paste(
       "Frequenzverläufe (mit 95%-Konfidenzbändern) im",
       "<a href='http://www.dereko.de'>Deutschen Referenzkorpus DeReKo</a>",
-      "(virtuelles Korpus: <a href='https://korap.ids-mannheim.de/doc/corpus'>DeReKo-KorAP-2021-I</a>",
+      "(virtuelles Korpus: <a href='https://korap.ids-mannheim.de/doc/corpus'>DeReKo-KorAP-2022-I</a>",
       "eingegrenzt auf Zeitungen, Zeitschriften und Plenarprotokolle).",
       "Klicken sie die einzelnen Datenpunkte an, um entsprechende KorAP-Suchen zu starten."
       ))
@@ -53,7 +53,7 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
   hc
 }
 
-generateHighchart <- function(wordParam, from=2005, to=2020) {
+generateHighchart <- function(wordParam, from=2005, to=2021) {
   years <<- c(from:to)
   if (wordParam != "") {
     query <<- strsplit(wordParam, " *, *")
@@ -78,7 +78,7 @@ function(input, output, session) {
       to <- queryParams[['to']]
       updateSliderInput(session, "to", value = to)
     } else {
-      to <- 2020
+      to <- 2021
     }
     if (!is.null(queryParams[['q']])) {
       paramWord <- queryParams[['q']]
