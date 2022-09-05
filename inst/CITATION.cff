@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+preferred-citation:
+  type: conference-paper
+  message: "If you use `RKorAPClient` in your work please refer to this publication"
+  authors:
+  - family-names: Kupietz
+    given-names: Marc
+  - family-names: Diewald
+    given-names: Nils
+  - family-names: Margaretha
+    given-names: Eliza
+  title: "RKorAPClient: An R Package for Accessing the German Reference Corpus DeReKo via KorAP"
+  collection-title: Proceedings of the 12th Language Resources and Evaluation Conference
+  year: 2020
+  publisher:
+    name: European Language Resources Association
+    address: Marseille, France
+  url: https://aclanthology.org/2020.lrec-1.867
+  isbn: 979-10-95546-34-4
+  start: 7015
+  end: 7021
