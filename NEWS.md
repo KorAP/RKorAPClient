@@ -1,3 +1,10 @@
+# RKorAPClient 0.7.2.9000
+
+- updated Roxygen to 7.2.1 (fixes bug that caused CRAN removal of RKorAPClient)
+- updated shiny demo
+- added some demos for comparisons by country of publication
+- fixed collocation scores for lemmatized node or collocate queries
+
 # RKorAPClient 0.7.2 (CRAN release)
 
 - now fails gracefully with an informative message if the API server is not accessible
