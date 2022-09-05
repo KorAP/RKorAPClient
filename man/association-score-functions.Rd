@@ -36,8 +36,8 @@ ll(O1, O2, O, N, E, window_size)
 \item{window_size}{total window size around node (left neighbour count + right neighbour count)}
 }
 \value{
-\preformatted{         association score
-}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{         association score
+}\if{html}{\out{</div>}}
 }
 \description{
 Functions to calculate different collocation association scores between
