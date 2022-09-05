@@ -2,6 +2,8 @@
 
 S3method(format,KorAPQuery)
 export("%>%")
+export(KorAPConnection)
+export(KorAPQuery)
 export(as_tibble)
 export(bind_cols)
 export(buildWebUIRequestUrl)
