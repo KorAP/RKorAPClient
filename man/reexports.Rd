@@ -3,6 +3,7 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
+\alias{\%>\%}
 \alias{bind_cols}
 \alias{mutate}
 \alias{select}
@@ -26,6 +27,8 @@ below to see their documentation.
   \item{dplyr}{\code{\link[dplyr:bind]{bind_cols}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
 
   \item{lubridate}{\code{\link[lubridate]{year}}}
+
+  \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
 
   \item{tibble}{\code{\link[tibble]{as_tibble}}}
 

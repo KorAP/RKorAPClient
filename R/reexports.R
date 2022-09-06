@@ -1,15 +1,6 @@
-
-#' Pipe operator
-#'
-#' See `magrittr::[\%>\%][magrittr::pipe]` for details.
-#'
-#' @name %>%
-#' @rdname pipe
-#' @keywords internal
-#' @export
 #' @importFrom magrittr %>%
-#' @usage lhs \%>\% rhs
-NULL
+#' @export
+magrittr::`%>%`
 #' @importFrom dplyr bind_cols
 #' @export
 dplyr::bind_cols
