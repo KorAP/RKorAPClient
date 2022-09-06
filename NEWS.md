@@ -1,5 +1,12 @@
 # RKorAPClient 0.7.3.9000
 
+- resolved CRAN requests:
+  - documentation completed and improved for hc_add_onclick_korap_search, hc_freq_by_year_ci, KorAPConnection class
+  - proper cache directory used in regional demo
+  - fixed and improved path handling in collocation analysis and light verb construction demos
+  - fixed documentation for reexported magrittr::`%>%` (pipe function)
+- replaced head with dplyr::slice_head when used on data frames or tibbles
+
 # RKorAPClient 0.7.3 (unreleased due to CRAN requests)
 
 - updated Roxygen to 7.2.1 (fixes bug that caused CRAN removal of RKorAPClient)
