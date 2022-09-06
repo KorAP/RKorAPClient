@@ -1,4 +1,6 @@
-# RKorAPClient 0.7.3
+# RKorAPClient 0.7.3.9000
+
+# RKorAPClient 0.7.3 (unreleased due to CRAN requests)
 
 - updated Roxygen to 7.2.1 (fixes bug that caused CRAN removal of RKorAPClient)
 - updated shiny demo
