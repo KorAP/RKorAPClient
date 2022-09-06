@@ -19,15 +19,34 @@
 
 ## Notes
 
-* CRAN Package Check (NOTE) from 2022-08-12 has been fixed by upgrading Roxygen to 7.2.1.
-* I did not receive any email notification about the issue or the removal from CRAN.
-* With respect to previous *problems with emails from CRAN* (`cransubmit@xmbombadil.wu.ac.at`)
-  in February/March 2022 our mail admin said that the CRAN emails were classified
-  as spam by SpamAssasin because of:
+Many thanks for the swift and useful code review!
+
+* All CRAN requests (email from 2022-09-06 08:36) are now resolved:
+  * documentation completed and improved for `hc_add_onclick_korap_search`, `hc_freq_by_year_ci`, `KorAPConnection` class
+  * proper cache directory used in `regional.R` demo
+  * fixed and improved tempdir and path handling in `light-verb-construction-ca.R` and `recursiveCA.R` demos
+  * fixed documentation for re-exported magrittr::`%>%` (pipe function)
+* Concerning potential reasons why RKorAPClient was archived (already resolved in previous version):
+  * CRAN Package Check (NOTE) from 2022-08-12         <https://cran-archive.r-project.org/web/checks/2022/2022-08-12_check_results_RKorAPClient.html>
   ```
-  FROM_NOT_REPLYTO=2,
-  FROM_NOT_REPLYTO_SAME_DOMAIN=5
-  ```
-  thus receiving a spam score > 6.31. As a hot fix we whitelisted `cransubmit@xmbombadil.wu.ac.at`
-  and reported the problem to the CRAN admins there. Maybe this is the reason why I didn't receive
-  and email notification about the NOTE.
+Check Details
+Version: 0.7.2
+Check: HTML version of manual
+Result: NOTE
+    Found the following HTML validation problems:
+    RKorAPClient-package.html:23:4: Warning: <img> attribute "align" not allowed for HTML5
+    RKorAPClient-package.html:23:4: Warning: <img> attribute "align" not allowed for HTML5
+    ```
+    has been fixed by upgrading Roxygen to 7.2.1.
+  * I did not receive any email notification about the issue or the removal from CRAN.
+    * With respect to previous *problems with emails from CRAN* (`cransubmit@xmbombadil.wu.ac.at`)
+      in February/March 2022 our mail admin said that the CRAN emails were classified
+      as spam by SpamAssasin because of:
+      ```
+      FROM_NOT_REPLYTO=2,
+      FROM_NOT_REPLYTO_SAME_DOMAIN=5
+      ```
+      thus receiving a spam score > 6.31. As a hot fix we whitelisted `cransubmit@xmbombadil.wu.ac.at`
+      and reported the problem to the CRAN admins there. Maybe this is the reason why I didn't receive
+      and email notification about the NOTE.
+    * Could you send me the bounce message which might contain more information why I did not receive the notification mail?
