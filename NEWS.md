@@ -1,4 +1,4 @@
-# RKorAPClient 0.7.3.9000
+# RKorAPClient 0.7.4
 
 - resolved CRAN requests:
   - documentation completed and improved for hc_add_onclick_korap_search, hc_freq_by_year_ci, KorAPConnection class
