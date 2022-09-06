@@ -18,6 +18,8 @@
 #' @param smooth boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.
 #' @param ... additional arguments passed to [hc_add_series()]
 #'
+#' @return A highchart htmlwidget object containing the frequency plot.
+#'
 #' @examples
 #' \dontrun{
 #'

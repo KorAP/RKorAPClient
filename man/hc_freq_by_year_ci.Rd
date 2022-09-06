@@ -23,6 +23,9 @@ hc_freq_by_year_ci(
 
 \item{...}{additional arguments passed to \code{\link[=hc_add_series]{hc_add_series()}}}
 }
+\value{
+A highchart htmlwidget object containing the frequency plot.
+}
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
