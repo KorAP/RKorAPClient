@@ -13,9 +13,11 @@
 
 ## Checks with check_win()
 
-* R-devel (1 NOTE because package was archived on CRAN)
-* R 4.2.1 (1 NOTE because package was archived on CRAN)
-* R 4.1.3 OK
+* R-devel
+* R 4.2.1
+* R 4.1.3
+
+1 NOTE because package was archived on CRAN
 
 ## Notes
 
