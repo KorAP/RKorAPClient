@@ -25,4 +25,4 @@ new("KorAPConnection", verbose = TRUE) %>%
   cat(file = mdFile, sep = "\n")
 
 rmarkdown::render(mdFile)
-browseURL(gsub("\\.md", ".html", mdFile))
+browseURL(str_replace(mdFile, "\\.md$", ".html"))
