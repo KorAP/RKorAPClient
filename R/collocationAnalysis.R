@@ -144,7 +144,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
               if (nrow(candidates) > 0) {
                 candidates <- candidates %>%
                   filter(frequency >= minOccur) %>%
-                  head(topCollocatesLimit)
+                  slice_head(n=topCollocatesLimit)
                 collocationScoreQuery(
                   kco,
                   node = node,

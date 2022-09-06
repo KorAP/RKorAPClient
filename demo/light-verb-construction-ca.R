@@ -20,7 +20,7 @@ new("KorAPConnection", verbose = TRUE) %>%
   ) %>%
   mutate(LVC = sprintf("[in %s %s](%s)", collocate, lvLemma, webUIRequestUrl)) %>%
   select(LVC, logDice, pmi, ll) %>%
-  head(10) %>%
+  slice_head(10) %>%
   kable(format = "pipe", digits = 2)  %>%
   cat(file = mdFile, sep = "\n", append = TRUE)
 
