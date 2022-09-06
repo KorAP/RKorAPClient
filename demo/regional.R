@@ -3,9 +3,10 @@ library(RKorAPClient)
 library(ggplot2)
 library(raster)
 library(broom)
+library(R.cache)
 
 devAskNewPage(ask = FALSE)
-mapfile <- "demo/data/cache/map-v2.rds"
+mapfile <- file.path(R.cache::getCachePath(), "map-v2.rds")
 
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
