@@ -12,11 +12,22 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @import R.cache
 #' @import utils
 #' @import methods
+#' @slot KorAPUrl        URL of the web user interface of the KorAP server used in the connection.
+#' @slot apiVersion      requested KorAP API version.
+#' @slot indexRevision   indexRevision code as reported from API via `X-Index-Revision` HTTP header.
+#' @slot apiUrl          full URL of API including version.
+#' @slot accessToken     OAuth2 access token.
+#' @slot userAgent       user agent string used for connection the API.
+#' @slot timeout         tineout in seconds for API requests (this does not influence server internal timeouts)
+#' @slot verbose         logical that decides whether operations will default to be verbose.
+#' @slot cache           logical that decides if API calls are cached locally.
+#' @slot welcome         list containing HTTP response received from KorAP server welcome function.
+
 #' @export
 KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical", welcome="listOrNULL"))
 
 #' @param .Object KorAPConnection object
-#' @param KorAPUrl the URL of the KorAP server instance you want to access.
+#' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
 #' @param accessToken OAuth2 access token. To use authorization based on an access token
@@ -36,10 +47,10 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #'   new("KorAPConnection", cache=FALSE)` or use
 #'   [clearCache()] to clear the cache completely.
 #' @param userAgent user agent string.
-#' @param timeout time out in seconds.
-#' @param verbose logical. Decides whether following operations will default to
+#' @param timeout tineout in seconds for API requests (this does not influence server internal timeouts).
+#' @param verbose logical that decides whether following operations will default to
 #'   be verbose.
-#' @param cache logical. Decides if API calls are cached locally. You can clear
+#' @param cache logical that decides if API calls are cached locally. You can clear
 #'   the cache with [clearCache()].
 #' @return [KorAPConnection()] object that can be used e.g. with
 #'   [corpusQuery()]

@@ -48,7 +48,7 @@
 \arguments{
 \item{.Object}{KorAPConnection object}
 
-\item{KorAPUrl}{the URL of the KorAP server instance you want to access.}
+\item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.}
 
 \item{apiVersion}{which version of KorAP's API you want to connect to.}
 
@@ -72,12 +72,12 @@ you experience problems or unexpected results, please try \code{kco <- new("KorA
 
 \item{userAgent}{user agent string.}
 
-\item{timeout}{time out in seconds.}
+\item{timeout}{tineout in seconds for API requests (this does not influence server internal timeouts).}
 
-\item{verbose}{logical. Decides whether following operations will default to
+\item{verbose}{logical that decides whether following operations will default to
 be verbose.}
 
-\item{cache}{logical. Decides if API calls are cached locally. You can clear
+\item{cache}{logical that decides if API calls are cached locally. You can clear
 the cache with \code{\link[=clearCache]{clearCache()}}.}
 
 \item{kco}{KorAPConnection object}
@@ -98,6 +98,30 @@ the cache with \code{\link[=clearCache]{clearCache()}}.}
 \code{KorAPConnection} objects represent the connection to a KorAP server.
 New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
 }
+\section{Slots}{
+
+\describe{
+\item{\code{KorAPUrl}}{URL of the web user interface of the KorAP server used in the connection.}
+
+\item{\code{apiVersion}}{requested KorAP API version.}
+
+\item{\code{indexRevision}}{indexRevision code as reported from API via \code{X-Index-Revision} HTTP header.}
+
+\item{\code{apiUrl}}{full URL of API including version.}
+
+\item{\code{accessToken}}{OAuth2 access token.}
+
+\item{\code{userAgent}}{user agent string used for connection the API.}
+
+\item{\code{timeout}}{tineout in seconds for API requests (this does not influence server internal timeouts)}
+
+\item{\code{verbose}}{logical that decides whether operations will default to be verbose.}
+
+\item{\code{cache}}{logical that decides if API calls are cached locally.}
+
+\item{\code{welcome}}{list containing HTTP response received from KorAP server welcome function.}
+}}
+
 \examples{
 \dontrun{
 
