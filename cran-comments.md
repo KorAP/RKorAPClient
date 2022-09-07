@@ -21,13 +21,22 @@
 
 ## Notes
 
-Many thanks for the swift and useful code review!
+* Fixed CRAN policy violation (writing to the user's home filespace) pointed out
+  in CRAN email from 2022-09-07 10:19 via
+  <https://github.com/KorAP/RKorAPClient/commit/35eecca9d1fd43b441692a56bbd2aea94a7c3ed9>
+
+### Old Notes
+
+#### Notes on 0.7.4
 
 * All CRAN requests (email from 2022-09-06 08:36) are now resolved:
   * documentation completed and improved for `hc_add_onclick_korap_search`, `hc_freq_by_year_ci`, `KorAPConnection` class
   * proper cache directory used in `regional.R` demo
   * fixed and improved tempdir and path handling in `light-verb-construction-ca.R` and `recursiveCA.R` demos
   * fixed documentation for re-exported magrittr::`%>%` (pipe function)
+
+#### Notes on 0.7.3
+
 * Concerning potential reasons why RKorAPClient was archived (already resolved in previous version):
   * CRAN Package Check (NOTE) from 2022-08-12         <https://cran-archive.r-project.org/web/checks/2022/2022-08-12_check_results_RKorAPClient.html>
   ```
@@ -38,7 +47,7 @@ Result: NOTE
     Found the following HTML validation problems:
     RKorAPClient-package.html:23:4: Warning: <img> attribute "align" not allowed for HTML5
     RKorAPClient-package.html:23:4: Warning: <img> attribute "align" not allowed for HTML5
-    ```
+```
     has been fixed by upgrading Roxygen to 7.2.1.
   * I did not receive any email notification about the issue or the removal from CRAN.
     * With respect to previous *problems with emails from CRAN* (`cransubmit@xmbombadil.wu.ac.at`)
