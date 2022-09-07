@@ -3,10 +3,16 @@ library(RKorAPClient)
 library(ggplot2)
 library(raster)
 library(broom)
-library(R.cache)
+# library(R.cache)
 
 devAskNewPage(ask = FALSE)
-mapfile <- file.path(R.cache::getCachePath(), "map-v2.rds")
+
+mapfile <- file.path(tempdir(), "map-v2.rds")
+
+# Caching data in the user's home filespace by default
+# is not allowed to package demos by CRAN policies ...
+#
+# mapfile <- file.path(R.cache::getCachePath(), "map-v2.rds")
 
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
