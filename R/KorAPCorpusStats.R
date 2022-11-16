@@ -29,7 +29,7 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #' \donttest{corpusStats(new("KorAPConnection"))}
 #'
 #' kco <- new("KorAPConnection")
-#' corpusStats(kco, "pubDate in 2017 & articleType=/Zeitung.*/")
+#' corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
 #'
 #' @aliases corpusStats
 #' @export
