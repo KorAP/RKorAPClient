@@ -232,11 +232,12 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHead
   }
   if (json || status_code(resp) != 200) {
     if (json && !http_type(resp) %in% c("application/json", "application/ld+json")) {
-      # message("API did not return json")
+      message("API did not return json")
       return(invisible(NULL))
     }
-    result <- jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8"))
-    if (!is.null(result$warnings)) {
+
+    result <- tryCatch(jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8")), error = function(e) {return(NULL)})
+    if (!is.atomic(result) && !is.null(result$warnings)) {
       msg <- if (nrow(result$warnings) > 1)
         sapply(result$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
       else
@@ -249,7 +250,7 @@ setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHead
       cat("\n")
     }
     msg <- sprintf("%s KorAP API request failed", status_code(resp))
-    if (!is.null(result$errors)) {
+    if (!is.atomic(result) && !is.null(result$errors)) {
       errormsg <- unlist(result$errors)
       msg <- sprintf("%s: %s %s", msg, errormsg[5], errormsg[2])
     }
