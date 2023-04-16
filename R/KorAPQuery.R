@@ -87,7 +87,12 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in `KorAPConnection`) to provide all necessary information for the query.
-#' @param metadataOnly logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).
+#' @param metadataOnly logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE.
+#'    If you want your corpus queries to return not only metadata, but also KWICS, you need to authorize
+#'    your RKorAPClient application as explained in the
+#'   [authorization section](https://github.com/KorAP/RKorAPClient#authorization)
+#'   of the RKorAPClient Readme on GitHub and set the `metadataOnly` parameter to
+#'   `FALSE`.
 #' @param ql string to choose the query language (see [section on Query Parameters](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters) in the Kustvakt-Wiki for possible values.
 #' @param fields (meta)data fields that will be fetched for every match.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).

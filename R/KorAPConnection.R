@@ -30,13 +30,29 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
-#' @param accessToken OAuth2 access token. To use authorization based on an access token
-#'   in subsequent queries, initialize your KorAP connection with
-#'   `kco <- new("KorAPConnection", accessToken="<access token>")`.
+#' @param accessToken OAuth2 access token. For queries on corpus parts with restricted
+#'   access (e.g. textual queries on IPR protected data), you need to authorize
+#'   your application with an access token.
+#'   How to obtain an access token for the DeReKo KorAP instance is explained in the
+#'   [authorization section](https://github.com/KorAP/RKorAPClient#authorization)
+#'   of the RKorAPClient Readme on GitHub.
+#'
+#'   To use authorization based on an access token
+#'   in subsequent queries, initialize your KorAP connection with:
+#'
+#'   ```
+#'   kco <- new("KorAPConnection", accessToken="<access token>")
+#'   ```
+#'
 #'   In order to make the API
 #'   token persistent for the currently used `KorAPUrl` (you can have one
-#'   token per KorAPUrl / KorAP server instance), use
-#'   `persistAccessToken(kco)`. This will store it in your keyring using the
+#'   token per KorAPUrl / KorAP server instance), use:
+#'
+#'   ```
+#'   persistAccessToken(kco)
+#'   ```
+#'
+#'   This will store it in your keyring using the
 #'   [keyring()] package. Subsequent new("KorAPConnection") calls will
 #'   then automatically retrieve the token from your keying. To stop using a
 #'   persisted token, call `clearAccessToken(kco)`. Please note that for
@@ -46,6 +62,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #'   you experience problems or unexpected results, please try `kco <-
 #'   new("KorAPConnection", cache=FALSE)` or use
 #'   [clearCache()] to clear the cache completely.
+#'
 #' @param userAgent user agent string.
 #' @param timeout tineout in seconds for API requests (this does not influence server internal timeouts).
 #' @param verbose logical that decides whether following operations will default to

@@ -54,13 +54,27 @@
 
 \item{apiUrl}{URL of the KorAP web service.}
 
-\item{accessToken}{OAuth2 access token. To use authorization based on an access token
-in subsequent queries, initialize your KorAP connection with
-\code{kco <- new("KorAPConnection", accessToken="<access token>")}.
+\item{accessToken}{OAuth2 access token. For queries on corpus parts with restricted
+access (e.g. textual queries on IPR protected data), you need to authorize
+your application with an access token.
+How to obtain an access token for the DeReKo KorAP instance is explained in the
+\href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
+of the RKorAPClient Readme on GitHub.
+
+To use authorization based on an access token
+in subsequent queries, initialize your KorAP connection with:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{kco <- new("KorAPConnection", accessToken="<access token>")
+}\if{html}{\out{</div>}}
+
 In order to make the API
 token persistent for the currently used \code{KorAPUrl} (you can have one
-token per KorAPUrl / KorAP server instance), use
-\code{persistAccessToken(kco)}. This will store it in your keyring using the
+token per KorAPUrl / KorAP server instance), use:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{persistAccessToken(kco)
+}\if{html}{\out{</div>}}
+
+This will store it in your keyring using the
 \code{\link[=keyring]{keyring()}} package. Subsequent new("KorAPConnection") calls will
 then automatically retrieve the token from your keying. To stop using a
 persisted token, call \code{clearAccessToken(kco)}. Please note that for
