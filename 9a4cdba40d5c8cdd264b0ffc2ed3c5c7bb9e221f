@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e6861b0_8c99e870",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2023-04-16T12:36:50Z",
+      "side": 1,
+      "message": "Please have a look if this is OK for now – or if we should add support functions or a default test application first, so that users don\u0027t need to fiddle with their KorAP OAuth settings and all for simple examples.",
+      "revId": "9a4cdba40d5c8cdd264b0ffc2ed3c5c7bb9e221f",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
