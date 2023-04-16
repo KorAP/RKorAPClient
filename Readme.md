@@ -86,29 +86,65 @@ new("KorAPConnection", verbose = TRUE) %>%
 |[in Marsch setzen](https://korap.ids-mannheim.de/?q=Marsch%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                            |    6.87|  9.27|  22041.63|
 |[in Klammern setzen](https://korap.ids-mannheim.de/?q=Klammern%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                        |    6.55| 10.08|  15643.27|
 
-### Access restricted KWICs
-In order to perform the collocation analysis and other textual queries also on corpus parts where KWIC access requires a login, you need to authorize your application via an access token.
+### <a name="authorization"></a> Authorizing RKorAPClient applications to access restricted KWICs from copyrighted texts
 
-In the case of DeReKo, you cat get an access token from [KorAP OAuth settings here](https://korap.ids-mannheim.de/settings/oauth#page-top). There login, register a new client application, create a new token, copy it and in R use it via the `accessToken` parameter:
+In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
 
-```
-kco <- new("KorAPConnection", accessToken="<access token>")
-```
+In the case of DeReKo, this can be done in two different ways.
 
-You can also persist the access token for subsequent sessions with the `persistAccessToken` function:
-```
-persistAccessToken(kco)
-```
+#### The old way: Authorize your RKorAPClient application manually
+
+1. Log in into the [KorAP DeReKo instance](https://korap.ids-mannheim.de/)
+1. Open the [KorAP OAuth settings](https://korap.ids-mannheim.de/settings/oauth#page-top)
+1. If you have not yet registered a client application, or not the desired one, register one (it is sufficient to fill in the marked fields).
+1. Click the intended client application name.
+1. If you do not have any access tokens yet, click on the "Issue new token" button.
+1. Copy one of your access tokens to you clipboard by clicking on the copy symbol ⎘ behind it.
+1. In R/RStudio, paste the token into you KorAPConnection initialization, overwriting `<access token>` in the following example:
+   ```R
+   kco <- new("KorAPConnection", accessToken="<access token>")
+   ```
 
 The whole process is shown in this video:
 
 https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
-In order to use the access token for plain corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for instance:
+#### The new way (since March 2023)[^1]: Authorize your RKorAPClient application via the usual OAuth browser flow
+
+1. Follow steps 1-4 of the old way shown above.
+2. Click on the copy symbol ⎘ behind the ID of your client application.
+3. Paste your clipboard content overwriting `<application ID>` in the following example code:
+   ```R
+   library(httr)
+   library(httpuv)
+   korap_app <- oauth_app("korap-client", key = "<application ID>", secret = NULL)
+   korap_endpoint <- oauth_endpoint(NULL,
+                 "settings/oauth/authorize",
+                 "api/v1.0/oauth2/token",
+                 base_url = "https://korap.ids-mannheim.de")
+   token_bundle = oauth2.0_token(korap_endpoint, korap_app, scope = "search match_info", cache = FALSE)
+
+   kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
+  ```
+[^1]: This new method has been made possible purely on the server side, so that it will also work with older versions of RKorAPClient.
+
+#### Storing and testing your authorized access
+
+You can also persist the access token for subsequent sessions with the `persistAccessToken` function:
 
 ```R
-new("KorAPConnection") %>% corpusQuery("Ameisenplage", metadataOnly = FALSE) %>% fetchAll()
+persistAccessToken(kco)
 ```
+
+Afterwards a simple `kco <- new("KorAPConnection")` will retrieve the stored token.
+
+To use the access token for simple corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for example:
+
+```R
+corpusQuery(kco, "Ameisenplage", metadataOnly = FALSE) %>% fetchAll()
+```
+
+should return KWIC snippets, if you have authorized your application successfully.
 
 ## Demos
 
