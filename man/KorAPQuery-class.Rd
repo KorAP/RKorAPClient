@@ -123,7 +123,12 @@ buildWebUIRequestUrl(
 
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 
-\item{metadataOnly}{logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE, unless the connection is authorized (currently not possible).}
+\item{metadataOnly}{logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE.
+If you want your corpus queries to return not only metadata, but also KWICS you need to authorize
+your RKorAPClient application as explained in the
+\href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
+of the RKorAPClient Readme on GitHub, \strong{and} you need to set the \code{metadataOnly} parameter to
+\code{FALSE}.}
 
 \item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
 
