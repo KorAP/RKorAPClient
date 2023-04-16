@@ -1,11 +1,12 @@
 ## Test environments
 
-* local Fedora 35 with R version 4.1.3
-* CentOS-release-7-9.2009.1.el7.centos.x86_64 with R version 3.6.0
-* github workflow on Windows with R 4.2.1
-* github workflow on macOS with R 4.2.1
-* github workflow on Ubuntu with R 4.2.1
-* github workflow on Ubuntu with R-devel
+* local Fedora 37 with R version 4.2.3
+* CentOS-release-7-9.2009 with R version 3.6.0
+* github workflow on Windows with R 4.2.3
+* github workflow on macOS with R 4.2.3
+* github workflow on Ubuntu with R 4.2.3
+* github workflow on Ubuntu with R 4.1.3
+* github workflow on Ubuntu with R-devel (4.4.0)
 
 ```
 0 errors ✓ | 0 warnings ✓ | 0 notes ✓
@@ -21,11 +22,17 @@
 
 ## Notes
 
+* Fixed CRAN policy violation (Packages which use Internet resources should fail gracefully with
+  an informative message if the resource is not available or has changed (and not give a check
+  warning nor error) by gracefully failing on invalid json api responses (via 04814f2).
+
+### Old Notes
+
+#### Notes on 0.7.4
+
 * Fixed CRAN policy violation (writing to the user's home filespace) pointed out
   in CRAN email from 2022-09-07 10:19 via
   <https://github.com/KorAP/RKorAPClient/commit/35eecca9d1fd43b441692a56bbd2aea94a7c3ed9>
-
-### Old Notes
 
 #### Notes on 0.7.4
 
