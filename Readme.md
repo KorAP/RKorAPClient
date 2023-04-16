@@ -212,7 +212,7 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 
 **Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/), [Nils Diewald](http://www1.ids-mannheim.de/zfo/personal/diewald/)
 
-Copyright (c) 2021, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2023, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language

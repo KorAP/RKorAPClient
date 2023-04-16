@@ -1,4 +1,13 @@
-# RKorAPClient 0.7.5
+# RKorAPClient 0.7.6
+
+- fixed error in recursiveCA demo
+- added documentation on authorization using the OAuth browser flow
+- fixed graceful fail on invalid json responses from API requests (CRAN policy violation)
+- updated Roxygen to 7.2.3
+- added context parameter to corpusQuery
+- updated GitHub workflows
+
+# RKorAPClient 0.7.5 (CRAN release)
 
 - resolved CRAN policy violation (writing to user's home filespace)
 
