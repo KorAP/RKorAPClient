@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45169d6f_78503542",
+        "filename": "man/KorAPConnection-class.Rd",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2023-04-17T09:48:22Z",
+      "side": 1,
+      "message": "I think the formulation is not optimal. May be it\u0027s better to say: \"For queries on corpus parts with restricted access (e.g. textual queries on IPR protected data), you need to authorize your application with an access token\".",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "5287a4f8733846a32f434fde508f4dcc712fc1f1",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
