@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "03f2ce20_a99f7486",
+        "filename": "Readme.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 21
+      },
+      "writtenOn": "2023-04-17T10:19:59Z",
+      "side": 1,
+      "message": "redirect_uri\u003d\"http://localhost:1410\" should be included, if it wasn\u0027t specified in the client registration, e.g.\n\nkorap_app \u003c- oauth_app(\"korap-client\", key \u003d \"\u003capplication ID\u003e\", secret \u003d NULL,redirect_uri\u003d\"http://localhost:1410\")",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 82
+      },
+      "revId": "5287a4f8733846a32f434fde508f4dcc712fc1f1",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "45169d6f_78503542",
         "filename": "man/KorAPConnection-class.Rd",
         "patchSetId": 2
