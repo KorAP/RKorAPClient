@@ -50,7 +50,8 @@
   accessRewriteFatal = TRUE,
   verbose = kco@verbose,
   expand = length(vc) != length(query),
-  as.df = FALSE
+  as.df = FALSE,
+  context = NULL
 )
 
 \S4method{fetchNext}{KorAPQuery}(
@@ -139,6 +140,13 @@ of the RKorAPClient Readme on GitHub and set the \code{metadataOnly} parameter t
 \item{expand}{logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations}
 
 \item{as.df}{return result as data frame instead of as S4 object?}
+
+\item{context}{string that specifies the size of the left and the right context returned in \code{snippet}
+(provided that \code{metadataOnly} is set to \code{false} and that the necessary access right are  met).
+The format of the context size specifcation (e.g. \verb{3-token,3-token}) is described in the \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET}{Service: Search GET documentation of the Kustvakt Wiki}.
+If the parameter is not set, the default context size secification of the KorAP server instance will be used.
+Note that you cannot overrule the maximum context size set in the KorAP server instance,
+as this is typically legally motivated.}
 
 \item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}}}
 
