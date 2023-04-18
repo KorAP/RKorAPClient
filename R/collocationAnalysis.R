@@ -199,7 +199,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 result$collocate,
                 leftContextSize = leftContextSize,
                 rightContextSize = rightContextSize,
-                withinSpan = ""
+                withinSpan = withinSpan
               )
               result$example <- findExample(
                 kco,
