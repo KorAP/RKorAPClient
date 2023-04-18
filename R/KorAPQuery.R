@@ -198,20 +198,20 @@ setMethod("corpusQuery", "KorAPConnection",
         paste(fields, collapse = ","),
         if (metadataOnly) '&access-rewrite-disabled=true' else ''
       )
-      log.info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
+      log_info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
                  "")
       res = apiCall(kco, paste0(requestUrl, '&count=0'))
       if (is.null(res)) {
-        log.info(verbose, " [failed]\n")
+        log_info(verbose, " [failed]\n")
         message("API call failed.")
         totalResults <- 0
       } else {
         totalResults <-res$meta$totalResults
-        log.info(verbose, ": ", totalResults, " hits")
+        log_info(verbose, ": ", totalResults, " hits")
         if(!is.null(res$meta$cached))
-          log.info(verbose, " [cached]\n")
+          log_info(verbose, " [cached]\n")
         else
-          log.info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+          log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
       }
       if (as.df)
         data.frame(

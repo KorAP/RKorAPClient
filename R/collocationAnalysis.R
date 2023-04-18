@@ -243,7 +243,7 @@ snippet2FreqTable <- function(snippet,
   if (length(snippet) < 1) {
     dplyr::tibble(word=c(), frequency=c())
   } else if (length(snippet) > 1) {
-    log.info(verbose, paste("Joining", length(snippet), "kwics\n"))
+    log_info(verbose, paste("Joining", length(snippet), "kwics\n"))
     for (s in snippet) {
       oldTable <- snippet2FreqTable(
         s,
@@ -254,7 +254,7 @@ snippet2FreqTable <- function(snippet,
         stopwords = stopwords
       )
     }
-    log.info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
+    log_info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
     oldTable  %>%
       group_by(word) %>%
       mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) %>%

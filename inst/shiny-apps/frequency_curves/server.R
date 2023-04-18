@@ -11,8 +11,8 @@ to <- 2021
 query <- "Aluhut"
 logfile <- file("frequency_curves.log", open = "a")
 
-# override log.info in RKorAPClient to get some progress info
-log.info <- function(v,  ...) {
+# override log_info in RKorAPClient to get some progress info
+log_info <- function(v,  ...) {
   original = paste0(...)
   detail <- if (str_detect(original, "Searching.*in ([0-9]{4})")) {
     str_replace(original, ".*in ([0-9]{4}).*", "Suche in \\1")
@@ -26,7 +26,7 @@ log.info <- function(v,  ...) {
   flush(logfile)
 }
 
-assignInNamespace("log.info", log.info, "RKorAPClient")
+assignInNamespace("log_info", log_info, "RKorAPClient")
 
 plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
                           vc = "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"

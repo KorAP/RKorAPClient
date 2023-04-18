@@ -7,6 +7,7 @@
 - added context parameter to corpusQuery
 - updated GitHub workflows
 - in collocationAnalysis: given withinSpan parameters are now correctly passed to queries for examples
+- replaced our log.info function with log_info to avoid name clashes
 
 # RKorAPClient 0.7.5 (CRAN release)
 

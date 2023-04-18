@@ -13,7 +13,7 @@
 #' @slot paragraphs number of paragraphs
 setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric"))
 
-log.info <- function(v,  ...) {
+log_info <- function(v,  ...) {
   cat(ifelse(v, paste0(...), ""))
 }
 setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
@@ -45,12 +45,12 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
       paste0(kco@apiUrl,
              'statistics?cq=',
              URLencode(enc2utf8(vc), reserved = TRUE))
-    log.info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
+    log_info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
     if(is.null(res)) {
       res <- data.frame(documents=NA, tokens=NA, sentences=NA, paragraphs=NA)
     }
-    log.info(verbose, ": ", res$tokens, " tokens\n")
+    log_info(verbose, ": ", res$tokens, " tokens\n")
     if (as.df)
       data.frame(vc = vc, res, stringsAsFactors = FALSE)
     else

@@ -24,6 +24,7 @@
   by gracefully failing on invalid json api responses, via:
   <https://github.com/KorAP/RKorAPClient/commit/04814f2be215f08a3777310af2202d14457c2e7c>,
   <https://github.com/KorAP/RKorAPClient/commit/f650629fa69ab10979f2ffe2652da77599caaf70>
+* Replaced our log.info function with log_info to avoid name clashes
 
 ### Old Notes
 
