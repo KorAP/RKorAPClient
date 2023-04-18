@@ -9,3 +9,4 @@
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$
 ^.*\.log$
+^CRAN-SUBMISSION$
