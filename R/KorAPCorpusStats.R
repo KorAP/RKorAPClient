@@ -26,10 +26,12 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #' @return `KorAPCorpusStats` object with the slots `documents`, `tokens`, `sentences`, `paragraphs`
 #'
 #' @examples
-#' \donttest{corpusStats(new("KorAPConnection"))}
+#'
+#' \dontrun{
 #'
 #' kco <- new("KorAPConnection")
 #' corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
+#' }
 #'
 #' @aliases corpusStats
 #' @export
