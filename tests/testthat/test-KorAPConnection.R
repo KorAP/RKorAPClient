@@ -3,15 +3,15 @@ test_that("KorAPConnection fails gracefully on unresolvable host", {
 })
 
 test_that("KorAPConnection fails gracefully on timeout", {
-  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/3", timeout = 1), "No internet|Timeout|json")
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/3", timeout = 0.2), "No internet|Timeout|json|progress")
 })
 
 test_that("KorAPConnection fails gracefully on Bad Gateway errors", {
-  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/status/502", timeout = 1), "No internet|Timeout|json|502")
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/status/502", timeout = 0.5), "No internet|Timeout|progress|json|502")
 })
 
 test_that("KorAPConnection is printable", {
-  kco <- new("KorAPConnection", timeout = 10)
+  kco <- new("KorAPConnection", timeout = 1)
   skip_if(is.null(kco@welcome))
   expect_error(print(kco), NA)
 })
@@ -21,12 +21,12 @@ test_that("Opening KorAPConnection prints some message.", {
 })
 
 test_that("Opening KorAPConnection with invalid apiToken fails gracefully", {
-  expect_message(new("KorAPConnection", accessToken="test token", timeout = 10),
-               "401|Timeout")
+  expect_message(new("KorAPConnection", accessToken="test token", timeout = 3),
+               "401|Timeout|progress")
 })
 
 test_that("Persisting null apiToken fails", {
-  kco <- new("KorAPConnection", timeout = 10)
+  kco <- new("KorAPConnection", timeout = 3)
   skip_if_not(is.null(kco@accessToken))
   skip_if(is.null(kco@welcome))
   expect_error(persistAccessToken(kco),
