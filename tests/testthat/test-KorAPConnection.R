@@ -6,6 +6,10 @@ test_that("KorAPConnection fails gracefully on timeout", {
   expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/3", timeout = 1), "No internet|Timeout|json")
 })
 
+test_that("KorAPConnection fails gracefully on Bad Gateway errors", {
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/status/502", timeout = 1), "No internet|Timeout|json|502")
+})
+
 test_that("KorAPConnection is printable", {
   kco <- new("KorAPConnection", timeout = 10)
   skip_if(is.null(kco@welcome))
