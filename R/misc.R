@@ -111,9 +111,9 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @rdname misc-functions
 #'
 #' @examples
+#' \dontrun{
 #' library(ggplot2)
 #' kco <- new("KorAPConnection", verbose=TRUE)
-#' \dontrun{
 #'
 #' expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
 #'             year = (2005:2011)) %>%

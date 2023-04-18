@@ -26,6 +26,7 @@
   <https://github.com/KorAP/RKorAPClient/commit/f650629fa69ab10979f2ffe2652da77599caaf70>
 * Replaced our log.info function with log_info to avoid name clashes
 * Reduced timeouts in tests to make sure they don't sum up to over 10s.
+* Fixed dontrun position in misc.R example making sure that examples run in <5s.
 
 ### Old Notes
 

@@ -98,9 +98,9 @@ queryStringToLabel(paste("textType = /Zeit.*/ & pubDate in", c(2010:2019)))
 queryStringToLabel(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"))
 queryStringToLabel(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"))
 
+\dontrun{
 library(ggplot2)
 kco <- new("KorAPConnection", verbose=TRUE)
-\dontrun{
 
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
             year = (2005:2011)) \%>\%
