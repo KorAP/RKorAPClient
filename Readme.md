@@ -111,6 +111,8 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
 
 #### The new way (since March 2023)[^1]: Authorize your RKorAPClient application via the usual OAuth browser flow
 
+[^1]: This new method has been made possible purely on the server side, so that it will also work with older versions of RKorAPClient.
+
 1. Follow steps 1-4 of the old way shown above.
 2. Click on the copy symbol ⎘ behind the ID of your client application.
 3. Paste your clipboard content overwriting `<application ID>` in the following example code:
@@ -125,8 +127,8 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
    token_bundle = oauth2.0_token(korap_endpoint, korap_app, scope = "search match_info", cache = FALSE)
 
    kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
-  ```
-[^1]: This new method has been made possible purely on the server side, so that it will also work with older versions of RKorAPClient.
+   ```
+
 
 #### Storing and testing your authorized access
 
