@@ -1,6 +1,7 @@
 # RKorAPClient 0.7.6.9000 (unpublished)
 
 - fixed R 4.3 compatibility (see <https://github.com/KorAP/RKorAPClient/issues/12>)
+- added demo that plots plural gender variant frequencies over time
 
 # RKorAPClient 0.7.6
 
