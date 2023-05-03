@@ -13,3 +13,4 @@ recursiveCA                     Show result dataframe of recursvie collocation a
 frequency_by_country_ggplot     Plot frequencies depending on country of publication using ggplot2.
 frequency_by_country_highcharts Plot frequencies depending on country of publication using highcharter.
 collocation_score_by_country    Plot collocation scores depending on country of publication using ggplot2.
+pluralGenderVariants            Plot frequencies of the plular gender variants of a word over time.
