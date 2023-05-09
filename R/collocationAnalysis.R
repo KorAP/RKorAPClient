@@ -280,7 +280,7 @@ snippet2FreqTable <- function(snippet,
         ""
 #    cat(paste("right:", right, "\n", collapse=" "))
 
-    if(is.na(left) || is.na(right) || length(left) + length(right) == 0) {
+    if(is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
       oldTable
     } else {
       table(c(left, right)) %>%
