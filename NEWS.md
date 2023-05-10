@@ -2,6 +2,7 @@
 
 - fixed R 4.3 compatibility (see <https://github.com/KorAP/RKorAPClient/issues/12>)
 - added demo that plots plural gender variant frequencies over time
+- added runtime OAuth2 browser flow demos with httr and httr2
 
 # RKorAPClient 0.7.6
 
