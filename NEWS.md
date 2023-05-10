@@ -1,3 +1,7 @@
+# RKorAPClient 0.7.6.9000 (unpublished)
+
+- fixed R 4.3 compatibility (see <https://github.com/KorAP/RKorAPClient/issues/12>)
+
 # RKorAPClient 0.7.6
 
 - fixed error in recursiveCA demo
