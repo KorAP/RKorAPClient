@@ -8,7 +8,7 @@ library(purrrlyr)
 # marks are currently not indexed in KorAP.
 #
 # The former is intentional with regard to a majority of use cases and with
-# regard to the reproducibility maxim (see Diewald/Kupietz/Lüngen 2022).
+# regard to the reproducibility maxim (see Diewald/Kupietz/L\u00FCngen 2022).
 # The latter is a shortcoming in KorAP that will be remedied sooner or later
 # and that can be solved provisionally in the meantime with the help of the KorAP API.
 #
@@ -62,9 +62,9 @@ plotPluralGenderVariants <- function(word = "Nutzer",
 hc <- plotPluralGenderVariants("Nutzer", c(1995:2022), as.alternatives = FALSE)
 # htmlwidgets::saveWidget(hc, file=fname, selfcontained = TRUE)
 
-# Diewald, Nils/Kupietz, Marc/Lüngen, Harald (2022):
+# Diewald, Nils/Kupietz, Marc/L\u00FCngen, Harald (2022):
 # Tokenizing on scale. Preprocessing large text corpora on the lexical and sentence level.
-# In: Klosa-Kückelhaus, Annette/Engelberg, Stefan/Möhrs, Christine/Storjohann, Petra (eds):
+# In: Klosa-K\u00FCckelhaus, Annette/Engelberg, Stefan/M\u00F6hrs, Christine/Storjohann, Petra (eds):
 # Dictionaries and Society. Proceedings of the XX EURALEX International Congress, 12-16 July 2022.
 # Mannheim: IDS-Verlag, 2022: 208-221.
 # <https://doi.org/10.14618/ids-pub-11146>
