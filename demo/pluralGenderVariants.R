@@ -1,6 +1,8 @@
 library(RKorAPClient)
 library(tidyverse)
 library(purrrlyr)
+library(httr2)
+library(httpuv)
 
 # The challenge in searching gender variants with KorAP and DeReKo is that,
 # firstly, some characters used for gender marking, especially punctuation marks,
@@ -43,13 +45,23 @@ unravelPunctuationGenderCases <- function(df, suffix = "innen", kco = new("KorAP
   }
 }
 
+oauthorizeDemo <- function(kco) { # if no access token is set ask for one for the demo application
+  if (is.null(kco@accessToken)) {
+    kco@accessToken <- (oauth_client(id = "773NHGM76N7P9b6rLfmpM4",
+                                    token_url = paste0(kco@apiUrl, "oauth2/token")) %>%
+      oauth_flow_auth_code( scope = "search match_info",
+                            auth_url = paste0(kco@KorAPUrl, "settings/oauth/authorize")))$accessToken
+  }
+  kco
+}
+
 plotPluralGenderVariants <- function(word = "Nutzer",
                           years = c(1995:2022),
                           as.alternatives = FALSE,
                           vc = "referTo ratskorpus-2023-1 & pubDate in",
                           suffixes = c('Innen', '[\\*]innen"', '[_]innen"', ' innen'),
                           prefixes = c('',      '"',            '"',        ''),
-                          kco = new("KorAPConnection", verbose=TRUE) ) {
+                          kco = new("KorAPConnection", verbose=TRUE) %>% oauthorizeDemo()) {
   hc <-
     frequencyQuery(kco, paste0(prefixes, word, suffixes), paste(vc, years), as.alternatives=as.alternatives) %>%
     unravelPunctuationGenderCases(kco = kco) %>%
