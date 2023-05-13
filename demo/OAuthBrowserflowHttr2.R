@@ -11,4 +11,7 @@ new("KorAPConnection", verbose = TRUE, accessToken = token$access_token) %>%
   collocationAnalysis("focus([marmot/p=ADJA] {Gendern})", leftContextSize=1, rightContextSize=0) %>%
   mutate(collocate = paste0('<a href="', webUIRequestUrl, '">', collocate, '</a>')) %>%
   select(collocate, O, pmi, mi2, mi3, logDice, ll) %>%
-  kable(escape = FALSE, caption = "Adjective collocates of 'Gendern'") %>% kable_styling()
+  kable(escape = FALSE, caption = "Adjective collocates of 'Gendern'") %>%
+  kable_styling() %>%
+  print()
+
