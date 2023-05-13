@@ -129,9 +129,9 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
    kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
    ```
 
-See also the [displayKwics demo](./demo/displayKwics.R) and the [demo using the httr2 package](./demo/OAuthBrowserflowHttr2.R).
+See also the [displayKwics demo](./demo/displayKwics.R).
 
-How to request access, only if no access token has been provided or persisted, is illustrated in the [gender variants demo](./demo/pluralGenderVariants.R).
+How to request access, only if no access token has been provided or persisted, is illustrated in the [gender variants demo](./demo/pluralGenderVariants.R) (try `demo("pluralGenderVariants")` ) and in the [adjective collocates demo](./demo/adjectiveCollocates.R) (try `demo("adjectiveCollocates")` ).
 
 #### Storing and testing your authorized access
 
