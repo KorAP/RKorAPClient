@@ -215,7 +215,7 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 ## Development and License
 ### RKorAPClient
 
-**Authors**: [Marc Kupietz](http://www1.ids-mannheim.de/zfo/personal/kupietz/), [Nils Diewald](http://www1.ids-mannheim.de/zfo/personal/diewald/)
+**Authors**: [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz/), [Nils Diewald](https://www.ids-mannheim.de/digspra/personal/diewald/)
 
 Copyright (c) 2023, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
