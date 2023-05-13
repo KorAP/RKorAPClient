@@ -129,7 +129,7 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
    kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
    ```
 
-See also the [the OAuth2 runtime demo using the httr package](./demo/OAuthBrowserflowHttr.R) and the [demo using the httr2 package](./demo/OAuthBrowserflowHttr2.R).
+See also the [displayKwics demo](./demo/displayKwics.R) and the [demo using the httr2 package](./demo/OAuthBrowserflowHttr2.R).
 
 How to request access, only if no access token has been provided or persisted, is illustrated in the [gender variants demo](./demo/pluralGenderVariants.R).
 
