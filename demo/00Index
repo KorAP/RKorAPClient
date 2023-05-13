@@ -6,7 +6,7 @@ regional                        Map plot regional frequencies of query expressio
 mosaicplot                      Visualize frequencies of alternative query terms in relation to other variables
 shiny-frequency-curves          Web application that plots frequency curves with highcharts and shiny
 writtenVsSpoken                 Compare frequencies in written vs. spoken corpora
-displayKwics                    Display query results as KWICs via html
+displayKwics                    Display query results including KWICs (also demonstrates OAuth2 browser workflow with httr)
 light-verb-construction-ca      Collocation analysis to identify light verb constructions matching the pattern "in NN setzen", with result rendered as HTML DataTable
 highcharter-example             Visualize frequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using the package highcharter as wrapper for Highcharts
 recursiveCA                     Show result dataframe of recursvie collocation analysis as pretty HTML tableb y Knitr via Markdown.
@@ -15,4 +15,3 @@ frequency_by_country_highcharts Plot frequencies depending on country of publica
 collocation_score_by_country    Plot collocation scores depending on country of publication using ggplot2.
 pluralGenderVariants            Plot frequencies of the plular gender variants of a word in the core corpus of the Council for German Orthography (OKK) over time.
 OAuthBrowserflowHttr2           Runtime OAuth2 browser flow demonstration using the httr2 package (adjective collocates of »Gendern«)
-OAuthBrowserflowHttr            Runtime OAuth2 browser flow demonstration using the httr package (query results for »Vöner« including KWICs)
