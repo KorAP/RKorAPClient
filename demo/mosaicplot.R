@@ -20,7 +20,7 @@ mosaicplot <- function(query, vc, kco = new("KorAPConnection", verbose = TRUE)) 
     { . ->> queryResult } %>%
     { xtabs(totalResults ~ condition + alternative, .)} %>%
     vcd::mosaic(shade = TRUE) # , labeling = labeling_border(rot_labels = c(45,0,0,0), just_labels = c("left", "center", "center", "right")))
-  df
+  queryResult
 }
 queryResult <- mosaicplot(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"), c("textDomain=Wirtschaft", "textDomain=Kultur", "textDomain=Sport"))
 #mosaicplot(c("Asylbewerber", "Asylwerber"), c("pubPlaceKey=DE", "pubPlaceKey=AT"))
