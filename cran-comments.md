@@ -1,23 +1,29 @@
+## Notes
+
+* new release to fix R 4.3 compatibility issues with `collocationAnalysis` method 
+  (see <https://github.com/KorAP/RKorAPClient/issues/12>)
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
 ## Test environments
 
-* local Fedora 37 with R version 4.2.3
+* local Fedora 38 with R version 4.3.1
 * CentOS-release-7-9.2009 with R version 3.6.0
-* github workflow on Windows with R 4.2.3
-* github workflow on macOS with R 4.2.3
+* github workflow on Windows with R 4.3.1
+* github workflow on macOS with R 4.3.1
+* github workflow on Ubuntu with R 4.3.1
 * github workflow on Ubuntu with R 4.2.3
-* github workflow on Ubuntu with R 4.1.3
 * github workflow on Ubuntu with R-devel (4.4.0)
+* win-builder workflow on Windows with R-devel (2023-07-28 r84779 ucrt)
 
-```
-0 errors ✓ | 0 warnings ✓ | 0 notes ✓
-```
 
-## Checks with check_win()
+### Old Notes
 
-* R 4.2.3
-* R 4.1.3
-
-## Notes
+#### Notes on 0.7.6
 
 * Fixed CRAN policy violation (Packages which use Internet resources should fail gracefully...)
   pointed out in email from Prof Brian Ripley on Sat, 15 Apr 2023 16:20:19 +0100
@@ -29,7 +35,6 @@
 * Fixed dontrun position in misc.R example making sure that examples run in <5s.
 * Wrapped the last remaining web api query example in \dontrun.
 
-### Old Notes
 
 #### Notes on 0.7.5
 
