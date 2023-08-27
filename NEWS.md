@@ -1,3 +1,5 @@
+# RKorAPClient 0.7.7.9000 (unpublished)
+
 # RKorAPClient 0.7.7
 
 - fixed R 4.3 compatibility (see <https://github.com/KorAP/RKorAPClient/issues/12>)
