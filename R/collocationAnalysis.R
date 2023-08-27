@@ -44,8 +44,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
 #'
-#' @importFrom stringr str_match str_split str_detect
-#' @importFrom dplyr anti_join arrange desc slice_head bind_rows
+#' @importFrom dplyr arrange desc slice_head bind_rows
 #' @importFrom purrr pmap
 #' @importFrom tidyr expand_grid
 #'
@@ -224,29 +223,30 @@ removeWithinSpan <- function(query, withinSpan) {
 }
 
 #' @importFrom magrittr debug_pipe
-#' @importFrom stringr str_match str_split str_detect
+#' @importFrom stringr str_detect
 #' @importFrom dplyr as_tibble tibble rename filter anti_join tibble bind_rows case_when
 #'
-snippet2FreqTable <- function(snippet,
+matches2FreqTable <- function(matches,
+                              index = 0,
                               minOccur = 5,
                               leftContextSize = 5,
                               rightContextSize = 5,
                               ignoreCollocateCase = FALSE,
                               stopwords = c(),
-                              tokenizeRegex = "([! )(\uc2\uab,.:?\u201e\u201c\'\"]+|&quot;)",
                               collocateFilterRegex =  '^[:alnum:]+-?[:alnum:]*$',
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1)),
                               verbose = TRUE) {
   word <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   frequency <- NULL
 
-  if (length(snippet) < 1) {
+  if (nrow(matches) < 1) {
     dplyr::tibble(word=c(), frequency=c())
-  } else if (length(snippet) > 1) {
-    log_info(verbose, paste("Joining", length(snippet), "kwics\n"))
-    for (s in snippet) {
-      oldTable <- snippet2FreqTable(
-        s,
+  } else if (index == 0) {
+    log_info(verbose, paste("Joining", nrow(matches), "kwics\n"))
+    for (i in 1:nrow(matches)) {
+      oldTable <- matches2FreqTable(
+        matches,
+        i,
         leftContextSize = leftContextSize,
         rightContextSize = rightContextSize,
         collocateFilterRegex = collocateFilterRegex,
@@ -262,25 +262,16 @@ snippet2FreqTable <- function(snippet,
       arrange(desc(frequency))
   } else {
     stopwordsTable <- dplyr::tibble(word=stopwords)
-    match <-
-      str_match(
-        snippet,
-        '<span class="context-left">(<span class="more"></span>)?(.*[^ ]) *</span><span class="match"><mark>.*</mark></span><span class="context-right"> *([^<]*)'
-      )
 
-    left <- if(leftContextSize > 0)
-      tail(unlist(str_split(match[1, 3], tokenizeRegex)), leftContextSize)
-    else
-      ""
+    left <- tail(unlist(matches$tokens$left[index]), leftContextSize)
+
 #    cat(paste("left:", left, "\n", collapse=" "))
 
-    right <- if(rightContextSize > 0)
-      head(unlist(str_split(match[1, 4], tokenizeRegex)), rightContextSize)
-    else
-        ""
+    right <- head(unlist(matches$tokens$right[index]), rightContextSize)
+
 #    cat(paste("right:", right, "\n", collapse=" "))
 
-    if(is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
+    if(length(left) + length(right) == 0) {
       oldTable
     } else {
       table(c(left, right)) %>%
@@ -411,7 +402,8 @@ collocatesQuery <-
       tibble(word=c(), frequency=c())
     } else {
       q <- fetchNext(q, maxFetch=searchHitsSampleLimit, randomizePageOrder=TRUE)
-      snippet2FreqTable((q@collectedMatches)$snippet,
+      matches2FreqTable (q@collectedMatches,
+                         0,
                         minOccur = minOccur,
                         leftContextSize = leftContextSize,
                         rightContextSize = rightContextSize,
