@@ -297,13 +297,6 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     currentMatches <-
       res$matches %>%
       dplyr::select(kqo@fields)
-    if ("pubDate" %in% kqo@fields) {
-      currentMatches$pubDate <-  currentMatches$pubDate %>% as.Date(format = "%Y-%m-%d")
-      factorCols <- currentMatches %>% select(-pubDate) %>% colnames()
-    } else {
-      factorCols <- colnames(currentMatches)
-    }
-    currentMatches[factorCols] <- lapply(currentMatches[factorCols], factor)
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
