@@ -44,7 +44,7 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #' @export
 setMethod("initialize", "KorAPQuery",
           function(.Object, korapConnection = NULL, request = NULL, vc="", totalResults=0, nextStartIndex=0, fields=c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
-                                                                              "availability", "textClass", "snippet"),
+                                                                              "availability", "textClass", "snippet", "tokens"),
                    requestUrl="", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches= FALSE, collectedMatches = NULL) {
             .Object <- callNextMethod()
             .Object@korapConnection = korapConnection
@@ -167,7 +167,8 @@ setMethod("corpusQuery", "KorAPConnection",
                      "pubPlace",
                      "availability",
                      "textClass",
-                     "snippet"
+                     "snippet",
+                     "tokens"
                    ),
                    accessRewriteFatal = TRUE,
                    verbose = kco@verbose,
@@ -180,7 +181,7 @@ setMethod("corpusQuery", "KorAPConnection",
       corpusQuery(kco, query=query, vc=vc, ql=ql, verbose=verbose, as.df = TRUE)) %>%
       bind_rows()
   } else {
-      contentFields <- c("snippet")
+      contentFields <- c("snippet", "tokens")
       if (metadataOnly) {
         fields <- fields[!fields %in% contentFields]
       }
@@ -188,7 +189,9 @@ setMethod("corpusQuery", "KorAPConnection",
         paste0('?q=',
                url_encode(enc2utf8(query)),
                ifelse (!metadataOnly && ! is.null(context) && context !=  '', paste0('&context=', url_encode(enc2utf8(context))), ''),
-               ifelse (vc != '', paste0('&cq=', url_encode(enc2utf8(vc))), ''), '&ql=', ql)
+               ifelse (vc != '', paste0('&cq=', url_encode(enc2utf8(vc))), ''),
+               ifelse (!metadataOnly, '&show-tokens=true', ''),
+               '&ql=', ql)
       webUIRequestUrl <- paste0(kco@KorAPUrl, request)
       requestUrl <- paste0(
         kco@apiUrl,
@@ -300,7 +303,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
-      collectedMatches <- rbind(collectedMatches, currentMatches)
+      collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
     if (verbose) {
       cat(paste0(
@@ -426,7 +429,8 @@ buildWebUIRequestUrl <- function(kco,
                                    "pubPlace",
                                    "availability",
                                    "textClass",
-                                   "snippet"
+                                   "snippet",
+                                   "tokens"
                                  ),
                                  accessRewriteFatal = TRUE) {
   request <-

@@ -28,7 +28,7 @@
   totalResults = 0,
   nextStartIndex = 0,
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "snippet"),
+    "textClass", "snippet", "tokens"),
   requestUrl = "",
   webUIRequestUrl = "",
   apiResponse = NULL,
@@ -46,7 +46,7 @@
   metadataOnly = TRUE,
   ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "snippet"),
+    "textClass", "snippet", "tokens"),
   accessRewriteFatal = TRUE,
   verbose = kco@verbose,
   expand = length(vc) != length(query),
@@ -85,7 +85,7 @@ buildWebUIRequestUrl(
   metadataOnly = TRUE,
   ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "snippet"),
+    "textClass", "snippet", "tokens"),
   accessRewriteFatal = TRUE
 )
 

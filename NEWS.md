@@ -1,5 +1,7 @@
 # RKorAPClient 0.7.7.9000 (unpublished)
 
+- if not `metadataOnly`, also retrieve tokenized snippets (in `collectedMatches$tokens`)
+
 # RKorAPClient 0.7.7
 
 - fixed R 4.3 compatibility (see <https://github.com/KorAP/RKorAPClient/issues/12>)
