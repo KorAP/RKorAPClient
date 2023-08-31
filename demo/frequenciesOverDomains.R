@@ -16,7 +16,7 @@ freqPerDomain <- function(query, con = new("KorAPConnection", verbose = TRUE)) {
     mutate(total = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
     ci(x = count) %>%
     ipm() %>%
-    { df <<- . } %>%
+    { df <- . } %>%
     ggplot(aes(x = Domain, y = ipm, ymin = conf.low, ymax = conf.high)) +
     geom_col() +
     geom_errorbar(width = .3, alpha = .3) +
