@@ -39,5 +39,6 @@ hc_add_onclick_korap_search <- function(hc) {
     spline = onclick_hc_options,
     column = onclick_hc_options,
     bar = onclick_hc_options,
+    scatter = onclick_hc_options,
     pie = onclick_hc_options)
 }
