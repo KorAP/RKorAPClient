@@ -1,0 +1,123 @@
+---
+title: "Corpus Compostion Analysis"
+output:
+  html_document:
+    css: style.css
+    self_contained: false
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+corpus=c("", "referTo ratskorpus-2023-1 & ", "referTo drukola.20180909.1b_words & ")
+
+highchart <- function(...) {
+  highcharter::highchart() %>%  
+    hc_add_theme(hc_theme_ids_light()) %>%
+    hc_add_onclick_korap_search()
+}
+
+prettifyCorpusNames <- function(df) {
+  rownames(df) = NULL
+  df %>%
+    mutate(corpus = corpus %>% str_replace("referTo *", "") %>% str_replace(" *& *$", "") |> str_replace("^ *$", "DeReKo-KorAP"))
+  
+}
+
+library(RKorAPClient)
+library(tidyverse)
+library(idsThemeR)
+library(highcharter)
+knitr::opts_chunk$set(echo = FALSE)
+kco <- new("KorAPConnection", verbose=FALSE)
+
+```
+
+
+```{r country}
+countries <- c("DE", "AT", "CH", "IT", "BE", "LU") %>% sort()
+
+df <- expand_grid(corpus=corpus, country=countries) %>%
+  mutate(vc = sprintf("%spubPlaceKey=%s", corpus, country)) %>%
+  prettifyCorpusNames() %>%
+  bind_cols(corpusStats(kco, .$vc) %>% select(-vc))
+
+hc <- highchart() %>%
+  hc_add_series(type = "column", data = df, hcaes(x=country, y=tokens, group=corpus)) %>%
+  hc_xAxis(categories = df$country) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_legend(enabled=T) %>%
+  hc_title(text="Land") 
+hc
+```
+
+```{r domain}
+topics <-
+  c(
+    "freizeit-unterhaltung",
+    "gesundheit-ernaehrung",
+    "kultur",
+    "politik",
+    "sport",
+    "staat-gesellschaft",
+    "technik-industrie",
+    "wissenschaft",
+    "wirtschaft-finanzen",
+    "natur-umwelt",
+    "fiktion"
+  )
+
+df <- expand_grid(corpus=corpus, domain=topics) %>%
+  mutate(vc = sprintf("%stextClass=%s", corpus, domain)) %>%
+  bind_cols(corpusStats(kco, .$vc)%>% select(-vc)) %>%
+  prettifyCorpusNames()
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(domain, tokens, group=corpus)) %>%
+  hc_xAxis(categories = df$domain %>% str_to_title(locale = "en") )%>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_title(text="Thema")
+hc
+
+```
+
+
+```{r decade}
+decades <-
+    c(1951, 1961, 1971, 1981, 1991, 2001, 2011, 2021)
+decade_labels <- function(start_year) {
+  sprintf("%d-%d", start_year, start_year+9)
+}
+
+df <- expand_grid(corpus=corpus, decade=decades) %>%
+  mutate(vc = sprintf("%spubDate since %d & pubDate until %d", corpus, decade, decade+9)) %>%
+  bind_cols(corpusStats(kco, .$vc) %>% select(-vc)) %>%
+  mutate(decade = decade_labels(decade)) %>%
+  prettifyCorpusNames()
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(decade, tokens, group=corpus)) %>%
+  hc_xAxis(categories = df$decade )%>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_title(text="Dekade")
+hc
+
+
+```
+
+```{r texttype}
+texttypes <-
+    c("/Zeitung.*/", "/(Zeitschrift|Magazin).*/", "/Agenturmeldung.*/", "/Enzyklopädie.*/", "/Diskussion.*/", "/Roman.*/", "/Newsgroup.*/", "/Tagebuch.*/", "/Sachbuch.*/")
+
+df <- expand_grid(corpus=corpus, texttype=texttypes) %>%
+  mutate(vc = sprintf("%stextType=%s", corpus, texttype)) %>%
+  bind_cols(corpusStats(kco, .$vc) %>% select(-vc)) %>%
+  prettifyCorpusNames()
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(texttype, tokens, group=corpus)) %>%
+  hc_xAxis(categories = df$texttype %>% str_replace_all("[/.*)()]", "") %>% str_replace_all("\\|", "/")) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_title(text="Texttyp")
+hc
+
+```
+
