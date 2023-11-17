@@ -51,3 +51,14 @@ p {
   font-size: 16px;
 	text-align: center;
 }
+
+.highchart {
+    height: 200px;
+    float: left !important;
+    width: 50% !important;
+}
+
+.spacer {
+    height: 20px;
+}
+
