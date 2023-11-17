@@ -1,0 +1,126 @@
+---
+title: "Corpus Compostion"
+author: "Marc Kupietz"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    css: style.css
+    keep_md: yes
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+library(RKorAPClient)
+library(tidyverse)
+library(idsThemeR)
+library(highcharter)
+knitr::opts_chunk$set(echo = FALSE)
+kco <- new("KorAPConnection", verbose=FALSE)
+
+vc=""
+```
+
+
+```{r country}
+countries <- c("DE", "AT", "CH", "IT", "BE", "LU", "LI") %>% sort()
+countries_vc <- sprintf("%spubPlaceKey=%s", vc, countries)
+
+total <- corpusStats(kco, vc)
+
+df <- corpusStats(kco, countries_vc) %>%
+  filter(tokens > 0)
+
+hc <- highchart() %>%
+  hc_add_series(type = "column", data = df, hcaes(x=vc, tokens), name="Tokens") %>%
+  hc_xAxis(categories = substr(df$vc, str_length(df$vc)-1, str_length(df$vc))) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_legend(enabled=FALSE) %>%
+  hc_title(text="Land der Veröffentlichung")
+hc
+```
+
+```{r domain}
+  topics <-
+    c(
+      "freizeit-unterhaltung",
+      "gesundheit-ernaehrung",
+      "kultur",
+      "politik",
+      "sport",
+      "staat-gesellschaft",
+      "technik-industrie",
+      "wissenschaft",
+      "wirtschaft-finanzen",
+      "natur-umwelt",
+      "fiktion"
+    )
+topics_vc <- sprintf("%stextClass=%s", vc, topics)
+
+total <- corpusStats(kco, vc)
+
+df <- corpusStats(kco, topics_vc) %>%
+  filter(tokens > 0)
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(x=vc, tokens), name="Tokens") %>%
+  hc_xAxis(categories = topics) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_legend(enabled=FALSE) %>%
+  hc_title(text="Thema")
+hc
+
+```
+
+
+```{r decade}
+decades <-
+    c(1951, 1961, 1971, 1981, 1991, 2001, 2011, 2021)
+  get_decade_vc <- function(start_year) {
+    sprintf("pubDate since %d & pubDate until %d", start_year, start_year+9)
+  }
+  decade_labels <- function(start_year) {
+    sprintf("%d-%d", start_year, start_year+9)
+  }
+decades_vc <- sprintf("%s%s", vc, get_decade_vc(decades))
+
+total <- corpusStats(kco, vc)
+
+df <- corpusStats(kco, decades_vc) %>%
+  filter(tokens > 0)
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(x=vc, tokens), name="Tokens") %>%
+  hc_xAxis(categories = decade_labels(decades)) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_legend(enabled=FALSE) %>%
+  hc_title(text="Dekade")
+hc
+
+```
+
+```{r texttype}
+textype <-
+    c("/Zeitung.*/", "/(Zeitschrift|Magazin).*/", "/Agenturmeldung.*/", "/Enzyklopädie.*/", "/Diskussion.*/", "Roman.*", "/Newsgroup.*/", "/Tagebuch.*/", "/Sachbuch.*/")
+  get_decade_vc <- function(start_year) {
+    sprintf("pubDate since %d & pubDate until %d", start_year, start_year+9)
+  }
+  decade_labels <- function(start_year) {
+    sprintf("%d-%d", start_year, start_year+9)
+  }
+texttype_vc <- sprintf("%stextType=%s", vc, textype)
+
+total <- corpusStats(kco, vc)
+
+df <- corpusStats(kco, texttype_vc) %>%
+  filter(tokens > 0)
+
+hc <- highchart() %>%
+  hc_add_series(type = "bar", data = df, hcaes(x=vc, tokens), name="Tokens") %>%
+  hc_xAxis(categories = textype) %>%
+  hc_yAxis(type = "logarithmic") %>%
+  hc_legend(enabled=FALSE) %>%
+  hc_title(text="Texttype")
+hc
+
+```
+
