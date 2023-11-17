@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "580721fd_50fc5bee",
+        "filename": "R/KorAPCorpusStats.R",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2023-11-17T16:31:14Z",
+      "side": 1,
+      "message": "Should be \u003cbase/s\u003dt\u003e.",
+      "range": {
+        "startLine": 53,
+        "startChar": 56,
+        "endLine": 53,
+        "endChar": 60
+      },
+      "revId": "5f2f153a396058faad032b7e48cf78fbf5f39115",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
