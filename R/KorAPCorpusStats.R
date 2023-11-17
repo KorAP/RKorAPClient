@@ -11,7 +11,8 @@
 #' @slot documents number of documents
 #' @slot sentences number of sentences
 #' @slot paragraphs number of paragraphs
-setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric"))
+#' @slot webUIRequestUrl link to the web user interface with the current vc definition
+setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric", webUIRequestUrl="character" ))
 
 log_info <- function(v,  ...) {
   cat(ifelse(v, paste0(...), ""))
@@ -49,12 +50,13 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
              URLencode(enc2utf8(vc), reserved = TRUE))
     log_info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
+    webUIRequestUrl <- paste0(kco@KorAPUrl, sprintf("?q=<base/s=t>&cq=%s", URLencode(enc2utf8(vc))))
     if(is.null(res)) {
       res <- data.frame(documents=NA, tokens=NA, sentences=NA, paragraphs=NA)
     }
     log_info(verbose, ": ", res$tokens, " tokens\n")
     if (as.df)
-      data.frame(vc = vc, res, stringsAsFactors = FALSE)
+      data.frame(vc = vc, webUIRequestUrl = webUIRequestUrl, res, stringsAsFactors = FALSE)
     else
       new(
         "KorAPCorpusStats",
@@ -62,7 +64,8 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
         documents = res$documents,
         tokens = res$tokens,
         sentences = res$sentences,
-        paragraphs = res$paragraphs
+        paragraphs = res$paragraphs,
+        webUIRequestUrl = webUIRequestUrl
       )
   }
 })

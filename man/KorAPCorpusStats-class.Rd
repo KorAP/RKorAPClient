@@ -27,5 +27,7 @@
 \item{\code{sentences}}{number of sentences}
 
 \item{\code{paragraphs}}{number of paragraphs}
+
+\item{\code{webUIRequestUrl}}{link to the web user interface with the current vc definition}
 }}
 
