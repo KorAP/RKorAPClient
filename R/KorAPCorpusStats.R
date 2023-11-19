@@ -26,6 +26,7 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #' @param as.df return result as data frame instead of as S4 object?
 #' @return `KorAPCorpusStats` object with the slots `documents`, `tokens`, `sentences`, `paragraphs`
 #'
+#' @importFrom urltools url_encode
 #' @examples
 #'
 #' \dontrun{
@@ -50,7 +51,7 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
              URLencode(enc2utf8(vc), reserved = TRUE))
     log_info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
     res <- apiCall(kco, url)
-    webUIRequestUrl <- paste0(kco@KorAPUrl, sprintf("?q=<base/s=t>&cq=%s", URLencode(enc2utf8(vc))))
+    webUIRequestUrl <- paste0(kco@KorAPUrl, sprintf("?q=<base/s=t>&cq=%s", url_encode(enc2utf8(vc))))
     if(is.null(res)) {
       res <- data.frame(documents=NA, tokens=NA, sentences=NA, paragraphs=NA)
     }
