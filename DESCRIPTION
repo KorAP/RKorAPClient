@@ -67,4 +67,5 @@ Collate:
     'hc_freq_by_year_ci.R'
     'misc.R'
     'reexports.R'
+    'textMetadata.R'
 Roxygen: list(markdown = TRUE)
