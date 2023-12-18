@@ -1,5 +1,6 @@
 # RKorAPClient 0.7.7.9000 (unpublished)
 
+- added `textMetadata` KorAPConnection method to retrieve all metadata for a text based on its sigle
 - if not `metadataOnly`, also retrieve tokenized snippets (in `collectedMatches$tokens`)
 - uses server side tokenized matches in collocation analysis, if supported by KorAP server
 
