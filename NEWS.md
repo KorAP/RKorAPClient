@@ -1,8 +1,11 @@
-# RKorAPClient 0.7.7.9000 (unpublished)
+# RKorAPClient 0.8.0
 
 - added `textMetadata` KorAPConnection method to retrieve all metadata for a text based on its sigle
-- if not `metadataOnly`, also retrieve tokenized snippets (in `collectedMatches$tokens`)
+- added `webUiRequestUrl` column also to corpusStats results, so that also virtual corpus definitions can be linked to / tested directly in the KorAP UI
+- added on-click action to open KorAP query also to highcharter scatter plots
+- if not `metadataOnly` is set, also tokenized snippets are now retrieved in corpus queries (stored in `collectedMatches$tokens`) 
 - uses server side tokenized matches in collocation analysis, if supported by KorAP server
+- fixed regional demo (will be updated again soon)
 
 # RKorAPClient 0.7.7
 
