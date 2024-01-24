@@ -3,8 +3,11 @@ library(tidyverse)
 library(purrrlyr)
 library(httr2)
 library(httpuv)
+library(RMariaDB)
+library(tidyfst)
 
 demo_kor_app_id = "773NHGM76N7P9b6rLfmpM4"
+source("https://www.stgries.info/research/dispersion/dispersions.r")
 
 # The challenge in searching gender variants with KorAP and DeReKo is that,
 # firstly, some characters used for gender marking, especially punctuation marks,
@@ -80,6 +83,57 @@ plotPluralGenderVariants <- function(word = "Nutzer",
 
 
 hc <- plotPluralGenderVariants("Nutzer", c(1995:2022), as.alternatives = FALSE)
+
+getOKKSourceTitles <- function() {
+  db <- dbConnect(MariaDB(), host="klinux10.ids-mannheim.de", user="viewer", dbname="corpora")
+  dbExecute(db, "SET NAMES 'utf8'")
+  rs <- dbSendQuery(db, "SELECT title from basename WHERE basename.rsr")
+  corpus_parts  <- dbFetch(rs)
+  dbClearResult(rs)
+  dbDisconnect(db)
+  return(corpus_parts$title)
+}
+
+sourceDispersions <- function(word = "Bürger",
+                             sourceTitles = getOKKSourceTitles(),
+                             as.alternatives = FALSE,
+                             vc = 'referTo ratskorpus-2023-1 & corpusTitle="',
+                             suffixes = c('Innen', '[\\*]innen"', '[_]innen"', ' innen'),
+                             prefixes = c('',      '"',            '"',        ''),
+                             kco = new("KorAPConnection", verbose=TRUE) %>% oauthorizeDemo()) {
+  df <-
+    frequencyQuery(kco, paste0(prefixes, word, suffixes), paste0(vc, sourceTitles, '"'), as.alternatives=as.alternatives) %>%
+    unravelPunctuationGenderCases(kco = kco) %>%
+    mutate(Quelle=str_replace_all(.$vc, '(.*="|"$)', '')) %>%
+    ipm() %>%
+    filter(total > 0) %>%
+    rename(Variante=query)
+
+  dispersions <- df %>%
+    group_by(Variante) %>%
+    mutate(total_size=sum(total), rel_size=total/total_size) %>%
+    group_modify(~ as_tibble(dispersions2(.x$totalResults, .x$rel_size))) %>%
+    pivot_longer(cols= -1) %>%
+    filter(! str_detect(name, " equally")) %>%
+    mutate(name=str_replace(name, " ?\\(.*\\)", '')) %>%
+    mutate_when(str_detect(name, "DPnorm"), name = "1-DP_norm", value = 1 -value) %>%
+    mutate(across(where(is.double)), value = round(value, 2)) %>%
+    mutate_when(str_detect(name, "(corpus|range)"), value = as.integer(value)) %>%
+    group_by(name) %>%
+    mutate(rank = if_else(str_detect(name, "Kullback"), rank(value), rank(-value))) %>%
+    group_by(Variante) %>%
+    #    mutate(rank = mean(rank, na.rm = FALSE)) %>%
+    bind_rows(summarise(., name="Avg. Rank", value = mean(rank, na.rm = FALSE))) %>%
+    select(-rank) %>%
+    pivot_wider(names_from = Variante) %>%
+    rename(measure=name)
+
+  return(list(df, dispersions))
+}
+
+df_dispersions <- sourceDispersions("Nutzer")
+View(df_dispersions[[2]])
+
 # htmlwidgets::saveWidget(hc, file=fname, selfcontained = TRUE)
 
 # Diewald, Nils/Kupietz, Marc/L\u00FCngen, Harald (2022):
