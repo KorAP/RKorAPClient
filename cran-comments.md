@@ -1,7 +1,7 @@
 ## Notes
 
-* new release to fix R 4.3 compatibility issues with `collocationAnalysis` method 
-  (see <https://github.com/KorAP/RKorAPClient/issues/12>)
+* release with some new features and internal changes that should not affect CRAN
+  compatibility
 
 ```
 0 errors ✔ | 0 warnings ✔ | 0 notes ✔
@@ -11,17 +11,23 @@ R CMD check succeeded
 
 ## Test environments
 
-* local Fedora 38 with R version 4.3.1
-* CentOS-release-7-9.2009 with R version 3.6.0
-* github workflow on Windows with R 4.3.1
-* github workflow on macOS with R 4.3.1
-* github workflow on Ubuntu with R 4.3.1
+* local Fedora 39 with R version 4.3.2
+* github workflow on Windows with R 4.3.2
+* github workflow on macOS with R 4.3.2
+* github workflow on Ubuntu with R 4.3.2
 * github workflow on Ubuntu with R 4.2.3
-* github workflow on Ubuntu with R-devel (4.4.0)
-* win-builder workflow on Windows with R-devel (2023-07-28 r84779 ucrt)
+* github workflow on Ubuntu with R Under development (unstable) (2024-01-23 r85822)
+* win-builder workflow on Windows with R-devel (2024-01-23 r85822 ucrt)
+* macOS builder on macOS 13.3.1 with R 4.3.0
 
 
 ### Old Notes
+
+#### Notes on 0.7.7
+
+* new release to fix R 4.3 compatibility issues with `collocationAnalysis` method 
+  (see <https://github.com/KorAP/RKorAPClient/issues/12>)
+
 
 #### Notes on 0.7.6
 
