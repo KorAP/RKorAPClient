@@ -13,7 +13,8 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #' @param textSigle unique text id (concatenation of corpus, document and text ids, separated by `/`, e.g. ) or vector thereof
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed. Defaults to `kco@verbose`.
 #'
-#' @return Tibble with columns for every metadata property. In case of errors, like non-existing texts/sigles, the tibble will also contain a row called `errors`.
+#' @return Tibble with columns for each metadata property. In case of errors, such as non-existing texts/sigles, the tibble will also contain a column called `errors`.
+#' If there are metadata columns you cannot make sense of, please ignore them. The function simply returns all the metadata it gets from the server.
 #'
 #' @importFrom urltools url_encode
 #' @importFrom dplyr bind_rows relocate mutate

@@ -15,7 +15,8 @@
 \item{verbose}{logical. If \code{TRUE}, additional diagnostics are printed. Defaults to \code{kco@verbose}.}
 }
 \value{
-Tibble with columns for every metadata property. In case of errors, like non-existing texts/sigles, the tibble will also contain a row called \code{errors}.
+Tibble with columns for each metadata property. In case of errors, such as non-existing texts/sigles, the tibble will also contain a column called \code{errors}.
+If there are metadata columns you cannot make sense of, please ignore them. The function simply returns all the metadata it gets from the server.
 }
 \description{
 Retrieves metadata for a text, identified by its sigle (id) using the corresponding KorAP API
