@@ -1,0 +1,66 @@
+image: ubuntu:rolling
+
+stages:
+  - build
+
+build-job:
+  stage: build
+
+  variables:
+    # Set `CCACHE_BASEDIR` and `CCACHE_DIR` to point `ccache` towards the cached
+    # path on the gitlab-runner. This enables to cache the output of `ccache`
+    # between various runs.
+    CCACHE_BASEDIR: ${CI_PROJECT_DIR}
+    CCACHE_DIR: ${CI_PROJECT_DIR}/ccache
+    # Set `ccache` to `content` to prevent rebuilding of the CI/CD containers to
+    # trigger a recreate of the cache. By using `content` the compiler's `mtime`
+    # is not considered as part of the hash.
+    CCACHE_COMPILERCHECK: "content"
+    # Enable caching for `apt-get`.
+    APT_CACHE_DIR: ${CI_PROJECT_DIR}/apt-cache
+    # Export `noninteractive` frontend to prevent requesting user input
+    DEBIAN_FRONTEND: noninteractive
+    R_LIBS_USER: ${CI_PROJECT_DIR}/rlib
+
+  cache:
+    key: rkorapclient
+    paths:
+      - apt-cache/
+      - ccache/
+      - rlib/
+
+  artifacts:
+    paths:
+      - "target/*"
+
+  before_script:
+    - source `find .. -name section_helper.sh`
+
+    - start_section install_linux_packages "Installing missing Linux packages"
+    - mkdir -pv $APT_CACHE_DIR ccache $R_LIBS_USER /usr/local/sbin ~/.ccache ~/.R
+    - cp ci/Makevars ~/.R/Makevars
+    - cp ci/ccache.conf ${CI_PROJECT_DIR}/ccache/ccache.conf
+    - cp ci/ccache.conf ~/.ccache/ccache.conf
+    - echo "R_LIBS='$R_LIBS_USER'" > .Renviron
+    - echo "MAKEFLAGS=-j$(nproc)" >> ~/.R/Makevars
+    - echo "MAKE=make -j$(nproc)" >> ~/.R/Makevars
+    - apt-get update
+    - apt-get install -y -o dir::cache::archives="$APT_CACHE_DIR" --no-install-recommends software-properties-common dirmngr ccache wget
+    - wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+    - add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+     # - add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+    - grep "sudo apt install" Readme.md | sed -e 's/.*sudo apt install/apt-get install --no-install-recommends -o dir::cache::archives="$APT_CACHE_DIR" -y /g' | sh
+    - ln -s $(which ccache) /usr/local/sbin/gcc
+    - ln -s $(which ccache) /usr/local/sbin/g++
+    - end_section install_linux_packages
+
+  script:
+    - start_section installing "Installing RKorAPClient from CRAN"
+    - export PATH=/usr/local/sbin:$PATH
+    - R -q -e "install.packages(c('remotes', 'RKorAPClient'), dependencies = TRUE)"
+    - R -q -e "update.packages(ask = FALSE)"
+    - end_section installing
+    - start_section linstalling "Installing RKorAPClient from source"
+    - R -q -e 'remotes::install_local(force = TRUE, dependencies = TRUE)'
+    - ccache -s
+    - end_section linstalling

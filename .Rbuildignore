@@ -10,3 +10,5 @@
 ^CRAN-RELEASE$
 ^.*\.log$
 ^CRAN-SUBMISSION$
+^ci
+^.gitlab-ci

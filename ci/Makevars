@@ -1,0 +1,11 @@
+VER=
+CXX17=$(CCACHE) g++$(VER)
+CCACHE=ccache
+#CCACHE=
+CC=$(CCACHE) gcc$(VER)
+CXX=$(CCACHE) g++$(VER)
+CXX11=$(CCACHE) g++$(VER)
+CXX14=$(CCACHE) g++$(VER)
+CXX17=$(CCACHE) g++$(VER)
+FC=$(CCACHE) gfortran$(VER)
+F77=$(CCACHE) gfortran$(VER)
