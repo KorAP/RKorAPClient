@@ -1,11 +1,4 @@
-image: ubuntu:rolling
-
-stages:
-  - build
-
-build-job:
-  stage: build
-
+.intstall-rkorapclient:
   variables:
     # Set `CCACHE_BASEDIR` and `CCACHE_DIR` to point `ccache` towards the cached
     # path on the gitlab-runner. This enables to cache the output of `ccache`
@@ -60,3 +53,19 @@ build-job:
     - R -q -e 'remotes::install_local(force = TRUE, dependencies = TRUE)'
     - ccache -s
     - end_section linstalling
+
+build-rkorapclient-on-stable:
+  extends: .intstall-rkorapclient
+  image: ubuntu:latest
+  cache:
+    key: rkorapclient-ubuntu-stable
+    paths:
+    - apt-cache/
+    - ccache/
+    - rlib/
+
+
+build-rkorapclient-on-rolling:
+  extends: .intstall-rkorapclient
+  image: ubuntu:rolling
+
