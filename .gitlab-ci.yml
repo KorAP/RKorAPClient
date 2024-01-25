@@ -29,10 +29,6 @@ build-job:
       - ccache/
       - rlib/
 
-  artifacts:
-    paths:
-      - "target/*"
-
   before_script:
     - source `find .. -name section_helper.sh`
 
