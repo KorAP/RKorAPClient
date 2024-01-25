@@ -16,6 +16,7 @@
 R client package to access the [web service API](https://github.com/KorAP/Kustvakt/wiki) of the [KorAP Corpus Analysis Platform](https://korap.ids-mannheim.de/) developed at [IDS Mannheim](http://www.ids-mannheim.de/)
 
 ## Examples
+
 ### Hello world
 
 ```R
@@ -24,6 +25,7 @@ new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll
 ```
 
 ### Frequencies over time and domains using ggplot2
+
 ```r
 library(RKorAPClient)
 library(ggplot2)
@@ -38,7 +40,9 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 ![](man/figures/Readme-Example-1.png)<!-- -->
 
 ### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
+
 See the [Highcharts license notes](#highcharts) below.
+
 ```r
 library(RKorAPClient)
 query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
@@ -49,10 +53,12 @@ new("KorAPConnection", verbose=T) %>%
   frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) %>%
   hc_freq_by_year_ci(as.alternatives)
 ```
+
 [![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
 
 
 ### Identify *in … setzen* light verb constructions by using the new `collocationAnalysis` function
+
 [![Lifecycle:experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
 ```r
@@ -170,7 +176,7 @@ More elaborate R scripts demonstrating the use of the package can be found in th
 ```bash
 # Debian, Ubuntu, ...
 sudo apt -f install # install possibly missing RStudio dependencies
-sudo apt install r-base-dev libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev libv8-dev
+sudo apt install r-base-dev r-cran-rcpp r-cran-cpp11 libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev libv8-dev
 
 # Fedora, CentOS, RHEL (for older versions use `yum` instead of `dnf`)
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel v8-devel
@@ -217,7 +223,7 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 
 **Authors**: [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz/), [Nils Diewald](https://www.ids-mannheim.de/digspra/personal/diewald/)
 
-Copyright (c) 2023, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2024, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language
@@ -229,16 +235,19 @@ It is published under the
 ### Further Affected Licenses and Terms of Services
 
 #### Bundled Assets
+
 The KorAP logo was designed by Norbert Cußler-Volz and
 is released under the terms of the Creative Commons
 License BY-NC-ND 4.0.
 
 #### Highcharts
+
 RKorAPClient imports parts of the [highcharter package](https://cran.r-project.org/package=highcharter) which has a dependency on Highcharts, a commercial JavaScript charting library. Highcharts offers both a commercial license as well as a free non-commercial license. Please review the licensing options and terms before using the highcharter plot options, as the `RKorAPClient` license neither provides nor implies a license for Highcharts.
 
 [Highcharts](http://highcharts.com) is a Highsoft product which is not free for commercial and governmental use.
 
 ### Accessed API Services
+
 By using RKorAPClient you agree to the respective terms of use of the accessed KorAP API services which will be printed upon opening a connection (`new("KorAPConnection", ...`).
 
 ## Contributions
