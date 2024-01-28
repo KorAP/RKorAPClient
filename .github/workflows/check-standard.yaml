@@ -5,6 +5,8 @@ on:
     branches: [main, master]
     paths-ignore:
       - '**.md'
+      - 'gitlab-ci.yml'
+      - 'ci/**'
   pull_request:
     branches: [main, master]
     paths-ignore:
