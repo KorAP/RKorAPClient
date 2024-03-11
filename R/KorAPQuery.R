@@ -404,6 +404,7 @@ setMethod("frequencyQuery", "KorAPConnection",
         corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
         mutate(total = corpusStats(kco, vc=vc, as.df=TRUE)$tokens)
       } ) %>%
+      mutate(totalResults=as.integer(totalResults)) %>%
       ci(conf.level = conf.level)
 })
 
