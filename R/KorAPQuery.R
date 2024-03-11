@@ -209,7 +209,7 @@ setMethod("corpusQuery", "KorAPConnection",
         message("API call failed.")
         totalResults <- 0
       } else {
-        totalResults <-res$meta$totalResults
+        totalResults <-as.integer(res$meta$totalResults)
         log_info(verbose, ": ", totalResults, " hits")
         if(!is.null(res$meta$cached))
           log_info(verbose, " [cached]\n")
