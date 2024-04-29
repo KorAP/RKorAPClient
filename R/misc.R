@@ -132,7 +132,7 @@ geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high), .
                 alpha = .3, linetype = 0, show.legend = FALSE, ...),
     geom_line(...),
     geom_click_point(aes(url=webUIRequestUrl), ...),
-    theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = c(0.8, 0.2)),
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position.inside = c(0.8, 0.2)),
     scale_x_continuous(breaks = function(x) seq(ceiling(x[1]), floor(x[2]), by = 1 + floor(((x[2]-x[1])/30)))))
 }
 
