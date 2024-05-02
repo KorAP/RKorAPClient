@@ -1,3 +1,10 @@
+# RKorAPClient 0.8.1
+
+- fixed R 4.4 compatibility of collocationAnalysis function
+- replaced deprecated legend.position (ggplot2)
+- fixed rare frequencyQuery incompatibility with outdated KorAP instances (see https://github.com/KorAP/Kustvakt/issues/668)
+
+
 # RKorAPClient 0.8.0
 
 - added `textMetadata` KorAPConnection method to retrieve all metadata for a text based on its sigle

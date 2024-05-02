@@ -1,5 +1,27 @@
 ## Notes
 
+* release with minor fixes to ensure R 4.4.0 compatibility
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 40 with R versions 4.3.2 and 4.4.0
+* github workflow on Windows with R 4.4.0
+* github workflow on macOS 14.4.1 with R 4.4.0
+* github workflow on Ubuntu with R 4.3.3
+* github workflow on Ubuntu with R 4.4.0
+* github workflow on Ubuntu with R Under development (4.5.0)
+* win-builder workflow using R Under development (unstable) (2024-05-01 r86507 ucrt)
+
+### Old Notes
+
+#### Notes on 0.8.0
+
 * release with some new features and internal changes that should not affect CRAN
   compatibility
 
