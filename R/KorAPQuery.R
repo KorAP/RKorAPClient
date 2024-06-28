@@ -263,7 +263,10 @@ setMethod("corpusQuery", "KorAPConnection",
 #'
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
-#' @importFrom dplyr rowwise bind_rows select summarise n
+#' @importFrom dplyr rowwise mutate bind_rows select summarise n select
+#' @importFrom tibble enframe
+#' @importFrom tidyr unnest unchop pivot_wider
+#' @importFrom purrr map
 #' @export
 setMethod("fetchNext", "KorAPQuery", function(kqo,
                                               offset = kqo@nextStartIndex,
@@ -273,7 +276,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
-
+  use_korap_api <- Sys.getenv("USE_KORAP_API", unset = NA)
   page <- kqo@nextStartIndex / maxResultsPerPage + 1
   results <- 0
   pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
@@ -283,23 +286,40 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
   }
 
+  if(is.null(collectedMatches)) {
+    collectedMatches <- data.frame()
+  }
   repeat {
-    page = length(collectedMatches[,1]) %/% maxResultsPerPage + 1
+    page = nrow(collectedMatches) %/% maxResultsPerPage + 1
     currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
     query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
+    rawRes <<- res
     if (length(res$matches) == 0) {
       break
     }
 
+    if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
+      if (verbose) cat("Using fields API: ")
+      currentMatches <-  tibble::enframe(res$matches$fields) %>%
+        tidyr::unnest(cols = value) %>%
+        tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
+        dplyr::mutate(across(where(is.list), ~ purrr::map(.x, ~ if (length(.x) < 2) unlist(.x) else paste(.x, collapse = " ")))) %>%
+        tidyr::unchop(where(is.list)) %>%
+        dplyr::select(-name)
+      if("snippet" %in% colnames(res$matches)) {
+        currentMatches$snippet <- res$matches$snippet
+      }
+    } else {
+      currentMatches <- res$matches
+    }
+
     for (field in kqo@fields) {
-      if (!field %in% colnames(res$matches)) {
-        res$matches[, field] <- NA
+      if (!field %in% colnames(currentMatches)) {
+        currentMatches[, field] <- NA
       }
     }
-    currentMatches <-
-      res$matches %>%
-      dplyr::select(kqo@fields)
+    currentMatches <- currentMatches %>% select(kqo@fields)
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
@@ -308,7 +328,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     if (verbose) {
       cat(paste0(
         "Retrieved page ",
-        ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
+        ceiling(nrow(collectedMatches) / res$meta$itemsPerPage),
         "/",
         if (!is.na(maxFetch) && maxFetch < kqo@totalResults)
           sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
@@ -321,7 +341,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (length(collectedMatches[,1]) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
+    if (nrow(collectedMatches) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
   }

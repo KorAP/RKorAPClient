@@ -67,6 +67,17 @@ test_that("fetchAll fetches all results", {
   expect_equal(nrow(matches), expectedResults)
 })
 
+test_that("fetchAll fetches textClass metadatum", {
+  skip_if_offline()
+  q <- new("KorAPConnection", verbose = TRUE) %>%
+    corpusQuery("Ameisenplage", vc = "pubDate since 2014")
+  expectedResults <- q@totalResults
+  matches <- fetchAll(q)@collectedMatches
+  expect_true(any(grepl("wissenschaft ", matches$textClass)))
+  expect_true(any(grepl(" populaerwissenschaft", matches$textClass)))
+  expect_true(any(grepl("kultur literatur", matches$textClass)))
+})
+
 test_that("Uncached query for non-matching search string return 0 results", {
   skip_if_offline()
   q <- new("KorAPConnection", cache = FALSE) %>% corpusQuery("Xmeisenplagx")
