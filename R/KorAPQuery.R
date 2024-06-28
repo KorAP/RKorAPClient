@@ -251,6 +251,10 @@ setMethod("corpusQuery", "KorAPConnection",
 #' @param randomizePageOrder fetch result pages in pseudo random order if true. Use [set.seed()] to set seed for reproducible results.
 #' @return The `kqo` input object with updated slots `collectedMatches`, `apiResponse`, `nextStartIndex`, `hasMoreMatches`
 #'
+#' @importFrom tibble enframe
+#' @importFrom tidyr unnest pivot_wider
+#' @importFrom dplyr select
+#'
 #' @examples
 #' \dontrun{
 #'
@@ -288,18 +292,31 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
     query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
+    rawRes <<- res
     if (length(res$matches) == 0) {
       break
     }
 
+    if ("fields" %in% colnames(res$matches)) {
+      currentMatches <-  tibble::enframe(res$matches$fields) %>%
+        tidyr::unnest(cols = value) %>%
+        tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
+        mutate(across(where(is.list), ~ map(.x, ~ if (length(.x) < 2) as.character(.x) else paste(as.vector(.x), collapse=" ") ))) %>%
+        #mutate_all(as.character) %>%
+        dplyr::select(-name)
+      if("snippet" %in% colnames(res$matches)) {
+        currentMatches$snippet <- res$matches$snippet
+      }
+    } else {
+      currentMatches <- res$matches
+    }
+
     for (field in kqo@fields) {
-      if (!field %in% colnames(res$matches)) {
-        res$matches[, field] <- NA
+      if (!field %in% colnames(currentMatches)) {
+        currentMatches[, field] <- NA
       }
     }
-    currentMatches <-
-      res$matches %>%
-      dplyr::select(kqo@fields)
+    currentMatches <- currentMatches %>% select(kqo@fields)
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
@@ -308,7 +325,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     if (verbose) {
       cat(paste0(
         "Retrieved page ",
-        ceiling(length(collectedMatches[, 1]) / res$meta$itemsPerPage),
+        ceiling(nrow(collectedMatches) / res$meta$itemsPerPage),
         "/",
         if (!is.na(maxFetch) && maxFetch < kqo@totalResults)
           sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
@@ -321,7 +338,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
     page <- page + 1
     results <- results + res$meta$itemsPerPage
-    if (length(collectedMatches[,1]) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
+    if (nrow(collectedMatches) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
     }
   }
