@@ -15,6 +15,7 @@
 \alias{fetchRest}
 \alias{frequencyQuery,KorAPConnection-method}
 \alias{frequencyQuery}
+\alias{buildWebUIRequestUrlFromString}
 \alias{buildWebUIRequestUrl}
 \alias{format.KorAPQuery}
 \alias{show,KorAPQuery-method}
@@ -75,6 +76,8 @@
   ...
 )
 
+buildWebUIRequestUrlFromString(KorAPUrl, query, vc = "", ql = "poliqarp")
+
 buildWebUIRequestUrl(
   kco,
   query = if (missing(KorAPUrl))
@@ -82,11 +85,7 @@ buildWebUIRequestUrl(
     FALSE) else httr::parse_url(KorAPUrl)$query$q,
   vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
   KorAPUrl,
-  metadataOnly = TRUE,
-  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
-  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "snippet", "tokens"),
-  accessRewriteFatal = TRUE
+  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql
 )
 
 \method{format}{KorAPQuery}(x, ...)

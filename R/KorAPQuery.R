@@ -427,11 +427,37 @@ setMethod("frequencyQuery", "KorAPConnection",
       ci(conf.level = conf.level)
 })
 
+#' buildWebUIRequestUrlFromString
+#'
+#' @rdname KorAPQuery-class
+#' @importFrom urltools url_encode
+#' @export
+buildWebUIRequestUrlFromString <- function(KorAPUrl,
+                                 query,
+                                 vc = "",
+                                 ql = "poliqarp"
+) {
+  if ("KorAPConnection" %in% class(KorAPUrl)) {
+    KorAPUrl <- KorAPUrl@KorAPUrl
+  }
+
+  request <-
+    paste0(
+      '?q=',
+      urltools::url_encode(enc2utf8(as.character(query))),
+      ifelse(vc != '',
+             paste0('&cq=', urltools::url_encode(enc2utf8(vc))),
+             ''),
+      '&ql=',
+      ql
+    )
+  paste0(KorAPUrl, request)
+}
 
 #' buildWebUIRequestUrl
 #'
 #' @rdname KorAPQuery-class
-#' @importFrom urltools url_encode
+#' @importFrom httr parse_url
 #' @export
 buildWebUIRequestUrl <- function(kco,
                                  query = if (missing(KorAPUrl))
@@ -440,42 +466,9 @@ buildWebUIRequestUrl <- function(kco,
                                    httr::parse_url(KorAPUrl)$query$q,
                                  vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
                                  KorAPUrl,
-                                 metadataOnly = TRUE,
-                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
-                                 fields = c(
-                                   "corpusSigle",
-                                   "textSigle",
-                                   "pubDate",
-                                   "pubPlace",
-                                   "availability",
-                                   "textClass",
-                                   "snippet",
-                                   "tokens"
-                                 ),
-                                 accessRewriteFatal = TRUE) {
-  request <-
-    paste0(
-      '?q=',
-      urltools::url_encode(enc2utf8(as.character(query))),
-      ifelse(vc != '',
-        paste0('&cq=', urltools::url_encode(enc2utf8(vc))),
-        ''),
-      '&ql=',
-      ql
-    )
-  webUIRequestUrl <- paste0(kco@KorAPUrl, request)
-  requestUrl <- paste0(
-    kco@apiUrl,
-    'search',
-    request,
-    '&fields=',
-    paste(fields, collapse = ","),
-    if (metadataOnly)
-      '&access-rewrite-disabled=true'
-    else
-      ''
-  )
-  webUIRequestUrl
+                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql) {
+
+  buildWebUIRequestUrlFromString(kco@KorAPUrl, query, vc, ql)
 }
 
 #´ format()
