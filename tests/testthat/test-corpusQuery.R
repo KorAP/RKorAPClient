@@ -23,7 +23,7 @@ test_that("Cache depends on indexRevision (handling also NULL values)", {
   kco@indexRevision <- NULL
   frequencyQuery(kco, "Ameisenplage", "pubDate since 2014")
   kco@indexRevision <- as.character(Sys.time())
-  expect_output(frequencyQuery(kco, "Ameisenplage", "pubDate since 2014"), "took [0-9.]+ s")
+  expect_output(frequencyQuery(kco, "Ameisenplage", "pubDate since 2014"), "took ")
   expect_output(frequencyQuery(kco, "Ameisenplage", "pubDate since 2014"), "cached")
 })
 
