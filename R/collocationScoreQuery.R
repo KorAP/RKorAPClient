@@ -180,3 +180,41 @@ lemmatizeWordQuery <- function(w, apply = TRUE) {
   else
     w
 }
+
+#' Merge duplicate collocate rows and re-calculate association scores and urls
+#'
+#' @param ... tibbles with collocate rows returned from [collocationAnalysis()]
+#' @return tibble with unique collocate rows
+#'
+#' @importFrom dplyr bind_rows group_by summarise ungroup mutate across first everything
+#' @importFrom httr parse_url build_url
+#' @export
+mergeDuplicateCollocates <- function(...) {
+  combined_df <- bind_rows(...)
+
+  korapUrl <- parse_url(combined_df$webUIRequestUrl[1])
+  korapUrl$query <- ''
+  korapUrl <- build_url(korapUrl)
+
+  # Group by collocate and summarize
+  combined_df %>%
+    group_by(collocate, O2, N) %>%
+    summarise(
+      O = sum(O),
+      O1 = sum(O1),
+      leftContextSize = sum(leftContextSize),
+      rightContextSize = sum(rightContextSize),
+      w = sum(w),
+      E = sum(w) * sum(O1) * first(O2) / first(N),
+      logDice = logDice(sum(O1), first(O2), sum(O), first(N), E = sum(w) * sum(O1) * first(O2) / first(N), sum(w)),
+      pmi = pmi(sum(O1), first(O2), sum(O), first(N), E = sum(w) * sum(O1) * first(O2) / first(N), sum(w)),
+      mi2 = mi2(sum(O1), first(O2), sum(O), first(N), E = sum(w) * sum(O1) * first(O2) / first(N), sum(w)),
+      mi3 = mi3(sum(O1), first(O2), sum(O), first(N), E = sum(w) * sum(O1) * first(O2) / first(N), sum(w)),
+      ll = RKorAPClient::ll(sum(O1), first(O2), sum(O), first(N), E = sum(w) * sum(O1) * first(O2) / first(N), sum(w)),
+      query = paste(query, collapse = " | "),
+      webUIRequestUrl = buildWebUIRequestUrlFromString(korapUrl, query = paste(query, collapse = " | "), vc = first(vc)),
+      across(everything(), first),
+    ) %>%
+    ungroup()
+}
+
