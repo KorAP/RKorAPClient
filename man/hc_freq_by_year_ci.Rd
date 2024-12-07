@@ -21,7 +21,7 @@ hc_freq_by_year_ci(
 
 \item{smooth}{boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.}
 
-\item{...}{additional arguments passed to \code{\link[=hc_add_series]{hc_add_series()}}}
+\item{...}{additional arguments passed to \code{\link[highcharter:hc_add_series]{highcharter::hc_add_series()}}}
 }
 \value{
 A highchart htmlwidget object containing the frequency plot.

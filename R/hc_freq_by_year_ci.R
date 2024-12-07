@@ -16,7 +16,7 @@
 #' @param as.alternatives boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).
 #' @param ylabel defaults to `%` if `as.alternatives` is `TRUE` and to `ipm` otherwise.
 #' @param smooth boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.
-#' @param ... additional arguments passed to [hc_add_series()]
+#' @param ... additional arguments passed to [highcharter::hc_add_series()]
 #'
 #' @return A highchart htmlwidget object containing the frequency plot.
 #'

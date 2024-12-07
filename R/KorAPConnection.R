@@ -53,7 +53,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #'   ```
 #'
 #'   This will store it in your keyring using the
-#'   [keyring()] package. Subsequent new("KorAPConnection") calls will
+#'   [keyring] package. Subsequent new("KorAPConnection") calls will
 #'   then automatically retrieve the token from your keying. To stop using a
 #'   persisted token, call `clearAccessToken(kco)`. Please note that for
 #'   DeReKo, authorized queries will behave differently inside and outside the

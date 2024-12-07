@@ -75,7 +75,7 @@ token per KorAPUrl / KorAP server instance), use:
 }\if{html}{\out{</div>}}
 
 This will store it in your keyring using the
-\code{\link[=keyring]{keyring()}} package. Subsequent new("KorAPConnection") calls will
+\link{keyring} package. Subsequent new("KorAPConnection") calls will
 then automatically retrieve the token from your keying. To stop using a
 persisted token, call \code{clearAccessToken(kco)}. Please note that for
 DeReKo, authorized queries will behave differently inside and outside the
