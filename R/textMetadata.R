@@ -43,7 +43,7 @@ setMethod("textMetadata", "KorAPConnection",
     if(is.null(res)) {
       res <- tibble(errors="API request failed")
     } else {
-      if ("document" %in% names(res) & "fields" %in% names(res$document)) {
+      if ("document" %in% names(res) & "fields" %in% names(res$document) && length(res$document$fields) > 0) {
         res <- as_tibble(res$document$fields) %>%
           select(key, value) %>%
           tidyr::pivot_wider(names_from = key, values_from = value, names_repair = "unique") %>%
