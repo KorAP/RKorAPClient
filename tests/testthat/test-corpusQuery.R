@@ -95,7 +95,7 @@ test_that("Empty query result is printable", {
 test_that("Non-empty query result is printable", {
   skip_if_offline()
   q <- new("KorAPConnection", cache = TRUE, verbose = TRUE) %>%
-    corpusQuery("Ameisenplage", "pubDate since 2014", fields=c("sigle")) %>%
+    corpusQuery("Ameisenplage", "pubDate since 2014", fields=c("textSigle")) %>%
     fetchRest()
   expect_output(print(q), "Ameisenplage.*pubDate since 2014")
 })
