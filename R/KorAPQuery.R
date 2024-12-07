@@ -294,7 +294,6 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
     query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
     res <- apiCall(kqo@korapConnection, query)
-    rawRes <<- res
     if (length(res$matches) == 0) {
       break
     }
