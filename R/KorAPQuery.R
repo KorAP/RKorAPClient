@@ -240,6 +240,18 @@ setMethod("corpusQuery", "KorAPConnection",
     }
   })
 
+#' @importFrom purrr map
+repair_data_strcuture <- function(x) {
+  if (is.list(x))
+    as.character (purrr::map(x, ~ if (length(.x) > 1) {
+      paste(.x, collapse = " ")
+    } else {
+      .x
+    }))
+  else
+    ifelse(is.na(x), "", x)
+}
+
 #' Fetch the next bunch of results of a KorAP query.
 #'
 #' **`fetchNext`** fetches the next bunch of results of a KorAP query.
@@ -300,11 +312,11 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
       if (verbose) cat("Using fields API: ")
-      currentMatches <-  tibble::enframe(res$matches$fields) %>%
+      currentMatches <- res$matches$fields %>%
+        purrr::map(~ mutate(.x, value = repair_data_strcuture(value))) %>%
+        tibble::enframe() %>%
         tidyr::unnest(cols = value) %>%
         tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
-        dplyr::mutate(across(where(is.list), ~ purrr::map(.x, ~ if (length(.x) < 2) unlist(.x) else paste(.x, collapse = " ")))) %>%
-        tidyr::unchop(where(is.list)) %>%
         dplyr::select(-name)
       if("snippet" %in% colnames(res$matches)) {
         currentMatches$snippet <- res$matches$snippet
