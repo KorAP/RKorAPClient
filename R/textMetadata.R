@@ -45,13 +45,15 @@ setMethod("textMetadata", "KorAPConnection",
     } else {
       if ("document" %in% names(res) & "fields" %in% names(res$document) && length(res$document$fields) > 0) {
         res <- as_tibble(res$document$fields) %>%
+          dplyr::mutate(across(where(is.list), ~ purrr::map(.x, ~ if (length(.x) < 2) unlist(.x) else paste(.x, collapse = "\\t")))) %>%
           select(key, value) %>%
           tidyr::pivot_wider(names_from = key, values_from = value, names_repair = "unique") %>%
           mutate(
             textSigle = as.character(textSigle),
             requestUrl = url,
             webUIRequestUrl = paste0(kco@KorAPUrl, sprintf('?q=<base/s=t>&cq=textSigle+%%3D+"%s"', url_encode(enc2utf8(textSigle))))) %>%
-        relocate(textSigle)
+          mutate(across(everything(), as.character)) %>%
+          relocate(textSigle)
       } else {
         res <- lapply(res, function(x) paste0(x, collapse = "\\t")) # flatten list
         res <- as_tibble(res) %>%
