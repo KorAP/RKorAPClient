@@ -90,6 +90,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               collocate = collocate,
               label = queryStringToLabel(vc),
               vc = vc,
+              query = query,
               webUIRequestUrl = if (is.na(observed[1]))
                 frequencyQuery(kco, query, vc)$webUIRequestUrl
               else
