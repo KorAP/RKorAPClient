@@ -62,10 +62,10 @@ setMethod("corpusStats", "KorAPConnection",  function(kco,
       new(
         "KorAPCorpusStats",
         vc = vc,
-        documents = res$documents,
-        tokens = res$tokens,
-        sentences = res$sentences,
-        paragraphs = res$paragraphs,
+        documents = ifelse(is.logical(res$documents), 0, res$documents),
+        tokens = ifelse(is.logical(res$tokens), 0, res$tokens),
+        sentences = ifelse(is.logical(res$documents), 0,res$sentences),
+        paragraphs = ifelse(is.logical(res$paragraphs), 0, res$paragraphs),
         webUIRequestUrl = webUIRequestUrl
       )
   }
