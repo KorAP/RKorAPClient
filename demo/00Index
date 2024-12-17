@@ -15,3 +15,4 @@ frequency_by_country_highcharts Plot frequencies depending on country of publica
 collocation_score_by_country    Plot collocation scores depending on country of publication using ggplot2.
 pluralGenderVariants            Plot frequencies of the plural gender variants of a word in the core corpus of the Council for German Orthography (OKK) over time.
 adjectiveCollocates             Runtime OAuth2 browser flow demonstration using the httr2 package showing adjective collocates of 'Gendern'
+relativeTextpositionBoxplot     Plot the relative text positions of a some adverbs as highcharter boxplot.
