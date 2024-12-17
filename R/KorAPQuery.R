@@ -276,7 +276,8 @@ repair_data_strcuture <- function(x) {
 #' @aliases fetchNext
 #' @rdname KorAPQuery-class
 #' @importFrom dplyr rowwise mutate bind_rows select summarise n select
-#' @importFrom tibble enframe
+#' @importFrom tibble enframe add_column
+#' @importFrom stringr word
 #' @importFrom tidyr unnest unchop pivot_wider
 #' @importFrom purrr map
 #' @export
@@ -330,7 +331,15 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         currentMatches[, field] <- NA
       }
     }
-    currentMatches <- currentMatches %>% select(kqo@fields)
+    currentMatches <- currentMatches %>%
+      select(kqo@fields) %>%
+      mutate(
+        tmp_positions = gsub(".*-p(\\d+)-(\\d+)", "\\1 \\2", res$matches$matchID),
+        matchStart = as.integer(stringr::word(tmp_positions, 1)),
+        matchEnd = as.integer(stringr::word(tmp_positions, 2)) - 1
+      ) %>%
+      select(-tmp_positions)
+
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
     } else {
