@@ -58,13 +58,16 @@ test_that("corpusQuery can handle utf8 encoded umlauts in query and vc", {
   expect_gt(q@totalResults, 0)
 })
 
-test_that("fetchAll fetches all results", {
+test_that("fetchAll fetches all results with match positions", {
   skip_if_offline()
   q <- new("KorAPConnection", verbose = TRUE) %>%
     corpusQuery("Ameisenplage", vc = "pubDate since 2014")
   expectedResults <- q@totalResults
   matches <- fetchAll(q)@collectedMatches
   expect_equal(nrow(matches), expectedResults)
+  expect_true(is.numeric(matches$matchEnd[1]))
+  expect_true(is.numeric(matches$matchStart[1]))
+  expect_equal(matches$matchStart[1], matches$matchEnd[1])
 })
 
 test_that("fetchAll fetches textClass metadatum", {
