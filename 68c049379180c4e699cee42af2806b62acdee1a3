@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8568d1dd_d25ae2ae",
+        "filename": "demo/relativeTextpositionBoxplot.R",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2024-12-18T14:45:28Z",
+      "side": 1,
+      "message": "You can query the text size easily, but that\u0027s why I added a demo.",
+      "revId": "68c049379180c4e699cee42af2806b62acdee1a3",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
