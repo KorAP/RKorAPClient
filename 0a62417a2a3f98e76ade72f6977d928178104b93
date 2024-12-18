@@ -33,6 +33,24 @@
       "message": "I don\u0027t know what this is about. Is it the character or token position in the text or relative to the snippet?",
       "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
       "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "751e7890_aff25cb7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2024-12-18T08:36:51Z",
+      "side": 1,
+      "message": "Ah, sorry we discussed this mostly at the JF when you were absent. The new columns matchStart and matchEnd in the corpus query result refer to token position (start and end) of the match - as far as I understand. (And the demo calculates the relative position.) This all refers to Judith Willberg\u0027s question from 5 Dec. (And I have to release a new RKorAPClient package.)",
+      "parentUuid": "7cc2ff9a_16bc2f16",
+      "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
     }
   ]
 }
