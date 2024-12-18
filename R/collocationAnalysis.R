@@ -31,6 +31,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @param topCollocatesLimit     limit analysis to the n most frequent collocates in the search hits sample
 #' @param searchHitsSampleLimit  limit the size of the search hits sample
 #' @param stopwords              vector of stopwords not to be considered as collocates
+#' @param withinSpan             KorAP span specification (see <https://korap.ids-mannheim.de/doc/ql/poliqarp-plus?embedded=true#spans>) for collocations to be searched within. Defaults to `base/s=s`.
 #' @param exactFrequencies       if FALSE, extrapolate observed co-occurrence frequencies from frequencies in search hits sample, otherwise retrieve exact co-occurrence frequencies
 #' @param seed                   seed for random page collecting order
 #' @param expand                 if TRUE, `node` and `vc` parameters are expanded to all of their combinations

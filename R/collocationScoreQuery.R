@@ -24,7 +24,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param smoothingConstant  smoothing constant will be added to all observed values
 #' @param observed           if collocation frequencies are already known (or estimated from a sample) they can be passed as a vector here, otherwise: NA
 #' @param ignoreCollocateCase     logical, set to TRUE if collocate case should be ignored
-#' @param withinSpan         KorAP span specification for collocations to be searched within
+#' @param withinSpan         KorAP span specification (see <https://korap.ids-mannheim.de/doc/ql/poliqarp-plus?embedded=true#spans>) for collocations to be searched within. Defaults to `base/s=s`.
 #'
 #' @return tibble with query KorAP web request URL, all observed values and association scores
 #'

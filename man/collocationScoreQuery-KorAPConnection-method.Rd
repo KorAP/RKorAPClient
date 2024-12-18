@@ -46,7 +46,7 @@
 
 \item{ignoreCollocateCase}{logical, set to TRUE if collocate case should be ignored}
 
-\item{withinSpan}{KorAP span specification for collocations to be searched within}
+\item{withinSpan}{KorAP span specification (see \url{https://korap.ids-mannheim.de/doc/ql/poliqarp-plus?embedded=true#spans}) for collocations to be searched within. Defaults to \code{base/s=s}.}
 }
 \value{
 tibble with query KorAP web request URL, all observed values and association scores

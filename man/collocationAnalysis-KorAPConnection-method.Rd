@@ -51,7 +51,7 @@
 
 \item{ignoreCollocateCase}{logical, set to TRUE if collocate case should be ignored}
 
-\item{withinSpan}{KorAP span specification for collocations to be searched within}
+\item{withinSpan}{KorAP span specification (see \url{https://korap.ids-mannheim.de/doc/ql/poliqarp-plus?embedded=true#spans}) for collocations to be searched within. Defaults to \code{base/s=s}.}
 
 \item{exactFrequencies}{if FALSE, extrapolate observed co-occurrence frequencies from frequencies in search hits sample, otherwise retrieve exact co-occurrence frequencies}
 
