@@ -51,6 +51,24 @@
       "parentUuid": "7cc2ff9a_16bc2f16",
       "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
       "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7b2dd76f_8f363495",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2024-12-18T14:42:42Z",
+      "side": 1,
+      "message": "But is that helpful without textlength?",
+      "parentUuid": "751e7890_aff25cb7",
+      "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
     }
   ]
 }
