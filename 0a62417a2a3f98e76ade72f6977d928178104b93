@@ -16,6 +16,23 @@
       "message": "I called the new columns `matchStart`and `matchEnd`, any objectionss?\n(In addition, I subtracted 1 from the the original match end)",
       "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
       "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7cc2ff9a_16bc2f16",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2024-12-18T06:46:11Z",
+      "side": 1,
+      "message": "I don\u0027t know what this is about. Is it the character or token position in the text or relative to the snippet?",
+      "revId": "0a62417a2a3f98e76ade72f6977d928178104b93",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
     }
   ]
 }
