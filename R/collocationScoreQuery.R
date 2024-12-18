@@ -191,6 +191,9 @@ lemmatizeWordQuery <- function(w, apply = TRUE) {
 #' @importFrom httr parse_url build_url
 #' @export
 mergeDuplicateCollocates <- function(...) {
+  # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+  O1 <- O2 <- O <- N <- E <- w <- leftContextSize <- rightContextSize <- collocate <- tmp_positions <- 0
+
   combined_df <- bind_rows(...)
 
   korapUrl <- parse_url(combined_df$webUIRequestUrl[1])

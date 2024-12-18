@@ -17,7 +17,7 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #' If there are metadata columns you cannot make sense of, please ignore them. The function simply returns all the metadata it gets from the server.
 #'
 #' @importFrom urltools url_encode
-#' @importFrom dplyr bind_rows relocate mutate
+#' @importFrom dplyr across bind_rows relocate mutate where
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr pivot_wider
 #'
@@ -29,6 +29,8 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #' @export
 setMethod("textMetadata", "KorAPConnection",
  function(kco, textSigle, verbose = kco@verbose) {
+  # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+  key <- 0
   if (length(textSigle) > 1)
     do.call(bind_rows, Map(function(atomicSigle)
       textMetadata(kco, atomicSigle), textSigle))

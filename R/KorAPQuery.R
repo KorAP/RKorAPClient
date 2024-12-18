@@ -286,13 +286,14 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
                                               maxFetch = maxResultsPerPage,
                                               verbose = kqo@korapConnection@verbose,
                                               randomizePageOrder = FALSE) {
+  # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+  results <- key <- name <- pubDate <- tmp_positions <- 0
+
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
   }
   use_korap_api <- Sys.getenv("USE_KORAP_API", unset = NA)
   page <- kqo@nextStartIndex / maxResultsPerPage + 1
-  results <- 0
-  pubDate <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   collectedMatches <- kqo@collectedMatches
 
   if (randomizePageOrder) {
