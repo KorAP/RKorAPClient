@@ -1,0 +1,12 @@
+bibentry(
+  "InProceedings",
+  title = "{RKorAPClient}: An {R} Package for Accessing the {German Reference Corpus DeReKo} via {KorAP}",
+  author = "Marc Kupietz, Nils Diewald, Eliza Margaretha",
+  year = 2020,
+  booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference (LREC '20)",
+  publisher = "European Language Resources Association (ELRA)",
+  address = "Marseille, France",
+  pages = "7015--7021",
+  isbn = "979-10-95546-34-4",
+  url = "https://aclanthology.org/2020.lrec-1.867/"
+)
