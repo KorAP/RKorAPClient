@@ -45,7 +45,7 @@ test_that("collocationAnalysis on unaccounted strings does not error out", {
   testthat::expect_equal(nrow(df), 0)
 })
 
-test_that("temoveWithinSpanWorks", {
+test_that("removeWithinSpanWorks", {
   expect_equal(
     removeWithinSpan("contains(<base/s=s>, (machen []{0,1} aufmerksam | aufmerksam []{0,1} machen))", "base/s=s"),
     "(machen []{0,1} aufmerksam | aufmerksam []{0,1} machen)")
