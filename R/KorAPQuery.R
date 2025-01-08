@@ -338,7 +338,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     currentMatches <- currentMatches %>%
       select(kqo@fields) %>%
       mutate(
-        tmp_positions = gsub(".*-p(\\d+)-(\\d+)", "\\1 \\2", res$matches$matchID),
+        tmp_positions = gsub(".*-p(\\d+)-(\\d+).*", "\\1 \\2", res$matches$matchID),
         matchStart = as.integer(stringr::word(tmp_positions, 1)),
         matchEnd = as.integer(stringr::word(tmp_positions, 2)) - 1
       ) %>%

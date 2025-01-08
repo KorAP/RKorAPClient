@@ -135,3 +135,14 @@ test_that("corpusQuery token API works", {
   right_contexts <- matches$tokens$right
   expect_true(TRUE %in% grepl("Begriff", right_contexts))
 })
+
+test_that("matchStart and matchEnd are present and correct", {
+  skip_if_offline()
+  kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
+  q <- corpusQuery(kco, "focus([tt/p=ADJA] {Newstickeritis})", vc = "corpusSigle=/W.D17/", metadataOnly = FALSE)
+  q <- fetchNext(q)
+  matches <-q@collectedMatches
+  expect_gt(max(matches$matchEnd), 1000)
+  expect_true(all(matches$matchEnd == matches$matchStart))
+})
+
