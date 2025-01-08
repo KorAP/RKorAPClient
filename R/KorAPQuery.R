@@ -323,6 +323,9 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       if("snippet" %in% colnames(res$matches)) {
         currentMatches$snippet <- res$matches$snippet
       }
+      if ("tokens" %in% colnames(res$matches)) {
+        currentMatches$tokens <- res$matches$tokens
+      }
     } else {
       currentMatches <- res$matches
     }
