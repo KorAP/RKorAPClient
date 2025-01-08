@@ -116,3 +116,22 @@ test_that("Typo in query causes error", {
   kco <- new("KorAPConnection", verbose = TRUE)
   expect_message(kco %>% corpusQuery("[[xx"), "unbalanced")
 })
+
+test_that("corpusQuery token API works", {
+  skip_if_offline()
+  kco <- new("KorAPConnection", accessToken = NULL,
+             verbose = TRUE)
+  q <- corpusQuery(kco, "focus([tt/p=ADJA] {Newstickeritis})", vc = "corpusSigle=/W.D17/", metadataOnly = FALSE)
+  q <- fetchNext(q)
+  matches <-q@collectedMatches
+  expect_gt(nrow(matches), 10)
+  unique_matches <- unique(matches$tokens$match)
+  expect_equal(length(unique_matches), 1)
+  expect_equal(unique_matches[[1]], "Newstickeritis")
+
+  left_contexts <- matches$tokens$left
+  expect_true(TRUE %in% grepl("reine", left_contexts))
+
+  right_contexts <- matches$tokens$right
+  expect_true(TRUE %in% grepl("Begriff", right_contexts))
+})
