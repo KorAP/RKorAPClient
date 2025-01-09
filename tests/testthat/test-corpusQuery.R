@@ -146,3 +146,46 @@ test_that("matchStart and matchEnd are present and correct", {
   expect_true(all(matches$matchEnd == matches$matchStart))
 })
 
+test_that("extended metadata fields work cortrectly on instane KED", {
+  kco <- new("KorAPConnection", KorAPUrl = "https://korap.ids-mannheim.de/instance/ked", verbose = TRUE)
+  q <- corpusQuery(
+    kco,
+    "einfache",
+    fields = c(
+      "textSigle",
+      "pubDate",
+      "pubPlace",
+      "availability",
+      "textClass",
+      "snippet",
+      "tokens",
+      "KED.cover1Herder",
+      "KED.cover2Herder",
+      "KED.cover3Herder",
+      "KED.cover4Herder",
+      "KED.cover5Herder",
+      "KED.nPara",
+      "KED.nPunct1kTks",
+      "KED.nSent",
+      "KED.nToks",
+      "KED.nToksSentMd",
+      "KED.nTyps",
+      "KED.rcpnt",
+      "KED.rcpntLabel",
+      "KED.strtgy",
+      "KED.strtgyLabel",
+      "KED.topic",
+      "KED.topicLabel",
+      "KED.txttyp",
+      "KED.txttypLabel"
+    )
+  )
+  q <- q %>% fetchAll()
+  df <- q@collectedMatches
+  expect_gt(nrow(df), 0)
+  expect_gt(min(as.numeric(df$KED.nToks)), 100)
+  expect_gt(min(as.numeric(df$KED.nSent)), 8)
+  expect_gt(min(nchar(df$KED.rcpnt)), 5)
+})
+
+
