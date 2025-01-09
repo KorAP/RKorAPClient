@@ -1,3 +1,16 @@
+# RKorAPClient 0.9.0
+
+- added citation hint, see `citation("RKorAPClient")`
+- added `matchStart` and `matchEnd` columns to `corpusQuery` results, that contain the start and end position of the match in the text
+- added function `mergeDuplicateCollocates` to merge collocation analysis results for different context positions
+- added a column `query` to collocation analysis results
+- fixed CRAN check notes on Rd `\link{}` targets missing package
+- fixed possible problems in `corpusStats` method
+- improved documentation for `span` parameter in collocation analysis functions
+- uses new metadata fields API in `textMetadata` method, if available, to retrieve also custom metadata for a text based on its sigle
+- uses new metadata fields API in `corpusQuery` method, if available
+
+
 # RKorAPClient 0.8.1
 
 - fixed R 4.4 compatibility of collocationAnalysis function
