@@ -5,10 +5,6 @@
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
 \alias{initialize,KorAPConnection-method}
-\alias{persistAccessToken,KorAPConnection-method}
-\alias{persistAccessToken}
-\alias{clearAccessToken,KorAPConnection-method}
-\alias{clearAccessToken}
 \alias{apiCall,KorAPConnection-method}
 \alias{apiCall}
 \alias{clearCache,KorAPConnection-method}
@@ -27,10 +23,6 @@
   verbose = FALSE,
   cache = TRUE
 )
-
-\S4method{persistAccessToken}{KorAPConnection}(kco, accessToken = kco@accessToken)
-
-\S4method{clearAccessToken}{KorAPConnection}(kco)
 
 \S4method{apiCall}{KorAPConnection}(
   kco,
@@ -57,7 +49,9 @@
 \item{accessToken}{OAuth2 access token. For queries on corpus parts with restricted
 access (e.g. textual queries on IPR protected data), you need to authorize
 your application with an access token.
-How to obtain an access token for the DeReKo KorAP instance is explained in the
+You can obtain an access token using the \code{\link[=auth]{auth()}} method.
+
+More details are explained in the
 \href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
 of the RKorAPClient Readme on GitHub.
 
@@ -150,18 +144,6 @@ kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChx
 kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 kq <- fetchAll(kq)
 kq@collectedMatches$snippet
-}
-
-\dontrun{
-
-kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
-persistAccessToken(kco)
-}
-
-\dontrun{
-
-kco <- new("KorAPConnection")
-clearAccessToken(kco)
 }
 
 }
