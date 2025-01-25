@@ -59,12 +59,10 @@ new("KorAPConnection", verbose=T) %>%
 
 ### Identify *in … setzen* light verb constructions by using the new `collocationAnalysis` function
 
-[![Lifecycle:experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-
 ```r
 library(RKorAPClient)
 library(knitr)
-new("KorAPConnection", verbose = TRUE) %>%
+new("KorAPConnection", verbose = TRUE) %>% auth() %>%
   collocationAnalysis(
     "focus(in [tt/p=NN] {[tt/l=setzen]})",
     leftContextSize = 1,
@@ -96,7 +94,11 @@ new("KorAPConnection", verbose = TRUE) %>%
 
 In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
 
-In the case of DeReKo, this can be done in two different ways.
+In the case of DeReKo, this can be done in three different ways.
+
+#### The latest and easiest way: Authorize your RKorAPClient application via the usual OAuth browser flow using the default application id
+
+kco <- new("KorAPConnection") %>% auth()
 
 #### The old way: Authorize your RKorAPClient application manually
 
@@ -123,16 +125,7 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
 2. Click on the copy symbol ⎘ behind the ID of your client application.
 3. Paste your clipboard content overwriting `<application ID>` in the following example code:
    ```R
-   library(httr)
-
-   korap_app <- oauth_app("korap-client", key = "<application ID>", secret = NULL)
-   korap_endpoint <- oauth_endpoint(NULL,
-                 "settings/oauth/authorize",
-                 "api/v1.0/oauth2/token",
-                 base_url = "https://korap.ids-mannheim.de")
-   token_bundle = oauth2.0_token(korap_endpoint, korap_app, scope = "search match_info", cache = FALSE)
-
-   kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
+   kco <- new("KorAPConnection") %>% auth(app_id = "<application ID>")
    ```
 
 See also the [displayKwics demo](./demo/displayKwics.R).

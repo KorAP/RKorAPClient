@@ -45,6 +45,7 @@ Imports:
     keyring,
     utils,
     httr,
+    httr2,
     curl,
     methods,
     PTXQC,
