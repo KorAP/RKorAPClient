@@ -5,7 +5,6 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @aliases collocationAnalysis
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
 #'
 #' Performs a collocation analysis for the given node (or query)
 #' in the given virtual corpus.
