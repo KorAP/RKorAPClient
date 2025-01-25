@@ -33,7 +33,9 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @param accessToken OAuth2 access token. For queries on corpus parts with restricted
 #'   access (e.g. textual queries on IPR protected data), you need to authorize
 #'   your application with an access token.
-#'   How to obtain an access token for the DeReKo KorAP instance is explained in the
+#'   You can obtain an access token using the [auth()] method.
+#'
+#'   More details are explained in the
 #'   [authorization section](https://github.com/KorAP/RKorAPClient#authorization)
 #'   of the RKorAPClient Readme on GitHub.
 #'
@@ -122,16 +124,26 @@ accessTokenServiceName <- "RKorAPClientAccessToken"
 
 setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAccessToken") )
 
+#' Persist current access token in keyring
+#'
+#' @param kco KorAPConnection object
+#' @param accessToken access token to be persisted. If not supplied, the current access token of the KorAPConnection object will be used.
+#' @return KorAPConnection object.
+#'
 #' @aliases persistAccessToken
-#' @rdname KorAPConnection-class
+#'
 #' @import keyring
 #' @export
+#'
 #' @examples
 #' \dontrun{
-#'
 #' kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
 #' persistAccessToken(kco)
+#'
+#' kco <- new("KorAPConnection") %>% auth(app_id="<my application id>") %>% persistAccessToken()
 #' }
+#'
+#' @seealso [clearAccessToken()], [auth()]
 #'
 setMethod("persistAccessToken", "KorAPConnection",  function(kco, accessToken = kco@accessToken) {
   if (is.null(accessToken))
@@ -139,24 +151,86 @@ setMethod("persistAccessToken", "KorAPConnection",  function(kco, accessToken = 
 
   kco@accessToken <- accessToken
   key_set_with_value(accessTokenServiceName, kco@KorAPUrl, accessToken)
+  return(kco)
 })
 
 setGeneric("clearAccessToken", function(kco) standardGeneric("clearAccessToken") )
 
+#' Clear access token from keyring and KorAPConnection object
+#'
 #' @aliases clearAccessToken
-#' @rdname KorAPConnection-class
 #' @import keyring
+#' @param kco KorAPConnection object
+#' @return KorAPConnection object with access token set to `NULL`.
 #' @export
 #' @examples
-#' \dontrun{
 #'
+#' \dontrun{
 #' kco <- new("KorAPConnection")
-#' clearAccessToken(kco)
+#' kco <- clearAccessToken(kco)
 #' }
+#'
+#' @seealso [persistAccessToken()]
 #'
 setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
   key_delete(accessTokenServiceName, kco@KorAPUrl)
+  kco@accessToken <- NULL
+  kco
 })
+
+generic_kor_app_id = "99FbPHH7RrN36hbndF7b6f"
+
+
+setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search match_info") standardGeneric("auth") )
+
+#' Authorize RKorAPClient
+#'
+#' @aliases auth
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Authorize RKorAPClient to make KorAP queries and download results on behalf of the user.
+#'
+#' @param kco KorAPConnection object
+#' @param app_id OAuth2 application id. Defaults to the generic KorAP client application id.
+#' @param scope OAuth2 scope. Defaults to "search match_info".
+#' @return KorAPConnection object with access token set in `@accessToken`.
+#'
+#' @importFrom httr2 oauth_client oauth_flow_auth_code
+#' @examples
+#' \dontrun{
+#' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
+#' df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})", leftContextSize=1, rightContextSize=0)
+#' }
+#'
+#' @seealso [persistAccessToken()], [clearAccessToken()]
+#'
+#' @export
+setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, scope = "search match_info") {
+  if ( kco@KorAPUrl != "https://korap.ids-mannheim.de/" & app_id == generic_kor_app_id) {
+    warning(paste("You can use the default app_id only for the IDS Mannheim KorAP main instance for querying DeReKo. Please provide your own app_id for accesing", kco@KorAPUrl))
+    return(kco)
+  }
+  if (is.null(kco@accessToken) || is.null(kco@welcome)) { # if access token is not set or invalid
+    kco@accessToken <- (
+      httr2::oauth_client(
+        id =  app_id,
+        token_url = paste0(kco@apiUrl, "oauth2/token")
+      ) %>%
+        httr2::oauth_flow_auth_code(
+          scope = scope,
+          auth_url = paste0(kco@KorAPUrl, "settings/oauth/authorize"),
+          redirect_uri = "http://localhost:1410"
+        )
+    )$access_token
+  } else {
+    log_info(kco@verbose, "Client authorized. Access token already set.")
+  }
+  return(kco)
+})
+
+
 
 #' @import keyring
 getAccessToken <- function(KorAPUrl) {
