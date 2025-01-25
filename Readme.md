@@ -59,12 +59,10 @@ new("KorAPConnection", verbose=T) %>%
 
 ### Identify *in … setzen* light verb constructions by using the new `collocationAnalysis` function
 
-[![Lifecycle:experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-
 ```r
 library(RKorAPClient)
 library(knitr)
-new("KorAPConnection", verbose = TRUE) %>%
+new("KorAPConnection", verbose = TRUE) %>% auth() %>%
   collocationAnalysis(
     "focus(in [tt/p=NN] {[tt/l=setzen]})",
     leftContextSize = 1,
@@ -96,9 +94,17 @@ new("KorAPConnection", verbose = TRUE) %>%
 
 In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
 
-In the case of DeReKo, this can be done in two different ways.
+In the case of DeReKo, this can be done in three different ways.
 
-#### The old way: Authorize your RKorAPClient application manually
+#### 1. The latest and laziest way (currently only available in the [development version](#development-version) of RKorAPClient)
+
+Authorize your RKorAPClient application via the usual OAuth browser flow *using the default application id* and the `auth` method:
+
+```R
+kco <- new("KorAPConnection") %>% auth()
+```
+
+#### 2. The old way: Authorize your RKorAPClient application manually
 
 1. Log in into the [KorAP DeReKo instance](https://korap.ids-mannheim.de/)
 1. Open the [KorAP OAuth settings](https://korap.ids-mannheim.de/settings/oauth#page-top)
@@ -115,7 +121,10 @@ The whole process is shown in this video:
 
 https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
-#### The new way (since March 2023)[^1]: Authorize your RKorAPClient application via the usual OAuth browser flow
+#### 3. The new way (since March 2023)[^1]
+
+Authorize your RKorAPClient application via the usual OAuth browser flow, using *your own application id* and the `auth` method:
+
 
 [^1]: This new method has been made possible purely on the server side, so that it will also work with older versions of RKorAPClient.
 
@@ -123,23 +132,12 @@ https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-
 2. Click on the copy symbol ⎘ behind the ID of your client application.
 3. Paste your clipboard content overwriting `<application ID>` in the following example code:
    ```R
-   library(httr)
-
-   korap_app <- oauth_app("korap-client", key = "<application ID>", secret = NULL)
-   korap_endpoint <- oauth_endpoint(NULL,
-                 "settings/oauth/authorize",
-                 "api/v1.0/oauth2/token",
-                 base_url = "https://korap.ids-mannheim.de")
-   token_bundle = oauth2.0_token(korap_endpoint, korap_app, scope = "search match_info", cache = FALSE)
-
-   kco <- new("KorAPConnection", accessToken = token_bundle[["credentials"]][["access_token"]])
+   kco <- new("KorAPConnection") %>% auth(app_id = "<application ID>")
    ```
 
-See also the [displayKwics demo](./demo/displayKwics.R).
-
-How to request access, only if no access token has been provided or persisted, is illustrated in the [gender variants demo](./demo/pluralGenderVariants.R) (try `demo("pluralGenderVariants")` ) and in the [adjective collocates demo](./demo/adjectiveCollocates.R) (try `demo("adjectiveCollocates")` ).
-
 #### Storing and testing your authorized access
+
+(Not recommended for the default application id, as it is not secure.)
 
 You can also persist the access token for subsequent sessions with the `persistAccessToken` function:
 
@@ -184,6 +182,7 @@ sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-dev
 # Arch Linux
 pacman -S base-devel gcc-fortran libsodium curl
 ```
+
 #### In RStudio
 
 Start RStudio and click on *Install Packages…* in the *Tools* menu. Enter *RKorAPClient* in the *Packages* input field and click on the *Install* button (keeping *Install Dependencies* checked).
@@ -194,20 +193,21 @@ If the installation fails for some reason, you might need to update your install
 
 
 #### Or from the command line
+
 Start R, then install RKorAPClient from CRAN (or development version from GitHub or KorAP's gerrit server).
 
 ##### CRAN version:
+
 ```r
 install.packages("RKorAPClient")
 ```
 
-##### Development version (alternatives):
+##### Development version:
+
 ```r
-devtools::install_github("KorAP/RKorAPClient")
 remotes::install_github("KorAP/RKorAPClient")
-devtools::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
-remotes::install_git("https://korap.ids-mannheim.de/gerrit/KorAP/RKorAPClient")
 ```
+
 ### Full installation videos
 
 ## Mac
