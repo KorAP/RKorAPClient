@@ -9,6 +9,8 @@
 \alias{persistAccessToken}
 \alias{clearAccessToken,KorAPConnection-method}
 \alias{clearAccessToken}
+\alias{auth,KorAPConnection-method}
+\alias{auth}
 \alias{apiCall,KorAPConnection-method}
 \alias{apiCall}
 \alias{clearCache,KorAPConnection-method}
@@ -31,6 +33,8 @@
 \S4method{persistAccessToken}{KorAPConnection}(kco, accessToken = kco@accessToken)
 
 \S4method{clearAccessToken}{KorAPConnection}(kco)
+
+\S4method{auth}{KorAPConnection}(kco, app_id = "RKorAPClient", scope = "search match_info")
 
 \S4method{apiCall}{KorAPConnection}(
   kco,
@@ -111,6 +115,10 @@ the cache with \code{\link[=clearCache]{clearCache()}}.}
 \description{
 \code{KorAPConnection} objects represent the connection to a KorAP server.
 New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection")}.
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Authorize RKorAPClient to make KorAP queries and download results on behalf of the user.
 }
 \section{Slots}{
 
@@ -162,6 +170,11 @@ persistAccessToken(kco)
 
 kco <- new("KorAPConnection")
 clearAccessToken(kco)
+}
+
+\dontrun{
+kco <- new("KorAPConnection", verbose = TRUE) \%>\% auth()
+df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})", leftContextSize=1, rightContextSize=0)
 }
 
 }

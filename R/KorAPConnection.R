@@ -158,6 +158,43 @@ setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
   key_delete(accessTokenServiceName, kco@KorAPUrl)
 })
 
+
+setGeneric("auth", function(kco, app_id, scope = "search match_info") standardGeneric("auth") )
+
+#' @aliases auth
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Authorize RKorAPClient to make KorAP queries and download results on behalf of the user.
+#'
+#' @rdname KorAPConnection-class
+#' @importFrom httr2 oauth_client oauth_flow_auth_code
+#' @examples
+#' \dontrun{
+#' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
+#' df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})", leftContextSize=1, rightContextSize=0)
+#' }
+#'
+#' @export
+setMethod("auth", "KorAPConnection", function(kco, app_id = "RKorAPClient", scope = "search match_info") {
+  if (is.null(kco@accessToken) || is.null(kco@welcome)) { # if access token is not set or invalid
+    kco@accessToken <- ( # request one
+      oauth_client(
+        id =  app_id, # for the demo application
+        token_url = paste0(kco@apiUrl, "oauth2/token")
+      ) %>%
+        oauth_flow_auth_code(
+          scope = scope,
+          auth_url = paste0(kco@KorAPUrl, "settings/oauth/authorize")
+        )
+    )$access_token
+  }
+  return(kco)
+})
+
+
+
 #' @import keyring
 getAccessToken <- function(KorAPUrl) {
     keyList <- tryCatch(withCallingHandlers(key_list(service = accessTokenServiceName),
