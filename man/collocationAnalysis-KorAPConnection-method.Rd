@@ -79,8 +79,6 @@
 Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-
 Performs a collocation analysis for the given node (or query)
 in the given virtual corpus.
 }
