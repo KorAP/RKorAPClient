@@ -111,7 +111,7 @@ setMethod("initialize", "KorAPConnection",
             .Object@cache = cache
             .Object@welcome = apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
             if (!is.null(.Object@welcome)) {
-              message(.Object@welcome[[2]])
+              log_info(TRUE, .Object@welcome[[2]])
             }
             .Object@indexRevision <- .Object@welcome[[1]][["x-index-revision"]]
             .Object
