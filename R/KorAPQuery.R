@@ -5,7 +5,7 @@
 #' represent the current state of a query to a KorAP server.
 #'
 #' @include KorAPConnection.R
-#' @import httr
+#' @import httr2
 #'
 #' @include RKorAPClient-package.R
 
@@ -155,11 +155,11 @@ setMethod("corpusQuery", "KorAPConnection",
                    query = if (missing(KorAPUrl))
                      stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
                    else
-                     httr::parse_url(KorAPUrl)$query$q,
-                   vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+                     httr2::url_parse(KorAPUrl)$query$q,
+                   vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
                    KorAPUrl,
                    metadataOnly = TRUE,
-                   ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+                   ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
                    fields = c(
                      "corpusSigle",
                      "textSigle",
@@ -482,16 +482,16 @@ buildWebUIRequestUrlFromString <- function(KorAPUrl,
 #' buildWebUIRequestUrl
 #'
 #' @rdname KorAPQuery-class
-#' @importFrom httr parse_url
+#' @importFrom httr2 url_parse
 #' @export
 buildWebUIRequestUrl <- function(kco,
                                  query = if (missing(KorAPUrl))
                                    stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
                                  else
-                                   httr::parse_url(KorAPUrl)$query$q,
-                                 vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+                                   httr2::url_parse(KorAPUrl)$query$q,
+                                 vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
                                  KorAPUrl,
-                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql) {
+                                 ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql) {
 
   buildWebUIRequestUrlFromString(kco@KorAPUrl, query, vc, ql)
 }
@@ -504,7 +504,7 @@ buildWebUIRequestUrl <- function(kco,
 format.KorAPQuery <- function(x, ...) {
   cat("<KorAPQuery>\n")
   q <- x
-  aurl = parse_url(q@request)
+  aurl = url_parse(q@request)
   cat("           Query: ", aurl$query$q, "\n")
   if (!is.null(aurl$query$cq) && aurl$query$cq != "") {
     cat("  Virtual corpus: ", aurl$query$cq, "\n")

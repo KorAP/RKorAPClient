@@ -92,7 +92,7 @@ the cache with \code{\link[=clearCache]{clearCache()}}.}
 
 \item{url}{request url}
 
-\item{json}{logical that determines if json result is expected}
+\item{json}{logical that determines if JSON result is expected}
 
 \item{getHeaders}{logical that determines if headers and content should be returned (as a list)}
 
