@@ -41,11 +41,11 @@
   kco,
   query = if (missing(KorAPUrl))
     stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
-    FALSE) else httr::parse_url(KorAPUrl)$query$q,
-  vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+    FALSE) else httr2::url_parse(KorAPUrl)$query$q,
+  vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
   KorAPUrl,
   metadataOnly = TRUE,
-  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql,
+  ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
     "textClass", "snippet", "tokens"),
   accessRewriteFatal = TRUE,
@@ -82,10 +82,10 @@ buildWebUIRequestUrl(
   kco,
   query = if (missing(KorAPUrl))
     stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
-    FALSE) else httr::parse_url(KorAPUrl)$query$q,
-  vc = if (missing(KorAPUrl)) "" else httr::parse_url(KorAPUrl)$query$cq,
+    FALSE) else httr::url_parse(KorAPUrl)$query$q,
+  vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
   KorAPUrl,
-  ql = if (missing(KorAPUrl)) "poliqarp" else httr::parse_url(KorAPUrl)$query$ql
+  ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql
 )
 
 \method{format}{KorAPQuery}(x, ...)
