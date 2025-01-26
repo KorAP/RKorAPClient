@@ -44,7 +44,6 @@ Imports:
     jsonlite,
     keyring,
     utils,
-    httr,
     httr2,
     curl,
     methods,

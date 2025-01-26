@@ -277,85 +277,115 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @rdname KorAPConnection-class
 #' @param kco KorAPConnection object
 #' @param url request url
-#' @param json logical that determines if json result is expected
+#' @param json logical that determines if JSON result is expected
 #' @param getHeaders logical that determines if headers and content should be returned (as a list)
 #' @importFrom jsonlite fromJSON
 #' @importFrom curl has_internet
+#' @importFrom httr2 req_user_agent req_timeout req_headers req_perform resp_status resp_body_string resp_body_json resp_content_type
 #' @export
-setMethod("apiCall", "KorAPConnection",  function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout=kco@timeout) {
+setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout = kco@timeout) {
   result <- ""
+
+  # Handle caching if enabled
   if (cache) {
-    result <- R.cache::loadCache(dir=KorAPCacheSubDir(), key=list(url, kco@accessToken, kco@indexRevision))
+    result <- R.cache::loadCache(dir = KorAPCacheSubDir(), key = list(url, kco@accessToken, kco@indexRevision))
     if (!is.null(result)) {
-      if (!is.null(result$meta))
-        result$meta$cached <- "local"
+      if (!is.null(result$meta)) result$meta$cached <- "local"
       return(result)
     }
   }
 
-  # From https://community.rstudio.com/t/internet-resources-should-fail-gracefully/49199/11
-  # Thanks to kvasilopoulos
-  try_GET <- function(x, ...) {
-    tryCatch(
-      GET(url = x, timeout(timeout), ...),
-      error = function(e) conditionMessage(e),
-      warning = function(w) conditionMessage(w)
-    )
-  }
-  is_response <- function(x) {
-    class(x) == "response"
-  }
-
-  # First check internet connection
+  # Check for internet connection
   if (!curl::has_internet()) {
     message("No internet connection.")
     return(invisible(NULL))
   }
 
-  if (!is.null(kco@accessToken))
-    resp <- try_GET(url, user_agent(kco@userAgent), timeout(timeout), add_headers(Authorization = paste("Bearer", kco@accessToken)))
-  else
-    resp <- try_GET(url, user_agent(kco@userAgent), timeout(timeout))
+  # Create the request
+  req <- httr2::request(url) |>
+    httr2::req_user_agent(kco@userAgent) |>
+    httr2::req_timeout(timeout)
 
-  if (!is_response(resp)) {
-    message(resp)
+  # Add authorization header if access token is available
+  if (!is.null(kco@accessToken)) {
+    req <- req |> httr2::req_headers(Authorization = paste("Bearer", kco@accessToken))
+  }
+
+  # Perform the request and handle errors
+  resp <- tryCatch(
+    req |> httr2::req_perform(),
+    error = function(e) {
+      message(if(kco@verbose) "\n" else "", "Request failed: ", paste(e$message, e$parent$message, sep = " "))
+      e$resp
+    }
+  )
+
+  if (is.null(resp)) return(invisible(NULL))
+
+  # Check response status
+  if (resp |> httr2::resp_status() != 200) {
+
+    message("API request failed with status: ", resp |> httr2::resp_status())
+
+    result <- tryCatch(
+      resp |> httr2::resp_body_json(),
+      error = function(e) {
+        message("Failed to parse json with error details: ", e$message)
+        return(NULL)
+      }
+    )
+    # Handle errors in the response (if any)
+    if (!is.null(result$errors)) {
+      errors <- result$errors
+      warning_msgs <- if (is.data.frame(errors)) {
+        apply(errors, 1, function(warning) paste(warning[1], ": ", warning[2]))
+      } else {
+        lapply(errors, function(error) paste(error, collapse = " "))
+      }
+      message(paste(warning_msgs, collapse = "\n"))
+    }
+
     return(invisible(NULL))
   }
-  if (json || status_code(resp) != 200) {
-    if (json && !http_type(resp) %in% c("application/json", "application/ld+json")) {
-      message("API did not return json")
+
+  # Process JSON response or raw text based on `json` parameter
+  if (json) {
+    content_type <- resp |> httr2::resp_content_type()
+    if (!content_type %in% c("application/json", "application/ld+json")) {
+      message("API did not return JSON")
       return(invisible(NULL))
     }
 
-    result <- tryCatch(jsonlite::fromJSON(content(resp, "text", encoding = "UTF-8")), error = function(e) {return(NULL)})
-    if (!is.atomic(result) && !is.null(result$warnings)) {
-      msg <- if (nrow(result$warnings) > 1)
-        sapply(result$warnings, function(warning) paste(sprintf("%s: %s", warning[1], warning[2]), sep="\n"))
-      else
-        sprintf("%s: %s", result$warnings[1], result$warnings[2])
-      message(msg)
+    result <- tryCatch(
+      resp |> httr2::resp_body_string() |> jsonlite::fromJSON(),
+      error = function(e) {
+        message("Failed to parse JSON: ", e$message)
+        return(NULL)
+      }
+    )
+
+    # Handle warnings in the response (if any)
+    if (!is.null(result$warnings)) {
+      warnings <- result$warnings
+      warning_msgs <- if (is.data.frame(warnings)) {
+        apply(warnings, 1, function(warning) paste(warning[1], ": ", warning[2]))
+      } else {
+        lapply(warnings, function(warning) paste(warning, collapse = " "))
+      }
+      message(paste(warning_msgs, collapse = "\n"))
     }
+  } else {
+    result <- resp |> httr2::resp_body_string()
   }
-  if (status_code(resp) != 200) {
-    if (kco@verbose) {
-      cat("\n")
-    }
-    msg <- sprintf("%s KorAP API request failed", status_code(resp))
-    if (!is.atomic(result) && !is.null(result$errors)) {
-      errormsg <- unlist(result$errors)
-      msg <- sprintf("%s: %s %s", msg, errormsg[5], errormsg[2])
-    }
-    message(msg)
-    return(invisible(NULL))
-  }
-  if (!json) {
-    result <- content(resp, "text", encoding = "UTF-8")
-  }
+
+  # Save to cache if enabled
   if (cache) {
     R.cache::saveCache(result, key = list(url, kco@accessToken, kco@indexRevision), dir = KorAPCacheSubDir(), compress = TRUE)
   }
+
+  # Return headers and content as a list if `getHeaders` is TRUE
   if (getHeaders) {
-    list(httr::headers(resp), result)
+    list(headers = resp |> httr2::resp_headers(), content = result)
   } else {
     result
   }

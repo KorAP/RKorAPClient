@@ -188,7 +188,7 @@ lemmatizeWordQuery <- function(w, apply = TRUE) {
 #' @return tibble with unique collocate rows
 #'
 #' @importFrom dplyr bind_rows group_by summarise ungroup mutate across first everything
-#' @importFrom httr parse_url build_url
+#' @importFrom httr2 url_parse url_build
 #' @export
 mergeDuplicateCollocates <- function(...) {
   # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
@@ -196,9 +196,9 @@ mergeDuplicateCollocates <- function(...) {
 
   combined_df <- bind_rows(...)
 
-  korapUrl <- parse_url(combined_df$webUIRequestUrl[1])
+  korapUrl <- httr2::url_parse(combined_df$webUIRequestUrl[1])
   korapUrl$query <- ''
-  korapUrl <- build_url(korapUrl)
+  korapUrl <- httr2::url_build(korapUrl)
 
   # Group by collocate and summarize
   combined_df %>%
