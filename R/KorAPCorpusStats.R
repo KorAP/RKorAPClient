@@ -15,7 +15,9 @@
 setClass("KorAPCorpusStats", slots=c(vc="character", documents="numeric", tokens="numeric", sentences="numeric", paragraphs="numeric", webUIRequestUrl="character" ))
 
 log_info <- function(v,  ...) {
-  cat(ifelse(v, paste0(...), ""))
+  green <- "\033[32m"
+  reset <- "\033[0m"
+  cat(ifelse(v, paste0(green, ..., reset), ""))
 }
 setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 

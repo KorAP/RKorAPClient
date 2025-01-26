@@ -201,11 +201,10 @@ setMethod("corpusQuery", "KorAPConnection",
         paste(fields, collapse = ","),
         if (metadataOnly) '&access-rewrite-disabled=true' else ''
       )
-      log_info(verbose, "Searching \"", query, "\" in \"", vc, "\"", sep =
+      log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"", sep =
                  "")
       res = apiCall(kco, paste0(requestUrl, '&count=0'))
       if (is.null(res)) {
-        log_info(verbose, " [failed]\n")
         message("API call failed.")
         totalResults <- 0
       } else {
@@ -214,7 +213,10 @@ setMethod("corpusQuery", "KorAPConnection",
         if(!is.null(res$meta$cached))
           log_info(verbose, " [cached]\n")
         else
-          log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+          if(! is.null(res$meta$benchmark))
+            log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+          else
+            log_info(verbose, "\n")
       }
       if (as.df)
         data.frame(
@@ -313,7 +315,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
 
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
-      if (verbose) cat("Using fields API: ")
+      log_info(verbose, "Using fields API: ")
       currentMatches <- res$matches$fields %>%
         purrr::map(~ mutate(.x, value = repair_data_strcuture(value))) %>%
         tibble::enframe() %>%
@@ -349,8 +351,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
-    if (verbose) {
-      cat(paste0(
+      log_info(verbose, paste0(
         "Retrieved page ",
         ceiling(nrow(collectedMatches) / res$meta$itemsPerPage),
         "/",
@@ -362,7 +363,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         res$meta$benchmark,
         '\n'
       ))
-    }
+
     page <- page + 1
     results <- results + res$meta$itemsPerPage
     if (nrow(collectedMatches) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
