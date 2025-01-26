@@ -21,13 +21,8 @@ test_that("collocationAnalysis works and warns about missing token", {
         collocationAnalysis(
           kco,
           "focus([tt/p=ADJA] {Newstickeritis})",
-          vc = "corpusSigle=/W.D17/",
           leftContextSize = 1,
           rightContextSize = 0,
-          searchHitsSampleLimit = 100,
-          topCollocatesLimit = 1,
-          exactFrequencies = FALSE,
-          maxRecurse = 2
         ),
       "access token"
     )
