@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32715b44_f658f585",
+        "filename": "R/KorAPConnection.R",
+        "patchSetId": 4
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2025-01-27T16:49:50Z",
+      "side": 1,
+      "message": "@margaretha@ids-mannheim.de: Previously this was not necessary",
+      "revId": "5b42c34e67616197cbf2bb01916ad8ca3a2e6f50",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
