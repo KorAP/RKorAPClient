@@ -500,27 +500,23 @@ buildWebUIRequestUrl <- function(kco,
 #' @rdname KorAPQuery-class
 #' @param x KorAPQuery object
 #' @param ... further arguments passed to or from other methods
-#' @importFrom httr2 url_parse
+#' @importFrom urltools param_get url_decode
 #' @export
 format.KorAPQuery <- function(x, ...) {
   cat("<KorAPQuery>\n")
   q <- x
-  tryCatch({
-    aurl = httr2::url_parse(q@request)
-    cat("           Query: ", aurl$query$q, "\n")
-    if (!is.null(aurl$query$cq) && aurl$query$cq != "") {
-      cat("  Virtual corpus: ", aurl$query$cq, "\n")
-    }
-    if (!is.null(q@collectedMatches)) {
-      cat("==============================================================================================================", "\n")
-      print(summary(q@collectedMatches))
-      cat("==============================================================================================================", "\n")
-    }
-    cat("   Total results: ", q@totalResults, "\n")
-    cat(" Fetched results: ", q@nextStartIndex, "\n")
-  }, error = function(e) {
-    cat("Error parsing URL: ", e$message, "\n")
-  })
+  param = urltools::param_get(q@request) |> lapply(urltools::url_decode)
+  cat("           Query: ", param$q, "\n")
+  if (!is.null(param$cq) && param$cq != "") {
+    cat("  Virtual corpus: ", param$cq, "\n")
+  }
+  if (!is.null(q@collectedMatches)) {
+    cat("==============================================================================================================", "\n")
+    print(summary(q@collectedMatches))
+    cat("==============================================================================================================", "\n")
+  }
+  cat("   Total results: ", q@totalResults, "\n")
+  cat(" Fetched results: ", q@nextStartIndex, "\n")
 }
 
 #' show()
