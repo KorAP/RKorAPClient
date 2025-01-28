@@ -201,7 +201,8 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search m
 #' @examples
 #' \dontrun{
 #' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
-#' df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})", leftContextSize=1, rightContextSize=0)
+#' df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})",
+#'   leftContextSize=1, rightContextSize=0)
 #' }
 #'
 #' @seealso [persistAccessToken()], [clearAccessToken()]

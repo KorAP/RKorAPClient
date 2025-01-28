@@ -25,7 +25,8 @@ Authorize RKorAPClient to make KorAP queries and download results on behalf of t
 \examples{
 \dontrun{
 kco <- new("KorAPConnection", verbose = TRUE) \%>\% auth()
-df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})", leftContextSize=1, rightContextSize=0)
+df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})",
+  leftContextSize=1, rightContextSize=0)
 }
 
 }
