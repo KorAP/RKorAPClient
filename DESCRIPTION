@@ -21,7 +21,7 @@ Description: A client package that makes the 'KorAP' web service API accessible 
   The 'RKorAPClient' package provides access to 'KorAP' and the corpora behind it for user-created R code,
   as a programmatic alternative to the 'KorAP' web user-interface.
   You can learn more about 'KorAP' and use it directly on 'DeReKo' at <https://korap.ids-mannheim.de/>.
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.1.0)
 Language: en-US
 License: BSD_2_clause + file LICENSE
 URL: https://github.com/KorAP/RKorAPClient/,
