@@ -17,6 +17,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @slot indexRevision   indexRevision code as reported from API via `X-Index-Revision` HTTP header.
 #' @slot apiUrl          full URL of API including version.
 #' @slot accessToken     OAuth2 access token.
+#' @slot refreshToken    OAuth2 refresh token.
 #' @slot userAgent       user agent string used for connection the API.
 #' @slot timeout         tineout in seconds for API requests (this does not influence server internal timeouts)
 #' @slot verbose         logical that decides whether operations will default to be verbose.
@@ -24,7 +25,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @slot welcome         list containing HTTP response received from KorAP server welcome function.
 
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical", welcome="listOrNULL"))
+KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", apiVersion="character", indexRevision="characterOrNULL", apiUrl="character", accessToken="characterOrNULL", refreshToken="characterOrNULL", userAgent="character", timeout="numeric", verbose="logical", cache="logical", welcome="listOrNULL"))
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
@@ -93,7 +94,7 @@ KorAPConnection <- setClass("KorAPConnection", slots=c(KorAPUrl="character", api
 #' @rdname KorAPConnection-class
 #' @export
 setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, accessToken = getAccessToken(KorAPUrl), userAgent = "R-KorAP-Client", timeout=240, verbose = FALSE, cache = TRUE) {
+          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, accessToken = getAccessToken(KorAPUrl), refreshToken = getRefreshToken(KorAPUrl), userAgent = "R-KorAP-Client", timeout=240, verbose = FALSE, cache = TRUE) {
             .Object <- callNextMethod()
             m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
             .Object@KorAPUrl <- regmatches(KorAPUrl, m)
@@ -106,6 +107,7 @@ setMethod("initialize", "KorAPConnection",
               .Object@apiUrl = apiUrl
             }
             .Object@accessToken = accessToken
+            .Object@refreshToken = refreshToken
             .Object@apiVersion = apiVersion
             .Object@userAgent = userAgent
             .Object@timeout = timeout
@@ -121,6 +123,7 @@ setMethod("initialize", "KorAPConnection",
 
 
 accessTokenServiceName <- "RKorAPClientAccessToken"
+refreshTokenServiceName <- "RKorAPClientRefreshToken"
 
 setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAccessToken") )
 
@@ -151,6 +154,10 @@ setMethod("persistAccessToken", "KorAPConnection",  function(kco, accessToken = 
 
   kco@accessToken <- accessToken
   key_set_with_value(accessTokenServiceName, kco@KorAPUrl, accessToken)
+
+  if(!is.nulll(kco@refreshToken)) {
+    key_set_with_value(refreshTokenServiceName, kco@KorAPUrl, kco@refreshToken)
+  }
   return(kco)
 })
 
@@ -181,7 +188,7 @@ setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
 generic_kor_app_id = "99FbPHH7RrN36hbndF7b6f"
 
 
-setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search match_info") standardGeneric("auth") )
+setGeneric("auth", function(kco,  app_id = generic_kor_app_id, app_secret = NULL, scope = "search match_info") standardGeneric("auth") )
 
 #' Authorize RKorAPClient
 #'
@@ -194,10 +201,13 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search m
 #'
 #' @param kco KorAPConnection object
 #' @param app_id OAuth2 application id. Defaults to the generic KorAP client application id.
+#' @param app_secret OAuth2 application secret. Defaults to NULL.
 #' @param scope OAuth2 scope. Defaults to "search match_info".
 #' @return KorAPConnection object with access token set in `@accessToken`.
 #'
 #' @importFrom httr2 oauth_client oauth_flow_auth_code
+#' @importFrom lubridate as_datetime
+#'
 #' @examples
 #' \dontrun{
 #' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
@@ -208,15 +218,16 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search m
 #' @seealso [persistAccessToken()], [clearAccessToken()]
 #'
 #' @export
-setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, scope = "search match_info") {
+setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, app_secret = NULL, scope = "search match_info") {
   if ( kco@KorAPUrl != "https://korap.ids-mannheim.de/" & app_id == generic_kor_app_id) {
     warning(paste("You can use the default app_id only for the IDS Mannheim KorAP main instance for querying DeReKo. Please provide your own app_id for accesing", kco@KorAPUrl))
     return(kco)
   }
   if (is.null(kco@accessToken) || is.null(kco@welcome)) { # if access token is not set or invalid
-    kco@accessToken <- (
+    auth_response <<- (
       httr2::oauth_client(
         id =  app_id,
+        secret = app_secret,
         token_url = paste0(kco@apiUrl, "oauth2/token")
       ) %>%
         httr2::oauth_flow_auth_code(
@@ -224,7 +235,29 @@ setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, 
           auth_url = paste0(kco@KorAPUrl, "settings/oauth/authorize"),
           redirect_uri = "http://localhost:1410"
         )
-    )$access_token
+    )
+    if ("access_token" %in% names(auth_response)) {
+      log_info(kco@verbose, "Client authorized. Access token set.")
+      kco@accessToken <- auth_response$access_token
+      if ("expires_at" %in% names(auth_response)) {
+        expire_datetime <- lubridate::as_datetime(auth_response$expires_at, tz = "UTC")
+        current_timestamp <- lubridate::now()
+        if (expire_datetime < current_timestamp) {
+          if (! is.null(kco@refreshToken)) {
+            auth_response <<- httr2::oauth_flow_refresh(app_id, refresh_token =  kco@refreshToken, scope = scope)
+            log_info(kco@verbose, " Access token refreshed.")
+          } else {
+            warning(" Access token has expired. Please re-authenticate.")
+          }
+        } else {
+          log_info(kco@verbose, " Access token will expire ", expire_datetime, " UTC")
+        }
+      } else {
+        log_info(kco@verbose, " Access token does not expire.")
+      }
+    } else {
+      stop("Failed to authorize client. Access token not set.", call. = FALSE)
+    }
   } else {
     log_info(kco@verbose, "Client authorized. Access token already set.")
   }
@@ -259,6 +292,18 @@ warnIfNoAccessToken <- function(kco) {
   }
 }
 
+#' @import keyring
+getRefreshToken <- function(KorAPUrl) {
+  keyList <- tryCatch(withCallingHandlers(key_list(service = refreshTokenServiceName),
+                                   warning = function(w) invokeRestart("muffleWarning"),
+                                   error = function(e) return(NULL)),
+                          error = function(e) { })
+  if (KorAPUrl %in% keyList$username)
+    key_get(refreshTokenServiceName, KorAPUrl)
+  else
+    NULL
+}
+
 KorAPCacheSubDir <- function() {
   paste0("RKorAPClient_",
          gsub(
@@ -282,7 +327,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 #' @param getHeaders logical that determines if headers and content should be returned (as a list)
 #' @importFrom jsonlite fromJSON
 #' @importFrom curl has_internet
-#' @importFrom httr2 req_user_agent req_timeout req_headers req_perform resp_status resp_body_string resp_body_json resp_content_type
+#' @importFrom httr2 req_auth_bearer_token req_user_agent req_timeout req_headers req_perform resp_status resp_body_string resp_body_json resp_content_type
 #' @export
 setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout = kco@timeout) {
   result <- ""
@@ -309,10 +354,9 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
 
   # Add authorization header if access token is available
   if (!is.null(kco@accessToken)) {
-    req <- req |> httr2::req_headers(Authorization = paste("Bearer", kco@accessToken))
+    req <- req |> httr2::req_auth_bearer_token(kco@accessToken)
   }
 
-  # Perform the request and handle errors
   resp <- tryCatch(
     req |> httr2::req_perform(),
     error = function(e) {
