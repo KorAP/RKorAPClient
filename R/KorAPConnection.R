@@ -181,7 +181,7 @@ setMethod("clearAccessToken", "KorAPConnection",  function(kco) {
 generic_kor_app_id = "99FbPHH7RrN36hbndF7b6f"
 
 
-setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search match_info") standardGeneric("auth") )
+setGeneric("auth", function(kco,  app_id = generic_kor_app_id, app_secret = NULL, scope = "search match_info") standardGeneric("auth") )
 
 #' Authorize RKorAPClient
 #'
@@ -194,10 +194,13 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search m
 #'
 #' @param kco KorAPConnection object
 #' @param app_id OAuth2 application id. Defaults to the generic KorAP client application id.
+#' @param app_secret OAuth2 application secret. Defaults to NULL.
 #' @param scope OAuth2 scope. Defaults to "search match_info".
 #' @return KorAPConnection object with access token set in `@accessToken`.
 #'
 #' @importFrom httr2 oauth_client oauth_flow_auth_code
+#' @importFrom lubridate as_datetime
+#'
 #' @examples
 #' \dontrun{
 #' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
@@ -208,15 +211,16 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, scope = "search m
 #' @seealso [persistAccessToken()], [clearAccessToken()]
 #'
 #' @export
-setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, scope = "search match_info") {
+setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, app_secret = NULL, scope = "search match_info") {
   if ( kco@KorAPUrl != "https://korap.ids-mannheim.de/" & app_id == generic_kor_app_id) {
     warning(paste("You can use the default app_id only for the IDS Mannheim KorAP main instance for querying DeReKo. Please provide your own app_id for accesing", kco@KorAPUrl))
     return(kco)
   }
   if (is.null(kco@accessToken) || is.null(kco@welcome)) { # if access token is not set or invalid
-    kco@accessToken <- (
+    auth_response <<- (
       httr2::oauth_client(
         id =  app_id,
+        secret = app_secret,
         token_url = paste0(kco@apiUrl, "oauth2/token")
       ) %>%
         httr2::oauth_flow_auth_code(
@@ -224,7 +228,24 @@ setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, 
           auth_url = paste0(kco@KorAPUrl, "settings/oauth/authorize"),
           redirect_uri = "http://localhost:1410"
         )
-    )$access_token
+    )
+    if ("access_token" %in% names(auth_response)) {
+      log_info(kco@verbose, "Client authorized. Access token set.")
+      kco@accessToken <- auth_response$access_token
+      if ("expires_at" %in% names(auth_response)) {
+        expire_datetime <- lubridate::as_datetime(auth_response$expires_at, tz = "UTC")
+        current_timestamp <- lubridate::now()
+        if (expire_datetime < current_timestamp) {
+          warning(" Access token has expired. Please re-authenticate.")
+        } else {
+          log_info(kco@verbose, " Access token will expire ", expire_datetime, " UTC")
+        }
+      } else {
+        log_info(kco@verbose, " Access token does not expire.")
+      }
+    } else {
+      stop("Failed to authorize client. Access token not set.", call. = FALSE)
+    }
   } else {
     log_info(kco@verbose, "Client authorized. Access token already set.")
   }
