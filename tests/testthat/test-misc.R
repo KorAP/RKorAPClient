@@ -221,6 +221,11 @@ test_that("geom_freq_by_year_ci works correctly", {
     )
     gpt <- df %>% ggplot(aes(year, ipm, fill = condition, color = condition)) +
       geom_freq_by_year_ci()
-    expect_equal(gpt[["labels"]][["url"]], "webUIRequestUrl")
+    labels <- if ("get_labs" %in% getNamespaceExports("ggplot2")) {
+      ggplot2::get_labs(gpt)
+    } else {
+      gpt[["labels"]]
+    }
+    expect_equal(labels[["url"]], "webUIRequestUrl")
     expect_equal(gpt[["data"]][["query"]][14], "[tt/l=Heuschrecke]")
 })
