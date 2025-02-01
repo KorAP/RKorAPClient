@@ -18,6 +18,8 @@
   apiVersion = "v1.0",
   apiUrl,
   accessToken = getAccessToken(KorAPUrl),
+  oauthClient = NULL,
+  oauthScope = "search match_info",
   userAgent = "R-KorAP-Client",
   timeout = 240,
   verbose = FALSE,
@@ -76,7 +78,10 @@ DeReKo, authorized queries will behave differently inside and outside the
 IDS, because of the special license situation. This concerns also cached
 results which do not take into account from where a request was issued. If
 you experience problems or unexpected results, please try \code{kco <- new("KorAPConnection", cache=FALSE)} or use
-\code{\link[=clearCache]{clearCache()}} to clear the cache completely.}
+\code{\link[=clearCache]{clearCache()}} to clear the cache completely.
+
+An alternative to using an access token is to use a browser-based oauth2 workflow
+to obtain an access token. This can be done with the \code{\link[=auth]{auth()}} method.}
 
 \item{userAgent}{user agent string.}
 
@@ -118,6 +123,10 @@ New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection"
 \item{\code{apiUrl}}{full URL of API including version.}
 
 \item{\code{accessToken}}{OAuth2 access token.}
+
+\item{\code{oauthClient}}{OAuth2 client object.}
+
+\item{\code{oauthScope}}{OAuth2 scope.}
 
 \item{\code{userAgent}}{user agent string used for connection the API.}
 

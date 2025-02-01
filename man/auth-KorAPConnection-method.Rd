@@ -5,7 +5,12 @@
 \alias{auth}
 \title{Authorize RKorAPClient}
 \usage{
-\S4method{auth}{KorAPConnection}(kco, app_id = generic_kor_app_id, scope = "search match_info")
+\S4method{auth}{KorAPConnection}(
+  kco,
+  app_id = generic_kor_app_id,
+  app_secret = NULL,
+  scope = kco@oauthScope
+)
 }
 \arguments{
 \item{kco}{KorAPConnection object}
