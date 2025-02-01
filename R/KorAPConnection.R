@@ -21,7 +21,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @slot oauthClient     OAuth2 client object.
 #' @slot oauthScope      OAuth2 scope.
 #' @slot userAgent       user agent string used for connection the API.
-#' @slot timeout         tineout in seconds for API requests (this does not influence server internal timeouts)
+#' @slot timeout         timeout in seconds for API requests (this does not influence server internal timeouts)
 #' @slot verbose         logical that decides whether operations will default to be verbose.
 #' @slot cache           logical that decides if API calls are cached locally.
 #' @slot welcome         list containing HTTP response received from KorAP server welcome function.

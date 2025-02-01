@@ -136,7 +136,7 @@ New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection"
 
 \item{\code{userAgent}}{user agent string used for connection the API.}
 
-\item{\code{timeout}}{tineout in seconds for API requests (this does not influence server internal timeouts)}
+\item{\code{timeout}}{timeout in seconds for API requests (this does not influence server internal timeouts)}
 
 \item{\code{verbose}}{logical that decides whether operations will default to be verbose.}
 
