@@ -20,6 +20,7 @@
   accessToken = getAccessToken(KorAPUrl),
   oauthClient = NULL,
   oauthScope = "search match_info",
+  authorizationPossible = TRUE,
   userAgent = "R-KorAP-Client",
   timeout = 240,
   verbose = FALSE,
@@ -133,6 +134,8 @@ New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection"
 \item{\code{oauthClient}}{OAuth2 client object.}
 
 \item{\code{oauthScope}}{OAuth2 scope.}
+
+\item{\code{authorizationPossible}}{logical that indicates if authorization is possible/necessary for the current KorAP instance. Automatically set during initialization.}
 
 \item{\code{userAgent}}{user agent string used for connection the API.}
 
