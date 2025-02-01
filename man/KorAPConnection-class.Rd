@@ -20,6 +20,7 @@
   accessToken = getAccessToken(KorAPUrl),
   oauthClient = NULL,
   oauthScope = "search match_info",
+  authorizationSupported = TRUE,
   userAgent = "R-KorAP-Client",
   timeout = 240,
   verbose = FALSE,
@@ -51,7 +52,7 @@
 \item{accessToken}{OAuth2 access token. For queries on corpus parts with restricted
 access (e.g. textual queries on IPR protected data), you need to authorize
 your application with an access token.
-You can obtain an access token using the \code{\link[=auth]{auth()}} method.
+You can obtain an access token in the OAuth settings of your KorAP web interface.
 
 More details are explained in the
 \href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
@@ -87,7 +88,7 @@ to obtain an access token. This can be done with the \code{\link[=auth]{auth()}}
 
 \item{oauthScope}{OAuth2 scope.}
 
-\item{authorizationPossible}{logical that indicates if authorization is possible/necessary for the current KorAP instance. Automatically set during initialization.}
+\item{authorizationSupported}{logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.}
 
 \item{userAgent}{user agent string.}
 
@@ -133,6 +134,8 @@ New \code{KorAPConnection} objects can be created by \code{new("KorAPConnection"
 \item{\code{oauthClient}}{OAuth2 client object.}
 
 \item{\code{oauthScope}}{OAuth2 scope.}
+
+\item{\code{authorizationSupported}}{logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.}
 
 \item{\code{userAgent}}{user agent string used for connection the API.}
 
