@@ -98,7 +98,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
               stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
             }
 
-            warnIfNoAccessToken(kco)
+            warnIfNotAuthorized(kco)
 
             if (lemmatizeNodeQuery) {
               node <- lemmatizeWordQuery(node)
