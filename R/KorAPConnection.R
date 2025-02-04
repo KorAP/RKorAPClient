@@ -142,7 +142,11 @@ setMethod("initialize", "KorAPConnection",
 
               .Object@indexRevision <- .Object@welcome[[1]][["x-index-revision"]]
             } else {
-              message("Could not connect to KorAP instance ", .Object@KorAPUrl)
+              if (grepl(.Object@KorAPUrl, .Object@apiUrl)) {
+                message("Could not connect to KorAP instance ", .Object@KorAPUrl)
+              } else {
+                message("Could not connect to KorAP API at ", .Object@apiUrl)
+              }
             }
             .Object
           })
@@ -359,6 +363,7 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
   # Create the request
   req <- httr2::request(url) |>
     httr2::req_user_agent(kco@userAgent) |>
+    httr2::req_error(is_error = \(resp) FALSE) |>
     httr2::req_timeout(timeout)
 
   if (! is.null(kco@oauthClient)) {
@@ -367,11 +372,14 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
     req <- req |> httr2::req_auth_bearer_token(kco@accessToken)
   }
 
-  resp <- req |>
-    httr2::req_error(is_error = \(resp) FALSE) |>
-    httr2::req_perform()
+  resp <- tryCatch(req |> httr2::req_perform(),
+    error = function(e) {
+      message(e$message, if("parent" %in% names(e)) paste0("\n", e$parent$message) else "")
+      return(NULL)
+    }
+  )
 
-  # if (is.null(resp)) return(invisible(NULL))
+  if (is.null(resp)) return(invisible(NULL))
 
   if (resp |> httr2::resp_status() != 200) {
     message("Request failed with status ", resp |> httr2::resp_status(), ": ", resp |> httr2::resp_status_desc())

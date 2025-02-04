@@ -3,11 +3,11 @@ test_that("KorAPConnection fails gracefully on unresolvable host", {
 })
 
 test_that("KorAPConnection fails gracefully on timeout", {
-  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/3", timeout = 0.2), "No internet|Timeout|json|progress")
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/delay/3", accessToken = NULL, timeout = 0.2), "No internet|Timeout|json|progress")
 })
 
 test_that("KorAPConnection fails gracefully on Bad Gateway errors", {
-  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/status/502", timeout = 0.5), "No internet|Timeout|progress|json|502")
+  expect_message(new("KorAPConnection", apiUrl="http://httpbin.org/status/502", accessToken = NULL, timeout = 0.5), "No internet|Timeout|progress|json|502")
 })
 
 test_that("KorAPConnection is printable", {
