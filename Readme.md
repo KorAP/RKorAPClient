@@ -105,6 +105,7 @@ kco <- new("KorAPConnection") %>% auth()
 ```
 
 #### 2. The old way: Authorize your RKorAPClient application manually
+(Required for headless operation, e.g. in batch scripts)
 
 1. Log in into the [KorAP DeReKo instance](https://korap.ids-mannheim.de/)
 1. Open the [KorAP OAuth settings](https://korap.ids-mannheim.de/settings/oauth#page-top)
@@ -113,6 +114,7 @@ kco <- new("KorAPConnection") %>% auth()
 1. If you do not have any access tokens yet, click on the "Issue new token" button.
 1. Copy one of your access tokens to you clipboard by clicking on the copy symbol ⎘ behind it.
 1. In R/RStudio, paste the token into you KorAPConnection initialization, overwriting `<access token>` in the following example:
+
    ```R
    kco <- new("KorAPConnection", accessToken="<access token>")
    ```
