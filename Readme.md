@@ -176,7 +176,7 @@ More elaborate R scripts demonstrating the use of the package can be found in th
 sudo apt -f install # install possibly missing RStudio dependencies
 sudo apt install r-base-dev r-cran-rcpp r-cran-cpp11 libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev libv8-dev
 
-# Fedora, CentOS, RHEL (for older versions use `yum` instead of `dnf`)
+# Fedora, CentOS, RHEL, Rocky Linux, AlmaLinux, ...
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel v8-devel
 
 # Arch Linux
