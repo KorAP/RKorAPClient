@@ -1,6 +1,6 @@
 test_that("collocationScoreQuery works", {
   skip_if_offline()
-  kco <- new("KorAPConnection", cache = TRUE, verbose = TRUE)
+  kco <- new("KorAPConnection", accessToken = NULL, cache = TRUE, verbose = TRUE)
   df <- collocationScoreQuery(kco, "Ameisenplage", "heimgesucht", leftContextSize=0, rightContextSize=1)
   expect_gt(df$logDice, 1)
   expect_equal(df$ll, ll(df$O1, df$O2, df$O, df$N, df$E, df$w))
