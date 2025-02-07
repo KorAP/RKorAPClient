@@ -188,4 +188,24 @@ test_that("extended metadata fields work cortrectly on instane KED", {
   expect_gt(min(nchar(df$KED.rcpnt)), 5)
 })
 
+test_that("corpusQuery token API works when textSigle field is deselected", {
+  skip_if_offline()
+  kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
+  q <- corpusQuery(kco, "focus([tt/p=ADJA] {Newstickeritis})",
+                   vc = "corpusSigle=/W.D17/",
+                   fields = c("tokens"),
+                   metadataOnly = FALSE)
+  q <- fetchNext(q)
+  matches <-q@collectedMatches
+  expect_gt(nrow(matches), 10)
+  unique_matches <- unique(matches$tokens$match)
+  expect_equal(length(unique_matches), 1)
+  expect_equal(unique_matches[[1]], "Newstickeritis")
+
+  left_contexts <- matches$tokens$left
+  expect_true(TRUE %in% grepl("reine", left_contexts))
+
+  right_contexts <- matches$tokens$right
+  expect_true(TRUE %in% grepl("Begriff", right_contexts))
+})
 

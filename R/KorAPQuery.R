@@ -185,6 +185,9 @@ setMethod("corpusQuery", "KorAPConnection",
       if (metadataOnly) {
         fields <- fields[!fields %in% contentFields]
       }
+      if (!"textSigle" %in% fields) {
+        fields <- c(fields, "textSigle")
+      }
       request <-
         paste0('?q=',
                url_encode(enc2utf8(query)),
