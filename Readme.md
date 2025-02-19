@@ -96,7 +96,7 @@ In order to perform collocation analysis and other textual queries on corpus par
 
 In the case of DeReKo, this can be done in three different ways.
 
-#### 1. The latest and laziest way (currently only available in the [development version](#development-version) of RKorAPClient)
+#### 1. The latest and laziest way (available since RKorAPClient 0.9.0.9000)
 
 Authorize your RKorAPClient application via the usual OAuth browser flow *using the default application id* and the `auth` method:
 
@@ -113,7 +113,7 @@ kco <- new("KorAPConnection") %>% auth()
 1. Click the intended client application name.
 1. If you do not have any access tokens yet, click on the "Issue new token" button.
 1. Copy one of your access tokens to you clipboard by clicking on the copy symbol ⎘ behind it.
-1. In R/RStudio, paste the token into you KorAPConnection initialization, overwriting `<access token>` in the following example:
+1. In R/RStudio, paste the token into your KorAPConnection initialization, overwriting `<access token>` in the following example:
 
    ```R
    kco <- new("KorAPConnection", accessToken="<access token>")
@@ -123,12 +123,9 @@ The whole process is shown in this video:
 
 https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
-#### 3. The new way (since March 2023)[^1]
+#### 3. The new way (available since RKorAPClient 0.9.0.9000)
 
 Authorize your RKorAPClient application via the usual OAuth browser flow, using *your own application id* and the `auth` method:
-
-
-[^1]: This new method has been made possible purely on the server side, so that it will also work with older versions of RKorAPClient.
 
 1. Follow steps 1-4 of the old way shown above.
 2. Click on the copy symbol ⎘ behind the ID of your client application.
@@ -147,7 +144,8 @@ You can also persist the access token for subsequent sessions with the `persistA
 persistAccessToken(kco)
 ```
 
-Afterwards a simple `kco <- new("KorAPConnection")` will retrieve the stored token.
+Afterwards a simple `kco <- new("KorAPConnection")` will retrieve the stored token. 
+Piping the result through the `auth()` function `kco <- new("KorAPConnection") |> auth()` works and does nothing, in this case.
 
 To use the access token for simple corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for example:
 
@@ -225,7 +223,7 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 
 **Authors**: [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz/), [Nils Diewald](https://www.ids-mannheim.de/digspra/personal/diewald/)
 
-Copyright (c) 2024, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2025, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language
