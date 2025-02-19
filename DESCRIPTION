@@ -53,7 +53,17 @@ Imports:
     urltools
 Suggests:
     lifecycle,
-    testthat
+    testthat,
+    htmlwidgets,
+    rmarkdown,
+    shiny,
+    vcd,
+    kableExtra,
+    knitr,
+    purrrlyr,
+    raster,
+    rmarkdown,
+    tidyverse
 Collate: 
     'KorAPConnection.R'
     'KorAPCorpusStats.R'
