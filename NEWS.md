@@ -1,3 +1,13 @@
+# RKorAPClient 1.0.0
+
+- Simplified authorization process for accessing restricted data via the new `auth()` function (see `?auth`)
+- `citation("RKorAPClient")` is now supported. Please cite the RKorAPClient package when using it in your research.
+- Switched from `httr` to `httr2`for all API requests
+- Minimally required R version is now 4.1.0 (released 2021-05-18)
+- Fixed compatibility with upcoming  `ggplot2` 3.6.0 (thanks @teunbrand)
+- Fixed issues with tokenized matches in `corpusQuery` results
+- Fixed smoothing constant in `mergeDuplicateCollocates` function
+
 # RKorAPClient 0.9.0
 
 - added citation hint, see `citation("RKorAPClient")`
