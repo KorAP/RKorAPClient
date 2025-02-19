@@ -2,16 +2,22 @@
 % Please edit documentation in R/collocationScoreQuery.R
 \name{mergeDuplicateCollocates}
 \alias{mergeDuplicateCollocates}
-\title{Merge duplicate collocate rows and re-calculate association scores and urls}
+\title{Merge duplicate collocate rows and re-calculate association scores and URLs.
+Useful if collocation analyses were performed separately for collocates on the
+left and right side of a node.}
 \usage{
-mergeDuplicateCollocates(...)
+mergeDuplicateCollocates(..., smoothingConstant = 0.5)
 }
 \arguments{
 \item{...}{tibbles with collocate rows returned from \code{\link[=collocationAnalysis]{collocationAnalysis()}}}
+
+\item{smoothingConstant}{original smoothing constant (to be added only once to the observed values)}
 }
 \value{
 tibble with unique collocate rows
 }
 \description{
-Merge duplicate collocate rows and re-calculate association scores and urls
+Merge duplicate collocate rows and re-calculate association scores and URLs.
+Useful if collocation analyses were performed separately for collocates on the
+left and right side of a node.
 }

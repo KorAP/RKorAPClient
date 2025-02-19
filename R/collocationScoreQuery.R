@@ -182,15 +182,18 @@ lemmatizeWordQuery <- function(w, apply = TRUE) {
     w
 }
 
-#' Merge duplicate collocate rows and re-calculate association scores and urls
+#' Merge duplicate collocate rows and re-calculate association scores and URLs.
+#' Useful if collocation analyses were performed separately for collocates on the
+#' left and right side of a node.
 #'
 #' @param ... tibbles with collocate rows returned from [collocationAnalysis()]
+#' @param smoothingConstant  original smoothing constant (to be added only once to the observed values)
 #' @return tibble with unique collocate rows
 #'
 #' @importFrom dplyr bind_rows group_by summarise ungroup mutate across first everything
 #' @importFrom httr2 url_modify
 #' @export
-mergeDuplicateCollocates <- function(...) {
+mergeDuplicateCollocates <- function(..., smoothingConstant = .5) {
   # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   O1 <- O2 <- O <- N <- E <- w <- leftContextSize <- rightContextSize <- collocate <- tmp_positions <- 0
 
@@ -202,8 +205,8 @@ mergeDuplicateCollocates <- function(...) {
   combined_df %>%
     group_by(collocate, O2, N) %>%
     summarise(
-      O = sum(O),
-      O1 = sum(O1),
+      O = sum(O) - smoothingConstant * (n()-1),
+      O1 = sum(O1) - smoothingConstant * (n()-1),
       leftContextSize = sum(leftContextSize),
       rightContextSize = sum(rightContextSize),
       w = sum(w),
