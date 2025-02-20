@@ -1,5 +1,30 @@
 ## Notes
 
+* switched to httr2 resulting in simplified authorization
+* minimum R version bumped to 4.1.0
+* changes make it time for v1.0.0
+* fixed compatibility with upcoming ggplot2 3.6.0
+* fixed CRAN check notes on unstated dependencies in ‘demo’
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 41 with R version 4.4.2
+* local Debian 12 with R Under development (unstable) (2025-02-19 r87757)
+* github workflow on Windows with R 4.4.2
+* github workflow on macOS 14.7.2 with R 4.4.2 for macOS (ARM64)
+* github workflow on Ubuntu with R 4.4.2
+* github workflow on Ubuntu with R 4.3.3
+* github workflow on Ubuntu with R Under development
+* win-builder workflow using R Under development (unstable) (2024-05-01 r86507 ucrt)
+
+## Notes on 0.9.0
+
 * release with some new functions and internal changes that should not affect CRAN
   compatibility
 * fixed CRAN check notes on Rd `\link{}` targets without package anchors
