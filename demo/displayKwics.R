@@ -4,7 +4,7 @@ library(dplyr)
 
 query = 'V\u00F6ner' # "Portable packages must use only ASCII characters in their demos."
 
-new("KorAPConnection", verbose = TRUE) %>%
+KorAPConnection(verbose = TRUE) %>%
   auth() %>%
   corpusQuery(query, fields = c("textSigle", "pubDate", "corpusTitle", "snippet"),
               metadataOnly = FALSE) %>%

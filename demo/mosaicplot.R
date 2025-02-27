@@ -8,7 +8,7 @@ library(vcd)
 library(tibble)
 library(dplyr)
 
-mosaicplot <- function(query, vc, kco = new("KorAPConnection", verbose = TRUE)) {
+mosaicplot <- function(query, vc, kco = KorAPConnection(verbose = TRUE)) {
   frequencyQuery(
     query = query,
     vc = vc,

@@ -74,7 +74,7 @@ und multiplies conf.low and \code{conf.high} with 10^6.
 \dontrun{
 
 library(ggplot2)
-kco <- new("KorAPConnection", verbose=TRUE)
+kco <- KorAPConnection(verbose=TRUE)
 expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
   bind_cols(corpusQuery(kco, .$alternatives, sprintf("pubDate in \%d", .$year))) \%>\%
   mutate(total=corpusStats(kco, vc=vc)$tokens) \%>\%
@@ -84,11 +84,11 @@ expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) \%>\%
 }
 \dontrun{
 
-new("KorAPConnection") \%>\% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) \%>\% ipm()
+KorAPConnection() \%>\% frequencyQuery("Test", paste0("pubDate in ", 2000:2002)) \%>\% ipm()
 }
 \dontrun{
 
-new("KorAPConnection") \%>\%
+KorAPConnection() \%>\%
     frequencyQuery(c("Tollpatsch", "Tolpatsch"),
     vc=paste0("pubDate in ", 2000:2002),
     as.alternatives = TRUE) \%>\%
@@ -100,7 +100,7 @@ queryStringToLabel(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"))
 
 \dontrun{
 library(ggplot2)
-kco <- new("KorAPConnection", verbose=TRUE)
+kco <- KorAPConnection(verbose=TRUE)
 
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
             year = (2005:2011)) \%>\%

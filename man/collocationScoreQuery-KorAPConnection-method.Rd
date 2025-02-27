@@ -22,7 +22,7 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
 
 \item{node}{target word}
 
@@ -58,13 +58,13 @@ based on \code{\link[=frequencyQuery]{frequencyQuery()}}s for a target word and 
 \examples{
 \dontrun{
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
   collocationScoreQuery("Grund", "triftiger")
 }
 
 \dontrun{
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
 collocationScoreQuery("Grund", c("guter", "triftiger"),
    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
 }
@@ -73,7 +73,7 @@ collocationScoreQuery("Grund", c("guter", "triftiger"),
 
 library(highcharter)
 library(tidyr)
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) \%>\%
                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") \%>\%

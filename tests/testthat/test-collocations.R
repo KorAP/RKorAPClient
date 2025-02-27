@@ -1,6 +1,6 @@
 test_that("collocationScoreQuery works", {
   skip_if_offline()
-  kco <- new("KorAPConnection", accessToken = NULL, cache = TRUE, verbose = TRUE)
+  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = TRUE)
   df <- collocationScoreQuery(kco, "Ameisenplage", "heimgesucht", leftContextSize=0, rightContextSize=1)
   expect_gt(df$logDice, 1)
   expect_equal(df$ll, ll(df$O1, df$O2, df$O, df$N, df$E, df$w))
@@ -13,7 +13,7 @@ test_that("collocationScoreQuery works", {
 
 test_that("collocationAnalysis works and warns about missing token", {
   skip_if_offline()
-  kco <- new("KorAPConnection",
+  kco <- KorAPConnection(
                accessToken = NULL,
                verbose = TRUE)
     expect_warning(
@@ -32,7 +32,7 @@ test_that("collocationAnalysis works and warns about missing token", {
 
 test_that("collocationAnalysis on unaccounted strings does not error out", {
   skip_if_offline()
-  kco <- new("KorAPConnection", accessToken = NULL, verbose = TRUE)
+  kco <- KorAPConnection(accessToken = NULL, verbose = TRUE)
   expect_warning(
     df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc=c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/"), maxRecurse = 2),
     "access token"

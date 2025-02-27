@@ -26,7 +26,7 @@ a separate tab.
 library(highcharter)
 library(tidyr)
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) \%>\%
                          pivot_longer(c("O", "E")) \%>\%

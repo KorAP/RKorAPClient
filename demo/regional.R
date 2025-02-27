@@ -39,7 +39,7 @@ fetchMaps <- function(maps, picks) {
 
 map <- fetchMaps(c("DEU_1", "AUT_0", "CHE_0", "LUX_0", "BEL_3", "ITA_1", "LIE_0"), c(0, 0, 0, 0, 34, 17, 0))
 
-geoDistrib <- function(query, kco = new("KorAPConnection", verbose=TRUE)) {
+geoDistrib <- function(query, kco = KorAPConnection(verbose=TRUE)) {
   regions <- readRDS("demo/data/regions.rds")
   regions$freq <- NA
   regions$url <- NA

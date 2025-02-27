@@ -8,7 +8,7 @@ COUNTRIES <- c("AT", "BE", "CH", "DE", "IT", "LU")
 VCS <- sprintf("textType=/Zeit.*/ & pubPlaceKey=%s", COUNTRIES) # limit virtual corpus to newspapers and magazines
 
 
-df <- new("KorAPConnection", verbose=TRUE) %>%
+df <- KorAPConnection(verbose=TRUE) %>%
   frequencyQuery(QUERIES, vc=VCS) %>%
   ipm() %>%
   mutate(country = rep(COUNTRIES, length(QUERIES)))

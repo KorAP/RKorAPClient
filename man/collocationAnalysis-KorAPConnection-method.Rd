@@ -31,7 +31,7 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
 
 \item{node}{target word}
 
@@ -101,7 +101,7 @@ user interface.
 \dontrun{
 
  # Find top collocates of "Packung" inside and outside the sports domain.
- new("KorAPConnection", verbose = TRUE) \%>\%
+ KorAPConnection(verbose = TRUE) \%>\%
   collocationAnalysis("Packung", vc=c("textClass=sport", "textClass!=sport"),
                       leftContextSize=1, rightContextSize=1, topCollocatesLimit=20) \%>\%
   dplyr::filter(logDice >= 5)
@@ -111,7 +111,7 @@ user interface.
 
 # Identify the most prominent light verb construction with "in ... setzen".
 # Note that, currently, the use of focus function disallows exactFrequencies.
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
   collocationAnalysis("focus(in [tt/p=NN] {[tt/l=setzen]})",
     leftContextSize=1, rightContextSize=0, exactFrequencies=FALSE, topCollocatesLimit=20)
 }

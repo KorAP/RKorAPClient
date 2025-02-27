@@ -5,7 +5,7 @@
 library(RKorAPClient)
 library(ggplot2)
 
-alternativesOverTime <- function(alternatives, years, kco = new("KorAPConnection", verbose=TRUE)) {
+alternativesOverTime <- function(alternatives, years, kco = KorAPConnection(verbose=TRUE)) {
   df <- expand_grid(Variant = alternatives, year = years) %>%
     cbind(frequencyQuery(kco, .$Variant, sprintf("textType = /Zeit.*/ & pubDate in %d", .$year), as.alternatives=TRUE)) %>%
     rename(share=f)

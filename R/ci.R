@@ -25,7 +25,7 @@
 #' \dontrun{
 #'
 #' library(ggplot2)
-#' kco <- new("KorAPConnection", verbose=TRUE)
+#' kco <- KorAPConnection(verbose=TRUE)
 #' expand_grid(year=2015:2018, alternatives=c("Hate Speech", "Hatespeech")) %>%
 #'   bind_cols(corpusQuery(kco, .$alternatives, sprintf("pubDate in %d", .$year))) %>%
 #'   mutate(total=corpusStats(kco, vc=vc)$tokens) %>%

@@ -13,7 +13,7 @@ library(RKorAPClient)
 library(kableExtra)
 library(DT)
 library(tidyverse)
-kco <- new("KorAPConnection", verbose=T)
+kco <- KorAPConnection(verbose=T)
 if (!exists('ca')) {
 ca <- kco %>%
   collocationAnalysis(

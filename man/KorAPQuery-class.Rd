@@ -117,7 +117,7 @@ buildWebUIRequestUrl(
 
 \item{collectedMatches}{matches already fetched from the KorAP-API-server}
 
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
@@ -192,7 +192,7 @@ virtual corpora.
 \dontrun{
 
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 }
 
 \dontrun{
@@ -200,7 +200,7 @@ new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 # and show the number of query hits (but don't fetch them).
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
  corpusQuery(KorAPUrl =
    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 }
@@ -208,7 +208,7 @@ new("KorAPConnection", verbose = TRUE) \%>\%
 \dontrun{
 
 # Plot the time/frequency curve of "Ameisenplage"
-new("KorAPConnection", verbose=TRUE) \%>\%
+KorAPConnection(verbose=TRUE) \%>\%
   { . ->> kco } \%>\%
   corpusQuery("Ameisenplage") \%>\%
   fetchAll() \%>\%
@@ -225,25 +225,25 @@ new("KorAPConnection", verbose=TRUE) \%>\%
 }
 \dontrun{
 
-q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
+q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
 q@collectedMatches
 }
 
 \dontrun{
 
-q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 q@collectedMatches
 }
 
 \dontrun{
 
-q <- new("KorAPConnection") \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
+q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
 q@collectedMatches
 }
 
 \dontrun{
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 }
 

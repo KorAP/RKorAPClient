@@ -9,7 +9,7 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #' (see [Kustvakt Wiki](https://github.com/KorAP/Kustvakt/wiki/Service:-Metadata-Retrieval)).
 #'
 #'
-#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`)
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`)
 #' @param textSigle unique text id (concatenation of corpus, document and text ids, separated by `/`, e.g. ) or vector thereof
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed. Defaults to `kco@verbose`.
 #'
@@ -23,7 +23,7 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #'
 #' @examples
 #' \dontrun{
-#' new("KorAPConnection") %>% textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
+#' KorAPConnection() %>% textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
 #' }
 #'
 #' @export

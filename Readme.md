@@ -21,7 +21,7 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 
 ```R
 library(RKorAPClient)
-new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
+KorAPConnection(verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
 ```
 
 ### Frequencies over time and domains using ggplot2
@@ -29,7 +29,7 @@ new("KorAPConnection", verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll
 ```r
 library(RKorAPClient)
 library(ggplot2)
-kco <- new("KorAPConnection", verbose=TRUE)
+kco <- KorAPConnection(verbose=TRUE)
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"), 
             year = (2002:2018)) %>%
     cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", paste0(.$condition," & pubDate in ", .$year)))  %>%
@@ -49,7 +49,7 @@ query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
 years = c(1980:2010)
 as.alternatives = TRUE
 vc = "textType = /Zeit.*/ & pubDate in"
-new("KorAPConnection", verbose=T) %>%
+KorAPConnection(verbose=T) %>%
   frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) %>%
   hc_freq_by_year_ci(as.alternatives)
 ```
@@ -62,7 +62,7 @@ new("KorAPConnection", verbose=T) %>%
 ```r
 library(RKorAPClient)
 library(knitr)
-new("KorAPConnection", verbose = TRUE) %>% auth() %>%
+KorAPConnection(verbose = TRUE) %>% auth() %>%
   collocationAnalysis(
     "focus(in [tt/p=NN] {[tt/l=setzen]})",
     leftContextSize = 1,
@@ -101,7 +101,7 @@ In the case of DeReKo, this can be done in three different ways.
 Authorize your RKorAPClient application via the usual OAuth browser flow *using the default application id* and the `auth` method:
 
 ```R
-kco <- new("KorAPConnection") %>% auth()
+kco <- KorAPConnection() %>% auth()
 ```
 
 #### 2. The old way: Authorize your RKorAPClient application manually
@@ -116,7 +116,7 @@ kco <- new("KorAPConnection") %>% auth()
 1. In R/RStudio, paste the token into your KorAPConnection initialization, overwriting `<access token>` in the following example:
 
    ```R
-   kco <- new("KorAPConnection", accessToken="<access token>")
+   kco <- KorAPConnection(accessToken="<access token>")
    ```
 
 The whole process is shown in this video:
@@ -131,7 +131,7 @@ Authorize your RKorAPClient application via the usual OAuth browser flow, using 
 2. Click on the copy symbol ⎘ behind the ID of your client application.
 3. Paste your clipboard content overwriting `<application ID>` in the following example code:
    ```R
-   kco <- new("KorAPConnection") %>% auth(app_id = "<application ID>")
+   kco <- KorAPConnection() %>% auth(app_id = "<application ID>")
    ```
 
 #### Storing and testing your authorized access
@@ -144,8 +144,8 @@ You can also persist the access token for subsequent sessions with the `persistA
 persistAccessToken(kco)
 ```
 
-Afterwards a simple `kco <- new("KorAPConnection")` will retrieve the stored token. 
-Piping the result through the `auth()` function `kco <- new("KorAPConnection") |> auth()` works and does nothing, in this case.
+Afterwards a simple `kco <- KorAPConnection()` will retrieve the stored token. 
+Piping the result through the `auth()` function `kco <- KorAPConnection() |> auth()` works and does nothing, in this case.
 
 To use the access token for simple corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for example:
 
@@ -248,7 +248,7 @@ RKorAPClient imports parts of the [highcharter package](https://cran.r-project.o
 
 ### Accessed API Services
 
-By using RKorAPClient you agree to the respective terms of use of the accessed KorAP API services which will be printed upon opening a connection (`new("KorAPConnection", ...`).
+By using RKorAPClient you agree to the respective terms of use of the accessed KorAP API services which will be printed upon opening a connection (`KorAPConnection(...`).
 
 ## Contributions
 

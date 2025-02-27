@@ -19,7 +19,7 @@ Clear access token from keyring and KorAPConnection object
 \examples{
 
 \dontrun{
-kco <- new("KorAPConnection")
+kco <- KorAPConnection()
 kco <- clearAccessToken(kco)
 }
 

@@ -59,7 +59,7 @@ The functions are primarily used by \code{\link[=collocationScoreQuery]{collocat
 \examples{
 \dontrun{
 
-new("KorAPConnection", verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
 collocationScoreQuery("Perlen", c("verziertes", "Säue"),
   scoreFunctions = append(defaultAssociationScoreFunctions(),
      list(localMI = function(O1, O2, O, N, E, window_size) {

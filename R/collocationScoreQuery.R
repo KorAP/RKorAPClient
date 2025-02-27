@@ -12,7 +12,7 @@ utils::globalVariables(c("."))
 #' Computes various collocation association scores
 #' based on [frequencyQuery()]s for a target word and a collocate.
 #'
-#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param node               target word
 #' @param collocate          collocate of target word
 #' @param vc                 string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
@@ -33,13 +33,13 @@ utils::globalVariables(c("."))
 #' @examples
 #' \dontrun{
 #'
-#' new("KorAPConnection", verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) %>%
 #'   collocationScoreQuery("Grund", "triftiger")
 #' }
 #'
 #' \dontrun{
 #'
-#' new("KorAPConnection", verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) %>%
 #' collocationScoreQuery("Grund", c("guter", "triftiger"),
 #'    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
 #' }
@@ -48,7 +48,7 @@ utils::globalVariables(c("."))
 #'
 #' library(highcharter)
 #' library(tidyr)
-#' new("KorAPConnection", verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) %>%
 #'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
 #'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
 #'                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") %>%

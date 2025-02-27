@@ -8,7 +8,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' Class KorAPConnection
 #'
 #' `KorAPConnection` objects represent the connection to a KorAP server.
-#' New `KorAPConnection` objects can be created by `new("KorAPConnection")`.
+#' New `KorAPConnection` objects can be created by `KorAPConnection()`.
 #'
 #' @import R.cache
 #' @import utils
@@ -53,7 +53,7 @@ kustvakt_auth_path = "settings/oauth/authorize"
 #'   in subsequent queries, initialize your KorAP connection with:
 #'
 #'   ```
-#'   kco <- new("KorAPConnection", accessToken="<access token>")
+#'   kco <- KorAPConnection(accessToken="<access token>")
 #'   ```
 #'
 #'   In order to make the API
@@ -65,14 +65,14 @@ kustvakt_auth_path = "settings/oauth/authorize"
 #'   ```
 #'
 #'   This will store it in your keyring using the
-#'   [keyring::keyring-package]. Subsequent new("KorAPConnection") calls will
+#'   [keyring::keyring-package]. Subsequent KorAPConnection() calls will
 #'   then automatically retrieve the token from your keying. To stop using a
 #'   persisted token, call `clearAccessToken(kco)`. Please note that for
 #'   DeReKo, authorized queries will behave differently inside and outside the
 #'   IDS, because of the special license situation. This concerns also cached
 #'   results which do not take into account from where a request was issued. If
 #'   you experience problems or unexpected results, please try `kco <-
-#'   new("KorAPConnection", cache=FALSE)` or use
+#'   KorAPConnection(cache=FALSE)` or use
 #'   [clearCache()] to clear the cache completely.
 #'
 #'   An alternative to using an access token is to use a browser-based oauth2 workflow
@@ -94,14 +94,14 @@ kustvakt_auth_path = "settings/oauth/authorize"
 #' @examples
 #' \dontrun{
 #'
-#' kcon <- new("KorAPConnection", verbose = TRUE)
+#' kcon <- KorAPConnection(verbose = TRUE)
 #' kq <- corpusQuery(kcon, "Ameisenplage")
 #' kq <- fetchAll(kq)
 #' }
 #'
 #' \dontrun{
 #'
-#' kcon <- new("KorAPConnection", verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
+#' kcon <- KorAPConnection(verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
 #' kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
 #' kq <- fetchAll(kq)
 #' kq@collectedMatches$snippet
@@ -169,10 +169,10 @@ setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAcce
 #'
 #' @examples
 #' \dontrun{
-#' kco <- new("KorAPConnection", accessToken="e739u6eOzkwADQPdVChxFg")
+#' kco <- KorAPConnection(accessToken="e739u6eOzkwADQPdVChxFg")
 #' persistAccessToken(kco)
 #'
-#' kco <- new("KorAPConnection") %>% auth(app_id="<my application id>") %>% persistAccessToken()
+#' kco <- KorAPConnection() %>% auth(app_id="<my application id>") %>% persistAccessToken()
 #' }
 #'
 #' @seealso [clearAccessToken()], [auth()]
@@ -202,7 +202,7 @@ setGeneric("clearAccessToken", function(kco) standardGeneric("clearAccessToken")
 #' @examples
 #'
 #' \dontrun{
-#' kco <- new("KorAPConnection")
+#' kco <- KorAPConnection()
 #' kco <- clearAccessToken(kco)
 #' }
 #'
@@ -242,7 +242,7 @@ setGeneric("auth", function(kco,  app_id = generic_kor_app_id, app_secret = NULL
 #' @importFrom httr2 oauth_client oauth_flow_auth_code
 #' @examples
 #' \dontrun{
-#' kco <- new("KorAPConnection", verbose = TRUE) %>% auth()
+#' kco <- KorAPConnection(verbose = TRUE) %>% auth()
 #' df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})",
 #'   leftContextSize=1, rightContextSize=0)
 #' }
@@ -467,9 +467,9 @@ setMethod("show", "KorAPConnection", function(object) {
 
 ##' Funtion KorAPConnection()
 ##'
-##' Wrappper function for new("KorAPConnection")
+##' Wrappper function for KorAPConnection()
 ##'
 ##' @rdname KorAPConnection-constructor
 ##' @name KorAPConnection-constructor
 ##' @export
-## XKorAPConnection <- function(...) new("KorAPConnection", ...)
+## XKorAPConnection <- function(...) KorAPConnection(...)
