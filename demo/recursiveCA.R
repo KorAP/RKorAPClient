@@ -6,7 +6,7 @@ library(rmarkdown)
 nodeWordform <- 'aufmerksam'
 mdFile <- tempfile(nodeWordform, fileext = ".md")
 
-new("KorAPConnection", verbose = TRUE) %>%
+KorAPConnection(verbose = TRUE) %>%
   collocationAnalysis(
     nodeWordform,
     leftContextSize = 2,

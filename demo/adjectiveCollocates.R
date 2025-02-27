@@ -2,7 +2,7 @@ library(RKorAPClient)
 library(kableExtra)
 
 
-new("KorAPConnection", verbose = TRUE) %>%
+KorAPConnection(verbose = TRUE) %>%
   auth() %>%
   collocationAnalysis("focus([marmot/p=ADJA] {Gendern})", leftContextSize=1, rightContextSize=0) %>%
   mutate(collocate = paste0('<a href="', webUIRequestUrl, '">', collocate, '</a>')) %>%

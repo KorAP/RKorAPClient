@@ -8,7 +8,7 @@
 \S4method{textMetadata}{KorAPConnection}(kco, textSigle, verbose = kco@verbose)
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")})}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()})}
 
 \item{textSigle}{unique text id (concatenation of corpus, document and text ids, separated by \code{/}, e.g. ) or vector thereof}
 
@@ -24,7 +24,7 @@ Retrieves metadata for a text, identified by its sigle (id) using the correspond
 }
 \examples{
 \dontrun{
-new("KorAPConnection") \%>\% textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
+KorAPConnection() \%>\% textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
 }
 
 }

@@ -5,7 +5,7 @@
 library(RKorAPClient)
 library(ggplot2)
 
-freqPerYear <- function(query, kco = new("KorAPConnection", verbose = TRUE)) {
+freqPerYear <- function(query, kco = KorAPConnection(verbose = TRUE)) {
   g <- data.frame(year = 2000:2018) %>%
     cbind(frequencyQuery(kco, query, sprintf("pubDate in %d", .$year))) %>%
     { . ->> df } %>%

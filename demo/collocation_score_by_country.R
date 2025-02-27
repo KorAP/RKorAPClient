@@ -9,7 +9,7 @@ VC <- "textType=/Zeit.*/ & pubPlaceKey=%s"
 df <- expand_grid(node = NODE, collocate = COLLOCATES, country = COUNTRIES) %>%
   mutate(vc = sprintf(VC, country))
 
-g <- new("KorAPConnection", verbose=TRUE) %>%
+g <- KorAPConnection(verbose=TRUE) %>%
   collocationScoreQuery(df$node, df$collocate, df$vc, smoothingConstant = 0) %>%
   bind_cols(df %>% select(country)) %>%
   ggplot(aes(x = country, y = logDice, label = sprintf("(%d)", O), fill = collocate))  +

@@ -5,7 +5,7 @@ plotHighchart <- function(query = "Schlumpf",
                           years = c(2000:2010),
                           as.alternatives = length(query) > 1,
                           vc = "textType = /Zeit.*/ & availability!=QAO-NC-LOC:ids & pubDate in",
-                          kco = new("KorAPConnection", verbose=TRUE) ) {
+                          kco = KorAPConnection(verbose=TRUE) ) {
   hc <-
     frequencyQuery(kco, query, paste(vc, years), as.alternatives=as.alternatives) %>%
     hc_freq_by_year_ci(as.alternatives)

@@ -2,7 +2,7 @@ library(RKorAPClient)
 library(highcharter)
 library(tidyverse)
 
-kco <- new("KorAPConnection", verbose = TRUE)
+kco <- KorAPConnection(verbose = TRUE)
 
 set.seed(7)
 

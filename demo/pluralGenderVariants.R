@@ -49,7 +49,7 @@ plotPluralGenderVariants <- function(word = "Nutzer",
                           vc = "referTo ratskorpus-2023-1 & pubDate in",
                           suffixes = c('Innen', '[\\*]innen"', '[_]innen"', ' innen'),
                           prefixes = c('',      '"',            '"',        ''),
-                          kco = new("KorAPConnection", verbose=TRUE) %>% auth()) {
+                          kco = KorAPConnection(verbose=TRUE) %>% auth()) {
   hc <-
     frequencyQuery(kco, paste0(prefixes, word, suffixes), paste(vc, years), as.alternatives=as.alternatives) %>%
     unravelPunctuationGenderCases(kco = kco) %>%

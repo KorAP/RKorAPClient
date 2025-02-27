@@ -7,7 +7,7 @@
 library(RKorAPClient)
 library(ggplot2)
 
-conditionsOverTime <- function(query, conditions, years, kco = new("KorAPConnection", verbose = TRUE)) {
+conditionsOverTime <- function(query, conditions, years, kco = KorAPConnection(verbose = TRUE)) {
   g <- expand_grid(condition = conditions, year = years) %>%
     cbind(frequencyQuery(kco, query, sprintf("%s & pubDate in %d", .$condition, .$year))) %>%
     ipm() %>%

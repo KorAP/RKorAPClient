@@ -9,7 +9,7 @@ mdFile <- tempfile(lvLemma, fileext = ".md")
 
 cat(file=mdFile, sprintf("---\ntitle: LVC analysis of %s\n---\n\n", lvLemma))
 
-new("KorAPConnection", verbose = TRUE) %>%
+KorAPConnection(verbose = TRUE) %>%
   collocationAnalysis(
     sprintf("focus(in [tt/p=NN] {[tt/l=%s]})", lvLemma),
     leftContextSize = 1,

@@ -22,7 +22,7 @@ log_info <- function(v,  ...) {
 setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 
 #' Fetch information about a (virtual) corpus
-#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed.
 #' @param as.df return result as data frame instead of as S4 object?
@@ -33,7 +33,7 @@ setGeneric("corpusStats", function(kco, ...)  standardGeneric("corpusStats") )
 #'
 #' \dontrun{
 #'
-#' kco <- new("KorAPConnection")
+#' kco <- KorAPConnection()
 #' corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
 #' }
 #'

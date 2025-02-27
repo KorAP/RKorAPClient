@@ -83,7 +83,7 @@ utils::globalVariables(c("."))
 #' @importFrom purrr pmap
 #' @importFrom dplyr bind_rows
 #'
-#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in `KorAPConnection`) to provide all necessary information for the query.
@@ -113,7 +113,7 @@ utils::globalVariables(c("."))
 #' \dontrun{
 #'
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-#' new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' }
 #'
 #' \dontrun{
@@ -121,7 +121,7 @@ utils::globalVariables(c("."))
 #' # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 #' # and show the number of query hits (but don't fetch them).
 #'
-#' new("KorAPConnection", verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) %>%
 #'  corpusQuery(KorAPUrl =
 #'    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
 #' }
@@ -129,7 +129,7 @@ utils::globalVariables(c("."))
 #' \dontrun{
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
-#' new("KorAPConnection", verbose=TRUE) %>%
+#' KorAPConnection(verbose=TRUE) %>%
 #'   { . ->> kco } %>%
 #'   corpusQuery("Ameisenplage") %>%
 #'   fetchAll() %>%
@@ -271,7 +271,7 @@ repair_data_strcuture <- function(x) {
 #' @examples
 #' \dontrun{
 #'
-#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchNext()
+#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchNext()
 #' q@collectedMatches
 #' }
 #'
@@ -394,7 +394,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' @examples
 #' \dontrun{
 #'
-#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchAll()
 #' q@collectedMatches
 #' }
 #'
@@ -410,7 +410,7 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @examples
 #' \dontrun{
 #'
-#' q <- new("KorAPConnection") %>% corpusQuery("Ameisenplage") %>% fetchRest()
+#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchRest()
 #' q@collectedMatches
 #' }
 #'
@@ -433,11 +433,11 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' @examples
 #' \dontrun{
 #'
-#' new("KorAPConnection", verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) %>%
 #'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 #' }
 #'
-#' @param kco [KorAPConnection()] object (obtained e.g. from `new("KorAPConnection")`
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param conf.level confidence level of the returned confidence interval (passed through [ci()]  to [prop.test()]).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.

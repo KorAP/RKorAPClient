@@ -8,7 +8,7 @@
 \S4method{corpusStats}{KorAPConnection}(kco, vc = "", verbose = kco@verbose, as.df = FALSE)
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{new("KorAPConnection")}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
 
 \item{vc}{string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
@@ -26,7 +26,7 @@ Fetch information about a (virtual) corpus
 
 \dontrun{
 
-kco <- new("KorAPConnection")
+kco <- KorAPConnection()
 corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
 }
 
