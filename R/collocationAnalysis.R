@@ -156,8 +156,8 @@ setMethod("collocationAnalysis", "KorAPConnection",
                   ignoreCollocateCase = ignoreCollocateCase,
                   withinSpan = withinSpan,
                   ...
-                ) %>%
-                  filter(.$O >= minOccur) %>%
+                ) |>
+                  filter(O >= minOccur) |>
                   dplyr::arrange(dplyr::desc(logDice))
               } else {
                 tibble()
@@ -187,10 +187,10 @@ setMethod("collocationAnalysis", "KorAPConnection",
                 searchHitsSampleLimit = searchHitsSampleLimit,
                 topCollocatesLimit = topCollocatesLimit,
                 addExamples = FALSE
-              ) %>%
-                bind_rows(result) %>%
-                filter(logDice >= 2) %>%
-                filter(.$O >= minOccur) %>%
+              ) |>
+                bind_rows(result) |>
+                filter(logDice >= 2) |>
+                filter(.$O >= minOccur) |>
                 dplyr::arrange(dplyr::desc(logDice))
             }
             if (addExamples && length(result) > 0) {
