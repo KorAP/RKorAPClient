@@ -53,9 +53,9 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' \dontrun{
 #'
 #'  # Find top collocates of "Packung" inside and outside the sports domain.
-#'  KorAPConnection(verbose = TRUE) %>%
+#'  KorAPConnection(verbose = TRUE) |>
 #'   collocationAnalysis("Packung", vc=c("textClass=sport", "textClass!=sport"),
-#'                       leftContextSize=1, rightContextSize=1, topCollocatesLimit=20) %>%
+#'                       leftContextSize=1, rightContextSize=1, topCollocatesLimit=20) |>
 #'   dplyr::filter(logDice >= 5)
 #' }
 #'
@@ -63,7 +63,7 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #'
 #' # Identify the most prominent light verb construction with "in ... setzen".
 #' # Note that, currently, the use of focus function disallows exactFrequencies.
-#' KorAPConnection(verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) |>
 #'   collocationAnalysis("focus(in [tt/p=NN] {[tt/l=setzen]})",
 #'     leftContextSize=1, rightContextSize=0, exactFrequencies=FALSE, topCollocatesLimit=20)
 #' }
@@ -124,7 +124,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                                             localStopwords = localStopwords,
                                             seed = seed,
                                             expand = expand,
-                                            ...) ) %>%
+                                            ...) ) |>
                 bind_rows()
             } else {
               set.seed(seed)
@@ -142,8 +142,8 @@ setMethod("collocationAnalysis", "KorAPConnection",
               )
 
               if (nrow(candidates) > 0) {
-                candidates <- candidates %>%
-                  filter(frequency >= minOccur) %>%
+                candidates <- candidates |>
+                  filter(frequency >= minOccur) |>
                   slice_head(n=topCollocatesLimit)
                 collocationScoreQuery(
                   kco,
@@ -164,7 +164,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
               }
             }
             if (maxRecurse > 0 & length(result) > 0 && any(!!thresholdScore >= threshold)) {
-              recurseWith <- result %>%
+              recurseWith <- result |>
                 filter(!!as.name(thresholdScore) >= threshold)
               result <- collocationAnalysis(
                 kco,
@@ -262,10 +262,10 @@ matches2FreqTable <- function(matches,
       )
     }
     log_info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
-    oldTable  %>%
-      group_by(word) %>%
-      mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) %>%
-      summarise(frequency=sum(frequency), .groups = "drop") %>%
+    oldTable  |>
+      group_by(word) |>
+      mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) |>
+      summarise(frequency=sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
     stopwordsTable <- dplyr::tibble(word=stopwords)
@@ -281,11 +281,11 @@ matches2FreqTable <- function(matches,
     if(length(left) + length(right) == 0) {
       oldTable
     } else {
-      table(c(left, right)) %>%
-        dplyr::as_tibble(.name_repair = "minimal") %>%
-        dplyr::rename(word = 1, frequency = 2) %>%
-        dplyr::filter(str_detect(word, collocateFilterRegex)) %>%
-        dplyr::anti_join(stopwordsTable, by="word")  %>%
+      table(c(left, right)) |>
+        dplyr::as_tibble(.name_repair = "minimal") |>
+        dplyr::rename(word = 1, frequency = 2) |>
+        dplyr::filter(str_detect(word, collocateFilterRegex)) |>
+        dplyr::anti_join(stopwordsTable, by="word")  |>
         dplyr::bind_rows(oldTable)
     }
   }
@@ -323,10 +323,10 @@ snippet2FreqTable <- function(snippet,
       )
     }
     log_info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
-    oldTable  %>%
-      group_by(word) %>%
-      mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) %>%
-      summarise(frequency=sum(frequency), .groups = "drop") %>%
+    oldTable  |>
+      group_by(word) |>
+      mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) |>
+      summarise(frequency=sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
     stopwordsTable <- dplyr::tibble(word=stopwords)
@@ -351,11 +351,11 @@ snippet2FreqTable <- function(snippet,
     if(is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
       oldTable
     } else {
-      table(c(left, right)) %>%
-        dplyr::as_tibble(.name_repair = "minimal") %>%
-        dplyr::rename(word = 1, frequency = 2) %>%
-        dplyr::filter(str_detect(word, collocateFilterRegex)) %>%
-        dplyr::anti_join(stopwordsTable, by="word")  %>%
+      table(c(left, right)) |>
+        dplyr::as_tibble(.name_repair = "minimal") |>
+        dplyr::rename(word = 1, frequency = 2) |>
+        dplyr::filter(str_detect(word, collocateFilterRegex)) |>
+        dplyr::anti_join(stopwordsTable, by="word")  |>
         dplyr::bind_rows(oldTable)
     }
   }
@@ -487,8 +487,8 @@ collocatesQuery <-
                         ignoreCollocateCase = ignoreCollocateCase,
                         stopwords = stopwords,
                         ...,
-                        verbose = kco@verbose) %>%
-        mutate(frequency = frequency * q@totalResults / min(q@totalResults, searchHitsSampleLimit)) %>%
+                        verbose = kco@verbose) |>
+        mutate(frequency = frequency * q@totalResults / min(q@totalResults, searchHitsSampleLimit)) |>
         filter(frequency >= minOccur)
     }
   }

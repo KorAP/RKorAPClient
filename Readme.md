@@ -21,7 +21,7 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 
 ```R
 library(RKorAPClient)
-KorAPConnection(verbose=TRUE) %>% corpusQuery("Hello world") %>% fetchAll()
+KorAPConnection(verbose=TRUE) |> corpusQuery("Hello world") |> fetchAll()
 ```
 
 ### Frequencies over time and domains using ggplot2
@@ -49,8 +49,8 @@ query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
 years = c(1980:2010)
 as.alternatives = TRUE
 vc = "textType = /Zeit.*/ & pubDate in"
-KorAPConnection(verbose=T) %>%
-  frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) %>%
+KorAPConnection(verbose=T) |>
+  frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) |>
   hc_freq_by_year_ci(as.alternatives)
 ```
 
@@ -62,7 +62,7 @@ KorAPConnection(verbose=T) %>%
 ```r
 library(RKorAPClient)
 library(knitr)
-KorAPConnection(verbose = TRUE) %>% auth() %>%
+KorAPConnection(verbose = TRUE) |> auth() |>
   collocationAnalysis(
     "focus(in [tt/p=NN] {[tt/l=setzen]})",
     leftContextSize = 1,
@@ -70,10 +70,10 @@ KorAPConnection(verbose = TRUE) %>% auth() %>%
     exactFrequencies = FALSE,
     searchHitsSampleLimit = 1000,
     topCollocatesLimit = 20
-  ) %>%
-  mutate(LVC = sprintf("[in %s setzen](%s)", collocate, webUIRequestUrl)) %>%
-  select(LVC, logDice, pmi, ll) %>%
-  head(10) %>%
+  ) |>
+  mutate(LVC = sprintf("[in %s setzen](%s)", collocate, webUIRequestUrl)) |>
+  select(LVC, logDice, pmi, ll) |>
+  head(10) |>
   kable(format="pipe", digits=2)
 ```
 
@@ -101,7 +101,7 @@ In the case of DeReKo, this can be done in three different ways.
 Authorize your RKorAPClient application via the usual OAuth browser flow *using the default application id* and the `auth` method:
 
 ```R
-kco <- KorAPConnection() %>% auth()
+kco <- KorAPConnection() |> auth()
 ```
 
 #### 2. The old way: Authorize your RKorAPClient application manually
@@ -131,7 +131,7 @@ Authorize your RKorAPClient application via the usual OAuth browser flow, using 
 2. Click on the copy symbol ⎘ behind the ID of your client application.
 3. Paste your clipboard content overwriting `<application ID>` in the following example code:
    ```R
-   kco <- KorAPConnection() %>% auth(app_id = "<application ID>")
+   kco <- KorAPConnection() |> auth(app_id = "<application ID>")
    ```
 
 #### Storing and testing your authorized access
@@ -150,7 +150,7 @@ Piping the result through the `auth()` function `kco <- KorAPConnection() |> aut
 To use the access token for simple corpus queries, i.e. to make `corpusQuery` return KWIC snippets, the `metadataOnly` parameter must be set to `FALSE`, for example:
 
 ```R
-corpusQuery(kco, "Ameisenplage", metadataOnly = FALSE) %>% fetchAll()
+corpusQuery(kco, "Ameisenplage", metadataOnly = FALSE) |> fetchAll()
 ```
 
 should return KWIC snippets, if you have authorized your application successfully.
