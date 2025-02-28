@@ -33,13 +33,13 @@ utils::globalVariables(c("."))
 #' @examples
 #' \dontrun{
 #'
-#' KorAPConnection(verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) |>
 #'   collocationScoreQuery("Grund", "triftiger")
 #' }
 #'
 #' \dontrun{
 #'
-#' KorAPConnection(verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) |>
 #' collocationScoreQuery("Grund", c("guter", "triftiger"),
 #'    scoreFunctions = list(localMI = function(O1, O2, O, N, E, window_size) { O * log2(O/E) }) )
 #' }
@@ -48,11 +48,11 @@ utils::globalVariables(c("."))
 #'
 #' library(highcharter)
 #' library(tidyr)
-#' KorAPConnection(verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) |>
 #'   collocationScoreQuery("Team", "agil", vc = paste("pubDate in", c(2014:2018)),
-#'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) %>%
-#'                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") %>%
-#'   hchart(type="spline", hcaes(label, score, group=measure)) %>%
+#'                         lemmatizeNodeQuery = TRUE, lemmatizeCollocateQuery = TRUE) |>
+#'                          pivot_longer(14:last_col(), names_to = "measure", values_to = "score") |>
+#'   hchart(type="spline", hcaes(label, score, group=measure)) |>
 #'   hc_add_onclick_korap_search()
 #' }
 #'
@@ -202,8 +202,8 @@ mergeDuplicateCollocates <- function(..., smoothingConstant = .5) {
   korapUrl <- combined_df$webUIRequestUrl[1] |> httr2::url_modify(query="")
 
   # Group by collocate and summarize
-  combined_df %>%
-    group_by(collocate, O2, N) %>%
+  combined_df |>
+    group_by(collocate, O2, N) |>
     summarise(
       O = sum(O) - smoothingConstant * (n()-1),
       O1 = sum(O1) - smoothingConstant * (n()-1),
@@ -219,7 +219,7 @@ mergeDuplicateCollocates <- function(..., smoothingConstant = .5) {
       query = paste(query, collapse = " | "),
       webUIRequestUrl = buildWebUIRequestUrlFromString(korapUrl, query = paste(query, collapse = " | "), vc = first(vc)),
       across(everything(), first),
-    ) %>%
+    ) |>
     ungroup()
 }
 
