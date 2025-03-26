@@ -38,6 +38,8 @@ kustvakt_auth_path = "settings/oauth/authorize"
 
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
+#'   Defaults to the environment variable `KORAP_URL` if set and to the IDS Mannheim KorAP main instance
+#'   to query DeReKo, otherwise.
 #' @param apiVersion which version of KorAP's API you want to connect to.
 #' @param apiUrl URL of the KorAP web service.
 #' @param accessToken OAuth2 access token. For queries on corpus parts with restricted
@@ -108,16 +110,31 @@ kustvakt_auth_path = "settings/oauth/authorize"
 #' }
 #'
 #' @rdname KorAPConnection-class
+
 #' @export
-setMethod("initialize", "KorAPConnection",
-          function(.Object, KorAPUrl = "https://korap.ids-mannheim.de/", apiVersion = 'v1.0', apiUrl, accessToken = getAccessToken(KorAPUrl), oauthClient = NULL, oauthScope = "search match_info", authorizationSupported = TRUE, userAgent = "R-KorAP-Client", timeout=240, verbose = FALSE, cache = TRUE) {
-            .Object <- callNextMethod()
-            m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
-            .Object@KorAPUrl <- regmatches(KorAPUrl, m)
-            if (!endsWith(.Object@KorAPUrl, '/')) {
-              .Object@KorAPUrl <- paste0(.Object@KorAPUrl, "/")
-            }
-            if (missing(apiUrl)) {
+setMethod("initialize", "KorAPConnection", function(.Object,
+                                                    KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) |
+                                                                           Sys.getenv("KORAP_URL") == "")
+                                                      "https://korap.ids-mannheim.de/"
+                                                    else
+                                                      Sys.getenv("KORAP_URL"),
+                                                    apiVersion = 'v1.0',
+                                                    apiUrl,
+                                                    accessToken = getAccessToken(KorAPUrl),
+                                                    oauthClient = NULL,
+                                                    oauthScope = "search match_info",
+                                                    authorizationSupported = TRUE,
+                                                    userAgent = "R-KorAP-Client",
+                                                    timeout = 240,
+                                                    verbose = FALSE,
+                                                    cache = TRUE) {
+  .Object <- callNextMethod()
+  m <- regexpr("https?://[^?]+", KorAPUrl, perl = TRUE)
+  .Object@KorAPUrl <- regmatches(KorAPUrl, m)
+  if (!endsWith(.Object@KorAPUrl, '/')) {
+    .Object@KorAPUrl <- paste0(.Object@KorAPUrl, "/")
+  }
+  if (missing(apiUrl)) {
               .Object@apiUrl = paste0(.Object@KorAPUrl, 'api/', apiVersion, '/')
             } else {
               .Object@apiUrl = apiUrl
