@@ -14,7 +14,8 @@
 \usage{
 \S4method{initialize}{KorAPConnection}(
   .Object,
-  KorAPUrl = "https://korap.ids-mannheim.de/",
+  KorAPUrl = if (is.null(Sys.getenv("KORAP_URL") | Sys.getenv("KORAP_URL") == ""))
+    "https://korap.ids-mannheim.de/" else Sys.getenv("KORAP_URL"),
   apiVersion = "v1.0",
   apiUrl,
   accessToken = getAccessToken(KorAPUrl),
@@ -43,7 +44,9 @@
 \arguments{
 \item{.Object}{KorAPConnection object}
 
-\item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.}
+\item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.
+Defaults to the environment variable \code{KORAP_URL} if set and to the IDS Mannheim KorAP main instance,
+otherwise.}
 
 \item{apiVersion}{which version of KorAP's API you want to connect to.}
 
