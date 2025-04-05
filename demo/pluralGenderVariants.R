@@ -44,9 +44,9 @@ unravelPunctuationGenderCases <- function(df, suffix = "innen", kco) {
 }
 
 plotPluralGenderVariants <- function(word = "Nutzer",
-                          years = c(1995:2022),
+                          years = c(1995:2024),
                           as.alternatives = FALSE,
-                          vc = "referTo ratskorpus-2023-1 & pubDate in",
+                          vc = "referTo ratskorpus & pubDate in",
                           suffixes = c('Innen', '[\\*]innen"', '[_]innen"', ' innen'),
                           prefixes = c('',      '"',            '"',        ''),
                           kco = KorAPConnection(verbose=TRUE) %>% auth()) {
@@ -59,7 +59,7 @@ plotPluralGenderVariants <- function(word = "Nutzer",
 }
 
 
-hc <- plotPluralGenderVariants("Nutzer", c(1995:2022), as.alternatives = FALSE)
+hc <- plotPluralGenderVariants("Nutzer", c(1995:2024), as.alternatives = FALSE)
 # htmlwidgets::saveWidget(hc, file=fname, selfcontained = TRUE)
 
 # Diewald, Nils/Kupietz, Marc/L\u00FCngen, Harald (2022):
