@@ -13,8 +13,6 @@
 \alias{fetchAll}
 \alias{fetchRest,KorAPQuery-method}
 \alias{fetchRest}
-\alias{frequencyQuery,KorAPConnection-method}
-\alias{frequencyQuery}
 \alias{buildWebUIRequestUrlFromString}
 \alias{buildWebUIRequestUrl}
 \alias{format.KorAPQuery}
@@ -66,15 +64,6 @@
 \S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
 
 \S4method{fetchRest}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
-
-\S4method{frequencyQuery}{KorAPConnection}(
-  kco,
-  query,
-  vc = "",
-  conf.level = 0.95,
-  as.alternatives = FALSE,
-  ...
-)
 
 buildWebUIRequestUrlFromString(KorAPUrl, query, vc = "", ql = "poliqarp")
 
@@ -136,7 +125,7 @@ of the RKorAPClient Readme on GitHub and set the \code{metadataOnly} parameter t
 
 \item{verbose}{print progress information if true}
 
-\item{expand}{logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations}
+\item{expand}{logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations. Defaults to \code{TRUE}, iff \code{query} and \code{vc} have different lengths}
 
 \item{as.df}{return result as data frame instead of as S4 object?}
 
@@ -157,16 +146,12 @@ as this is typically legally motivated.}
 
 \item{...}{further arguments passed to or from other methods}
 
-\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link[=ci]{ci()}}  to \code{\link[=prop.test]{prop.test()}}).}
-
-\item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
-
 \item{x}{KorAPQuery object}
 
 \item{object}{KorAPQuery object}
 }
 \value{
-Depending on the \code{as.df} parameter, a table or a \code{\link[=KorAPQuery]{KorAPQuery()}} object that, among other information, contains the total number of results in \verb{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link[=fetchAll]{fetchAll()}}) or the next page of results (with \code{\link[=fetchNext]{fetchNext()}}).
+Depending on the \code{as.df} parameter, a tibble or a \code{\link[=KorAPQuery]{KorAPQuery()}} object that, among other information, contains the total number of results in \verb{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link[=fetchAll]{fetchAll()}}) or the next page of results (with \code{\link[=fetchNext]{fetchNext()}}).
 A corresponding URL to be used within a web browser is contained in \verb{@webUIRequestUrl}
 Please make sure to check \verb{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 
@@ -182,11 +167,6 @@ represent the current state of a query to a KorAP server.
 \strong{\code{fetchNext}} fetches the next bunch of results of a KorAP query.
 
 \strong{\code{fetchAll}} fetches all results of a KorAP query.
-
-\strong{\code{frequencyQuery}} combines \code{\link[=corpusQuery]{corpusQuery()}}, \code{\link[=corpusStats]{corpusStats()}} and
-\code{\link[=ci]{ci()}} to compute a table with the relative frequencies and
-confidence intervals of one ore multiple search terms across one or multiple
-virtual corpora.
 }
 \examples{
 \dontrun{
@@ -239,12 +219,6 @@ q@collectedMatches
 
 q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
 q@collectedMatches
-}
-
-\dontrun{
-
-KorAPConnection(verbose = TRUE) \%>\%
-  frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 }
 
 }

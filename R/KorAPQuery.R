@@ -98,14 +98,14 @@ utils::globalVariables(c("."))
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
-#' @param expand logical that decides if `query` and `vc` parameters are expanded to all of their combinations
+#' @param expand logical that decides if `query` and `vc` parameters are expanded to all of their combinations. Defaults to `TRUE`, iff `query` and `vc` have different lengths
 #' @param context string that specifies the size of the left and the right context returned in `snippet`
 #'        (provided that `metadataOnly` is set to `false` and that the necessary access right are  met).
 #'        The format of the context size specifcation (e.g. `3-token,3-token`) is described in the [Service: Search GET documentation of the Kustvakt Wiki](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET).
 #'        If the parameter is not set, the default context size secification of the KorAP server instance will be used.
 #'        Note that you cannot overrule the maximum context size set in the KorAP server instance,
 #'        as this is typically legally motivated.
-#' @return Depending on the `as.df` parameter, a table or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
+#' @return Depending on the `as.df` parameter, a tibble or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
 #' A corresponding URL to be used within a web browser is contained in `@webUIRequestUrl`
 #' Please make sure to check `$collection$rewrites` to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 #'
@@ -421,35 +421,48 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
 })
 
-#' Query relative frequency of search term(s)
+#' Query frequencies of search expressions in virtual corpora
 #'
 #' **`frequencyQuery`** combines [corpusQuery()], [corpusStats()] and
-#' [ci()] to compute a table with the relative frequencies and
+#' [ci()] to compute a tibble with the absolute and relative frequencies and
 #' confidence intervals of one ore multiple search terms across one or multiple
 #' virtual corpora.
 #'
 #' @aliases frequencyQuery
-#' @rdname KorAPQuery-class
 #' @examples
 #' \dontrun{
 #'
-#' KorAPConnection(verbose = TRUE) %>%
+#' KorAPConnection(verbose = TRUE) |>
 #'   frequencyQuery(c("Mücke", "Schnake"), paste0("pubDate in ", 2000:2003))
 #' }
 #'
+# @inheritParams corpusQuery
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
-#' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
+#' @param query corpus query string(s.) (can be a vector). The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
+#' @param vc virtual corpus definition(s) (can be a vector)
 #' @param conf.level confidence level of the returned confidence interval (passed through [ci()]  to [prop.test()]).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
+#' @param ... further arguments passed to or from other methods (see [corpusQuery()]), most notably `expand`, a logical that decides if `query` and `vc` parameters are expanded to all of their combinations. It defaults to `TRUE`, if `query` and `vc` have different lengths, and to `FALSE` otherwise.
 #' @export
+#'
+#' @return A tibble, with each row containing the following result columns for query and vc combinations:
+#'   - **query**: the query string used for the frequency analysis.
+#'   - **totalResults**: absolute frequency of query matches in the vc.
+#'   - **vc**:  virtual corpus used for the query.
+#'   - **webUIRequestUrl**: URL of the corresponding web UI request with respect to query and vc.
+#'   - **total**: total number of words in vc.
+#'   - **f**:  relative frequency of query matches in the vc.
+#'   - **conf.low**:  lower bound of the confidence interval for the relative frequency, given `conf.level`.
+#'   - **conf.high**:  upper bound of the confidence interval for the relative frequency, given `conf.level`.
+
 setMethod("frequencyQuery", "KorAPConnection",
   function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {
       (if (as.alternatives) {
-        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
+        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
         group_by(vc) %>%
         mutate(total = sum(totalResults))
       } else {
-        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) %>%
+        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
         mutate(total = corpusStats(kco, vc=vc, as.df=TRUE)$tokens)
       } ) %>%
       ci(conf.level = conf.level)
