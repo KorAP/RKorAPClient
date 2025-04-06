@@ -10,7 +10,16 @@ build-rkorapclient-on-stable:
     - apt-cache/
     - ccache/
     - rlib/
+  script:
+    - start_section testing "Testing RKorAPClient"
+    - R -q -e 'library(RKorAPClient); testthat::test_dir("tests/testthat")'
+    - end_section testing
 
 build-rkorapclient-on-rolling:
   extends: .install-rkorapclient
   image: ubuntu:rolling
+  script:
+    - start_section testing "Testing RKorAPClient"
+    - R -q -e 'library(RKorAPClient); testthat::test_dir("tests/testthat")'
+    - end_section testing
+
