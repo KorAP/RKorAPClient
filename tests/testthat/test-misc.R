@@ -219,7 +219,7 @@ test_that("geom_freq_by_year_ci works correctly", {
       class = "data.frame",
       row.names = c(NA,-14L)
     )
-    gpt <- df %>% ggplot(aes(year, ipm, fill = condition, color = condition)) +
+    gpt <- df %>% ggplot2::ggplot(ggplot2::aes(year, ipm, fill = condition, color = condition)) +
       geom_freq_by_year_ci()
     labels <- if ("get_labs" %in% getNamespaceExports("ggplot2")) {
       ggplot2::get_labs(gpt)

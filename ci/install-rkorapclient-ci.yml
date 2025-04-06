@@ -42,15 +42,12 @@
     - ln -s $(which ccache) /usr/local/sbin/gcc
     - ln -s $(which ccache) /usr/local/sbin/g++
     - end_section install_linux_packages
-
-  script:
     - start_section installing "Installing RKorAPClient from source"
     - export PATH=/usr/local/sbin:$PATH
     - R -q -e "install.packages('pak', dependencies=TRUE)"
-    - R -q -e "pak::pak('ggplot2', 'RKorAPClient', dependencies=TRUE)"
+    - R -q -e "pak::pak(c('devtools', 'RKorAPClient'), dependencies=TRUE)"
     - end_section installing
     - start_section linstalling "Installing RKorAPClient from source"
     - R -q -e 'pak::pak(".")'
     - ccache -s
     - end_section linstalling
-

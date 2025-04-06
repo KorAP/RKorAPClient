@@ -3,7 +3,7 @@ include:
 
 build-rkorapclient-on-stable:
   extends: .install-rkorapclient
-  image: ubuntu:latest
+  image: rocker/tidyverse
   cache:
     key: rkorapclient-ubuntu-stable
     paths:
@@ -12,6 +12,8 @@ build-rkorapclient-on-stable:
     - rlib/
   script:
     - start_section testing "Testing RKorAPClient"
-    - R -q -e 'library(RKorAPClient); testthat::test_dir("tests/testthat")'
+    - echo -e "apt-cache\nccache\nrlib" >> .Rbuildignore
+    - R -q -e "devtools::check(args = c('--no-examples'))"
+    - R -q -e 'devtools::test()'
     - end_section testing
 
