@@ -93,7 +93,7 @@ setMethod("collocationAnalysis", "KorAPConnection",
                    collocateFilterRegex = '^[:alnum:]+-?[:alnum:]*$',
                    ...) {
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-            word <- frequency <- NULL
+            word <- frequency <- O <- NULL
 
             if(!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nchar(withinSpan)>0 )) {
               stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
