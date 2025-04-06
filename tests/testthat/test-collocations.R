@@ -48,7 +48,7 @@ test_that("collocationAnalysis on unaccounted strings does not error out", {
 
 
 test_that("mergeDuplicateCollocatesWorksAsExpected", {
-  ldf <- tibble(
+  ldf <- tibble::tibble(
     node = c("focus(in [tt/p=NN] {[tt/l=nehmen]})"),
     collocate = c("Anspruch"),
     label = c(""),
@@ -71,7 +71,7 @@ test_that("mergeDuplicateCollocatesWorksAsExpected", {
     logDice = c(11.6899933757298),
     ll = c(3717716.74208791)
   )
-  rdf <- tibble(
+  rdf <- tibble::tibble(
     node = c("focus({[tt/l=nehmen] in} [tt/p=NN])"),
     collocate = c("Anspruch"),
     label = c(""),
