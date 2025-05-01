@@ -42,30 +42,34 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #'
 #' @importFrom tibble tibble
 #' @export
-setMethod("initialize", "KorAPQuery",
-          function(.Object, korapConnection = NULL, request = NULL, vc="", totalResults=0, nextStartIndex=0, fields=c("corpusSigle", "textSigle", "pubDate",  "pubPlace",
-                                                                              "availability", "textClass", "snippet", "tokens"),
-                   requestUrl="", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches= FALSE, collectedMatches = NULL) {
-            .Object <- callNextMethod()
-            .Object@korapConnection = korapConnection
-            .Object@request = request
-            .Object@vc = vc
-            .Object@totalResults = totalResults
-            .Object@nextStartIndex = nextStartIndex
-            .Object@fields = fields
-            .Object@requestUrl = requestUrl
-            .Object@webUIRequestUrl = webUIRequestUrl
-            .Object@apiResponse = apiResponse
-            .Object@hasMoreMatches = hasMoreMatches
-            .Object@collectedMatches = collectedMatches
-            .Object
-          })
+setMethod(
+  "initialize", "KorAPQuery",
+  function(.Object, korapConnection = NULL, request = NULL, vc = "", totalResults = 0, nextStartIndex = 0, fields = c(
+             "corpusSigle", "textSigle", "pubDate", "pubPlace",
+             "availability", "textClass", "snippet", "tokens"
+           ),
+           requestUrl = "", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE, collectedMatches = NULL) {
+    .Object <- callNextMethod()
+    .Object@korapConnection <- korapConnection
+    .Object@request <- request
+    .Object@vc <- vc
+    .Object@totalResults <- totalResults
+    .Object@nextStartIndex <- nextStartIndex
+    .Object@fields <- fields
+    .Object@requestUrl <- requestUrl
+    .Object@webUIRequestUrl <- webUIRequestUrl
+    .Object@apiResponse <- apiResponse
+    .Object@hasMoreMatches <- hasMoreMatches
+    .Object@collectedMatches <- collectedMatches
+    .Object
+  }
+)
 
-setGeneric("corpusQuery", function(kco, ...)  standardGeneric("corpusQuery") )
-setGeneric("fetchAll", function(kqo, ...)  standardGeneric("fetchAll") )
-setGeneric("fetchNext", function(kqo, ...)  standardGeneric("fetchNext") )
-setGeneric("fetchRest", function(kqo, ...)  standardGeneric("fetchRest") )
-setGeneric("frequencyQuery", function(kco, ...)  standardGeneric("frequencyQuery") )
+setGeneric("corpusQuery", function(kco, ...) standardGeneric("corpusQuery"))
+setGeneric("fetchAll", function(kqo, ...) standardGeneric("fetchAll"))
+setGeneric("fetchNext", function(kqo, ...) standardGeneric("fetchNext"))
+setGeneric("fetchRest", function(kqo, ...) standardGeneric("fetchRest"))
+setGeneric("frequencyQuery", function(kco, ...) standardGeneric("frequencyQuery"))
 
 maxResultsPerPage <- 50
 
@@ -113,7 +117,9 @@ utils::globalVariables(c("."))
 #' \dontrun{
 #'
 #' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-#' KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' KorAPConnection() %>%
+#'   corpusQuery("Ameisenplage") %>%
+#'   fetchAll()
 #' }
 #'
 #' \dontrun{
@@ -122,15 +128,19 @@ utils::globalVariables(c("."))
 #' # and show the number of query hits (but don't fetch them).
 #'
 #' KorAPConnection(verbose = TRUE) %>%
-#'  corpusQuery(KorAPUrl =
-#'    "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
+#'   corpusQuery(
+#'     KorAPUrl =
+#'       "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp"
+#'   )
 #' }
 #'
 #' \dontrun{
 #'
 #' # Plot the time/frequency curve of "Ameisenplage"
-#' KorAPConnection(verbose=TRUE) %>%
-#'   { . ->> kco } %>%
+#' KorAPConnection(verbose = TRUE) %>%
+#'   {
+#'     . ->> kco
+#'   } %>%
 #'   corpusQuery("Ameisenplage") %>%
 #'   fetchAll() %>%
 #'   slot("collectedMatches") %>%
@@ -138,8 +148,9 @@ utils::globalVariables(c("."))
 #'   dplyr::select(year) %>%
 #'   group_by(year) %>%
 #'   summarise(Count = dplyr::n()) %>%
-#'   mutate(Freq = mapply(function(f, y)
-#'     f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) %>%
+#'   mutate(Freq = mapply(function(f, y) {
+#'     f / corpusStats(kco, paste("pubDate in", y))@tokens
+#'   }, Count, year)) %>%
 #'   dplyr::select(-Count) %>%
 #'   complete(year = min(year):max(year), fill = list(Freq = 0)) %>%
 #'   plot(type = "l")
@@ -150,37 +161,40 @@ utils::globalVariables(c("."))
 #' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
 #'
 #' @export
-setMethod("corpusQuery", "KorAPConnection",
-          function(kco,
-                   query = if (missing(KorAPUrl))
-                     stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
-                   else
-                     httr2::url_parse(KorAPUrl)$query$q,
-                   vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
-                   KorAPUrl,
-                   metadataOnly = TRUE,
-                   ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
-                   fields = c(
-                     "corpusSigle",
-                     "textSigle",
-                     "pubDate",
-                     "pubPlace",
-                     "availability",
-                     "textClass",
-                     "snippet",
-                     "tokens"
-                   ),
-                   accessRewriteFatal = TRUE,
-                   verbose = kco@verbose,
-                   expand = length(vc) != length(query),
-          as.df = FALSE,
-          context = NULL) {
-  if (length(query) > 1 || length(vc) > 1) {
-    grid <- if (expand) expand_grid(query=query, vc=vc) else tibble(query=query, vc=vc)
-    purrr::pmap(grid, function(query, vc, ...)
-      corpusQuery(kco, query=query, vc=vc, ql=ql, verbose=verbose, as.df = TRUE)) %>%
-      bind_rows()
-  } else {
+setMethod(
+  "corpusQuery", "KorAPConnection",
+  function(kco,
+           query = if (missing(KorAPUrl)) {
+             stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
+           } else {
+             httr2::url_parse(KorAPUrl)$query$q
+           },
+           vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
+           KorAPUrl,
+           metadataOnly = TRUE,
+           ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
+           fields = c(
+             "corpusSigle",
+             "textSigle",
+             "pubDate",
+             "pubPlace",
+             "availability",
+             "textClass",
+             "snippet",
+             "tokens"
+           ),
+           accessRewriteFatal = TRUE,
+           verbose = kco@verbose,
+           expand = length(vc) != length(query),
+           as.df = FALSE,
+           context = NULL) {
+    if (length(query) > 1 || length(vc) > 1) {
+      grid <- if (expand) expand_grid(query = query, vc = vc) else tibble(query = query, vc = vc)
+      purrr::pmap(grid, function(query, vc, ...) {
+        corpusQuery(kco, query = query, vc = vc, ql = ql, verbose = verbose, as.df = TRUE)
+      }) %>%
+        bind_rows()
+    } else {
       contentFields <- c("snippet", "tokens")
       if (metadataOnly) {
         fields <- fields[!fields %in% contentFields]
@@ -189,39 +203,43 @@ setMethod("corpusQuery", "KorAPConnection",
         fields <- c(fields, "textSigle")
       }
       request <-
-        paste0('?q=',
-               url_encode(enc2utf8(query)),
-               ifelse (!metadataOnly && ! is.null(context) && context !=  '', paste0('&context=', url_encode(enc2utf8(context))), ''),
-               ifelse (vc != '', paste0('&cq=', url_encode(enc2utf8(vc))), ''),
-               ifelse (!metadataOnly, '&show-tokens=true', ''),
-               '&ql=', ql)
+        paste0(
+          "?q=",
+          url_encode(enc2utf8(query)),
+          ifelse(!metadataOnly && !is.null(context) && context != "", paste0("&context=", url_encode(enc2utf8(context))), ""),
+          ifelse(vc != "", paste0("&cq=", url_encode(enc2utf8(vc))), ""),
+          ifelse(!metadataOnly, "&show-tokens=true", ""),
+          "&ql=", ql
+        )
       webUIRequestUrl <- paste0(kco@KorAPUrl, request)
       requestUrl <- paste0(
         kco@apiUrl,
-        'search',
+        "search",
         request,
-        '&fields=',
+        "&fields=",
         paste(fields, collapse = ","),
-        if (metadataOnly) '&access-rewrite-disabled=true' else ''
+        if (metadataOnly) "&access-rewrite-disabled=true" else ""
       )
-      log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"", sep =
-                 "")
-      res = apiCall(kco, paste0(requestUrl, '&count=0'))
+      log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"",
+        sep =
+          ""
+      )
+      res <- apiCall(kco, paste0(requestUrl, "&count=0"))
       if (is.null(res)) {
         message("API call failed.")
         totalResults <- 0
       } else {
-        totalResults <-as.integer(res$meta$totalResults)
+        totalResults <- as.integer(res$meta$totalResults)
         log_info(verbose, ": ", totalResults, " hits")
-        if(!is.null(res$meta$cached))
+        if (!is.null(res$meta$cached)) {
           log_info(verbose, " [cached]\n")
-        else
-          if(! is.null(res$meta$benchmark))
-            log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
-          else
-            log_info(verbose, "\n")
+        } else if (!is.null(res$meta$benchmark)) {
+          log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+        } else {
+          log_info(verbose, "\n")
+        }
       }
-      if (as.df)
+      if (as.df) {
         data.frame(
           query = query,
           totalResults = totalResults,
@@ -229,7 +247,7 @@ setMethod("corpusQuery", "KorAPConnection",
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
-      else
+      } else {
         KorAPQuery(
           korapConnection = kco,
           nextStartIndex = 0,
@@ -242,19 +260,22 @@ setMethod("corpusQuery", "KorAPConnection",
           webUIRequestUrl = webUIRequestUrl,
           hasMoreMatches = (totalResults > 0),
         )
+      }
     }
-  })
+  }
+)
 
 #' @importFrom purrr map
 repair_data_strcuture <- function(x) {
-  if (is.list(x))
-    as.character (purrr::map(x, ~ if (length(.x) > 1) {
+  if (is.list(x)) {
+    as.character(purrr::map(x, ~ if (length(.x) > 1) {
       paste(.x, collapse = " ")
     } else {
       .x
     }))
-  else
+  } else {
     ifelse(is.na(x), "", x)
+  }
 }
 
 #' Fetch the next bunch of results of a KorAP query.
@@ -271,7 +292,9 @@ repair_data_strcuture <- function(x) {
 #' @examples
 #' \dontrun{
 #'
-#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchNext()
+#' q <- KorAPConnection() %>%
+#'   corpusQuery("Ameisenplage") %>%
+#'   fetchNext()
 #' q@collectedMatches
 #' }
 #'
@@ -292,7 +315,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
                                               verbose = kqo@korapConnection@verbose,
                                               randomizePageOrder = FALSE) {
   # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-  results <- key <- name <- pubDate <- tmp_positions <- 0
+  results <- key <- name <- tmp_positions <- 0
 
   if (kqo@totalResults == 0 || offset >= kqo@totalResults) {
     return(kqo)
@@ -305,13 +328,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
   }
 
-  if(is.null(collectedMatches)) {
+  if (is.null(collectedMatches)) {
     collectedMatches <- data.frame()
   }
   repeat {
-    page = nrow(collectedMatches) %/% maxResultsPerPage + 1
-    currentOffset = ifelse(randomizePageOrder, pages[page],  page - 1) * maxResultsPerPage
-    query <- paste0(kqo@requestUrl, '&count=', min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage) ,'&offset=', currentOffset, '&cutoff=true')
+    page <- nrow(collectedMatches) %/% maxResultsPerPage + 1
+    currentOffset <- ifelse(randomizePageOrder, pages[page], page - 1) * maxResultsPerPage
+    query <- paste0(kqo@requestUrl, "&count=", min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage), "&offset=", currentOffset, "&cutoff=true")
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
@@ -325,7 +348,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         tidyr::unnest(cols = value) %>%
         tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
         dplyr::select(-name)
-      if("snippet" %in% colnames(res$matches)) {
+      if ("snippet" %in% colnames(res$matches)) {
         currentMatches$snippet <- res$matches$snippet
       }
       if ("tokens" %in% colnames(res$matches)) {
@@ -354,18 +377,6 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
-      log_info(verbose, paste0(
-        "Retrieved page ",
-        ceiling(nrow(collectedMatches) / res$meta$itemsPerPage),
-        "/",
-        if (!is.na(maxFetch) && maxFetch < kqo@totalResults)
-          sprintf("%d (%d)", ceiling(maxFetch / res$meta$itemsPerPage), ceiling(kqo@totalResults / res$meta$itemsPerPage))
-        else
-          sprintf("%d", ceiling(kqo@totalResults / res$meta$itemsPerPage)),
-        ' in ',
-        res$meta$benchmark,
-        '\n'
-      ))
     # Estimate remaining time
     time_per_page <- as.numeric(sub("s", "", res$meta$benchmark)) # Assuming benchmark is like "0.123s"
     items_per_page <- res$meta$itemsPerPage
@@ -432,7 +443,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
   }
   nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, kqo@totalResults)
-  KorAPQuery(nextStartIndex = nextStartIndex,
+  KorAPQuery(
+    nextStartIndex = nextStartIndex,
     korapConnection = kqo@korapConnection,
     fields = kqo@fields,
     requestUrl = kqo@requestUrl,
@@ -442,7 +454,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     webUIRequestUrl = kqo@webUIRequestUrl,
     hasMoreMatches = (kqo@totalResults > nextStartIndex),
     apiResponse = res,
-    collectedMatches = collectedMatches)
+    collectedMatches = collectedMatches
+  )
 })
 
 #' Fetch all results of a KorAP query.
@@ -452,7 +465,9 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' @examples
 #' \dontrun{
 #'
-#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchAll()
+#' q <- KorAPConnection() %>%
+#'   corpusQuery("Ameisenplage") %>%
+#'   fetchAll()
 #' q@collectedMatches
 #' }
 #'
@@ -468,7 +483,9 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @examples
 #' \dontrun{
 #'
-#' q <- KorAPConnection() %>% corpusQuery("Ameisenplage") %>% fetchRest()
+#' q <- KorAPConnection() %>%
+#'   corpusQuery("Ameisenplage") %>%
+#'   fetchRest()
 #' q@collectedMatches
 #' }
 #'
@@ -513,18 +530,20 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #'   - **conf.low**:  lower bound of the confidence interval for the relative frequency, given `conf.level`.
 #'   - **conf.high**:  upper bound of the confidence interval for the relative frequency, given `conf.level`.
 
-setMethod("frequencyQuery", "KorAPConnection",
+setMethod(
+  "frequencyQuery", "KorAPConnection",
   function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {
-      (if (as.alternatives) {
-        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
+    (if (as.alternatives) {
+      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
         group_by(vc) %>%
         mutate(total = sum(totalResults))
-      } else {
-        corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
-        mutate(total = corpusStats(kco, vc=vc, as.df=TRUE)$tokens)
-      } ) %>%
+    } else {
+      corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
+        mutate(total = corpusStats(kco, vc = vc, as.df = TRUE)$tokens)
+    }) %>%
       ci(conf.level = conf.level)
-})
+  }
+)
 
 #' buildWebUIRequestUrlFromString
 #'
@@ -532,22 +551,22 @@ setMethod("frequencyQuery", "KorAPConnection",
 #' @importFrom urltools url_encode
 #' @export
 buildWebUIRequestUrlFromString <- function(KorAPUrl,
-                                 query,
-                                 vc = "",
-                                 ql = "poliqarp"
-) {
+                                           query,
+                                           vc = "",
+                                           ql = "poliqarp") {
   if ("KorAPConnection" %in% class(KorAPUrl)) {
     KorAPUrl <- KorAPUrl@KorAPUrl
   }
 
   request <-
     paste0(
-      '?q=',
+      "?q=",
       urltools::url_encode(enc2utf8(as.character(query))),
-      ifelse(vc != '',
-             paste0('&cq=', urltools::url_encode(enc2utf8(vc))),
-             ''),
-      '&ql=',
+      ifelse(vc != "",
+        paste0("&cq=", urltools::url_encode(enc2utf8(vc))),
+        ""
+      ),
+      "&ql=",
       ql
     )
   paste0(KorAPUrl, request)
@@ -559,18 +578,18 @@ buildWebUIRequestUrlFromString <- function(KorAPUrl,
 #' @importFrom httr2 url_parse
 #' @export
 buildWebUIRequestUrl <- function(kco,
-                                 query = if (missing(KorAPUrl))
+                                 query = if (missing(KorAPUrl)) {
                                    stop("At least one of the parameters query and KorAPUrl must be specified.", call. = FALSE)
-                                 else
-                                   httr2::url_parse(KorAPUrl)$query$q,
+                                 } else {
+                                   httr2::url_parse(KorAPUrl)$query$q
+                                 },
                                  vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
                                  KorAPUrl,
                                  ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql) {
-
   buildWebUIRequestUrlFromString(kco@KorAPUrl, query, vc, ql)
 }
 
-#´ format()
+#' format()
 #' @rdname KorAPQuery-class
 #' @param x KorAPQuery object
 #' @param ... further arguments passed to or from other methods
@@ -579,7 +598,7 @@ buildWebUIRequestUrl <- function(kco,
 format.KorAPQuery <- function(x, ...) {
   cat("<KorAPQuery>\n")
   q <- x
-  param = urltools::param_get(q@request) |> lapply(urltools::url_decode)
+  param <- urltools::param_get(q@request) |> lapply(urltools::url_decode)
   cat("           Query: ", param$q, "\n")
   if (!is.null(param$cq) && param$cq != "") {
     cat("  Virtual corpus: ", param$cq, "\n")
@@ -601,4 +620,3 @@ format.KorAPQuery <- function(x, ...) {
 setMethod("show", "KorAPQuery", function(object) {
   format(object)
 })
-
