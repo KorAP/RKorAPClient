@@ -380,23 +380,27 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
   # Create the request
   req <- httr2::request(url) |>
     httr2::req_user_agent(kco@userAgent) |>
-    httr2::req_error(is_error = \(resp) FALSE) |>
+#    httr2::req_error(is_error = \(resp) FALSE) |>
     httr2::req_timeout(timeout)
 
-  if (! is.null(kco@oauthClient)) {
-    req <-  req |> oauthRefresh(kco@oauthClient, scope = kco@oauthScope, kco)
+  if (!is.null(kco@oauthClient)) {
+    req <- req |> oauthRefresh(kco@oauthClient, scope = kco@oauthScope, kco)
   } else if (!is.null(kco@accessToken)) {
     req <- req |> httr2::req_auth_bearer_token(kco@accessToken)
   }
 
-  resp <- tryCatch(req |> httr2::req_perform(),
-    error = function(e) {
-      message(e$message, if("parent" %in% names(e)) paste0("\n", e$parent$message) else "")
-      return(NULL)
-    }
-  )
+   resp <- tryCatch(req |> httr2::req_perform(),
+     error = function(e) {
+       message(paste("\nError: ", e$message, collapse = " "), if ("parent" %in% names(e)) paste0("\n", e$parent$message) else "")
+       return(e$resp)
+     }
+   )
 
-  if (is.null(resp)) return(invisible(NULL))
+
+  if (is.null(resp)) {
+    message("\nError: Request failed. No response received.")
+    return(invisible(NULL))
+  }
 
   if (resp |> httr2::resp_status() != 200) {
     message("Request failed with status ", resp |> httr2::resp_status(), ": ", resp |> httr2::resp_status_desc())
@@ -416,7 +420,7 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
         } else {
           lapply(errors, function(error) paste(error, collapse = " "))
         }
-        message(paste(warning_msgs, collapse = "\n"))
+        message(paste("Warning: ", warning_msgs, collapse = "\n"))
       }
     }
     return(invisible(NULL))
@@ -446,14 +450,18 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
       } else {
         lapply(warnings, function(warning) paste(warning, collapse = " "))
       }
-      message(paste(warning_msgs, collapse = "\n"))
+      message(paste0("\nWarning: ", paste(warning_msgs, collapse = " ")))
+      if (cache & any(grepl("682", warning_msgs))) {
+        cache <- FALSE
+        log_info(kco@verbose, "Caching will be skipped because of warnings: ")
+      }
     }
   } else {
     result <- resp |> httr2::resp_body_string()
   }
 
   # Save to cache if enabled
-  if (cache) {
+  if (cache && resp |> httr2::resp_status() == 200) {
     R.cache::saveCache(result, key = list(url, kco@accessToken, kco@indexRevision), dir = KorAPCacheSubDir(), compress = TRUE)
   }
 
