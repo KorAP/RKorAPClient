@@ -33,7 +33,8 @@ Authorize RKorAPClient to make KorAP queries and download results on behalf of t
 \dontrun{
 kco <- KorAPConnection(verbose = TRUE) \%>\% auth()
 df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})",
-  leftContextSize=1, rightContextSize=0)
+  leftContextSize = 1, rightContextSize = 0
+)
 }
 
 }

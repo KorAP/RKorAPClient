@@ -20,10 +20,12 @@ Persist current access token in keyring
 }
 \examples{
 \dontrun{
-kco <- KorAPConnection(accessToken="e739u6eOzkwADQPdVChxFg")
+kco <- KorAPConnection(accessToken = "e739u6eOzkwADQPdVChxFg")
 persistAccessToken(kco)
 
-kco <- KorAPConnection() \%>\% auth(app_id="<my application id>") \%>\% persistAccessToken()
+kco <- KorAPConnection() \%>\%
+  auth(app_id = "<my application id>") \%>\%
+  persistAccessToken()
 }
 
 }

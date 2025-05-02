@@ -37,9 +37,13 @@
 
 \S4method{corpusQuery}{KorAPConnection}(
   kco,
-  query = if (missing(KorAPUrl))
+  query = if (missing(KorAPUrl)) {
+    
     stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
-    FALSE) else httr2::url_parse(KorAPUrl)$query$q,
+    FALSE)
+ } else {
+     httr2::url_parse(KorAPUrl)$query$q
+ },
   vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
   KorAPUrl,
   metadataOnly = TRUE,
@@ -69,9 +73,13 @@ buildWebUIRequestUrlFromString(KorAPUrl, query, vc = "", ql = "poliqarp")
 
 buildWebUIRequestUrl(
   kco,
-  query = if (missing(KorAPUrl))
+  query = if (missing(KorAPUrl)) {
+    
     stop("At least one of the parameters query and KorAPUrl must be specified.", call. =
-    FALSE) else httr2::url_parse(KorAPUrl)$query$q,
+    FALSE)
+ } else {
+     httr2::url_parse(KorAPUrl)$query$q
+ },
   vc = if (missing(KorAPUrl)) "" else httr2::url_parse(KorAPUrl)$query$cq,
   KorAPUrl,
   ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql
@@ -172,7 +180,9 @@ represent the current state of a query to a KorAP server.
 \dontrun{
 
 # Fetch metadata of every query hit for "Ameisenplage" and show a summary
-KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+KorAPConnection() \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchAll()
 }
 
 \dontrun{
@@ -181,15 +191,19 @@ KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
 # and show the number of query hits (but don't fetch them).
 
 KorAPConnection(verbose = TRUE) \%>\%
- corpusQuery(KorAPUrl =
-   "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp")
+  corpusQuery(
+    KorAPUrl =
+      "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp"
+  )
 }
 
 \dontrun{
 
 # Plot the time/frequency curve of "Ameisenplage"
-KorAPConnection(verbose=TRUE) \%>\%
-  { . ->> kco } \%>\%
+KorAPConnection(verbose = TRUE) \%>\%
+  {
+    . ->> kco
+  } \%>\%
   corpusQuery("Ameisenplage") \%>\%
   fetchAll() \%>\%
   slot("collectedMatches") \%>\%
@@ -197,27 +211,34 @@ KorAPConnection(verbose=TRUE) \%>\%
   dplyr::select(year) \%>\%
   group_by(year) \%>\%
   summarise(Count = dplyr::n()) \%>\%
-  mutate(Freq = mapply(function(f, y)
-    f / corpusStats(kco, paste("pubDate in", y))@tokens, Count, year)) \%>\%
+  mutate(Freq = mapply(function(f, y) {
+    f / corpusStats(kco, paste("pubDate in", y))@tokens
+  }, Count, year)) \%>\%
   dplyr::select(-Count) \%>\%
   complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
   plot(type = "l")
 }
 \dontrun{
 
-q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchNext()
+q <- KorAPConnection() \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchNext()
 q@collectedMatches
 }
 
 \dontrun{
 
-q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchAll()
+q <- KorAPConnection() \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchAll()
 q@collectedMatches
 }
 
 \dontrun{
 
-q <- KorAPConnection() \%>\% corpusQuery("Ameisenplage") \%>\% fetchRest()
+q <- KorAPConnection() \%>\%
+  corpusQuery("Ameisenplage") \%>\%
+  fetchRest()
 q@collectedMatches
 }
 

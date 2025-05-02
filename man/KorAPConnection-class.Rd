@@ -14,8 +14,12 @@
 \usage{
 \S4method{initialize}{KorAPConnection}(
   .Object,
-  KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) | Sys.getenv("KORAP_URL") == "")
-    "https://korap.ids-mannheim.de/" else Sys.getenv("KORAP_URL"),
+  KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) | Sys.getenv("KORAP_URL") == "") {
+    
+    "https://korap.ids-mannheim.de/"
+ } else {
+     Sys.getenv("KORAP_URL")
+ },
   apiVersion = "v1.0",
   apiUrl,
   accessToken = getAccessToken(KorAPUrl),
@@ -161,8 +165,8 @@ kq <- fetchAll(kq)
 
 \dontrun{
 
-kcon <- KorAPConnection(verbose = TRUE, accessToken="e739u6eOzkwADQPdVChxFg")
-kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly=FALSE)
+kcon <- KorAPConnection(verbose = TRUE, accessToken = "e739u6eOzkwADQPdVChxFg")
+kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly = FALSE)
 kq <- fetchAll(kq)
 kq@collectedMatches$snippet
 }

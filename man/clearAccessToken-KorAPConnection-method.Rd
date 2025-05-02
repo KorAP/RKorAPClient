@@ -17,7 +17,6 @@ KorAPConnection object with access token set to \code{NULL}.
 Clear access token from keyring and KorAPConnection object
 }
 \examples{
-
 \dontrun{
 kco <- KorAPConnection()
 kco <- clearAccessToken(kco)
