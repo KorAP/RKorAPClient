@@ -397,7 +397,6 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
   # Create the request
   req <- httr2::request(url) |>
     httr2::req_user_agent(kco@userAgent) |>
-#    httr2::req_error(is_error = \(resp) FALSE) |>
     httr2::req_timeout(timeout)
 
   if (!is.null(kco@oauthClient)) {
@@ -406,21 +405,22 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
     req <- req |> httr2::req_auth_bearer_token(kco@accessToken)
   }
 
-   resp <- tryCatch(req |> httr2::req_perform(),
-     error = function(e) {
-       message(paste("\nError: ", e$message, collapse = " "), if ("parent" %in% names(e)) paste0("\n", e$parent$message) else "")
-       return(e$resp)
-     }
-   )
-
+  resp <- tryCatch(req |> httr2::req_perform(),
+    error = function(e) {
+      if (is.null(e$resp)) {
+        message(paste("Error: ", e$message, collapse = " "), if ("parent" %in% names(e)) paste0("\n", e$parent$message) else "")
+        return(invisible(NULL))
+      }
+      return(e$resp)
+    }
+  )
 
   if (is.null(resp)) {
-    message("\nError: Request failed. No response received.")
     return(invisible(NULL))
   }
 
   if (resp |> httr2::resp_status() != 200) {
-    message("Request failed with status ", resp |> httr2::resp_status(), ": ", resp |> httr2::resp_status_desc())
+    message("Error: Request failed with status ", resp |> httr2::resp_status(), ": ", resp |> httr2::resp_status_desc())
     if (resp |> httr2::resp_content_type() == "application/json") {
       result <- tryCatch(
         resp |> httr2::resp_body_json(),
@@ -470,7 +470,7 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
       message(paste0("\nWarning: ", paste(warning_msgs, collapse = " ")))
       if (cache & any(grepl("682", warning_msgs))) {
         cache <- FALSE
-        log_info(kco@verbose, "Caching will be skipped because of warnings: ")
+        log_info(kco@verbose, "Caching will be skipped because of warnings ")
       }
     }
   } else {
