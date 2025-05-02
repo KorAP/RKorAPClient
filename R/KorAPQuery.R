@@ -377,49 +377,56 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
-    # Estimate remaining time
-    time_per_page <- as.numeric(sub("s", "", res$meta$benchmark)) # Assuming benchmark is like "0.123s"
+
+    # Calculate page numbers regardless of ETA calculation
     items_per_page <- res$meta$itemsPerPage
     total_pages <- ceiling(kqo@totalResults / items_per_page)
-    actual_total_pages <- if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-      ceiling(maxFetch / items_per_page)
-    } else {
-      total_pages
-    }
     current_page_number <- ceiling(nrow(collectedMatches) / items_per_page)
-    remaining_pages <- actual_total_pages - current_page_number
 
-    estimated_remaining_seconds <- remaining_pages * time_per_page
-    estimated_completion_time <- Sys.time() + estimated_remaining_seconds
+    # Estimate remaining time
+    time_per_page <- NA
+    eta_str <- "N/A"
+    completion_time_str <- "N/A"
 
-    # Format time nicely
-    format_duration <- function(seconds) {
-      if (is.na(seconds) || seconds < 0) {
-        return("N/A")
+    if (!is.null(res$meta$benchmark) && is.character(res$meta$benchmark)) {
+      # benchmark looks like "0.123s"
+      time_per_page <- suppressWarnings(as.numeric(sub("s", "", res$meta$benchmark)))
+      if (!is.na(time_per_page)) {
+        remaining_pages <- total_pages - current_page_number
+
+        estimated_remaining_seconds <- remaining_pages * time_per_page
+        estimated_completion_time <- Sys.time() + estimated_remaining_seconds
+
+        # Format time nicely
+        format_duration <- function(seconds) {
+          if (is.na(seconds) || seconds < 0) {
+            return("N/A")
+          }
+          days <- floor(seconds / (24 * 3600))
+          seconds <- seconds %% (24 * 3600)
+          hours <- floor(seconds / 3600)
+          seconds <- seconds %% 3600
+          minutes <- floor(seconds / 60)
+          seconds <- floor(seconds %% 60)
+          paste0(
+            if (days > 0) paste0(days, "d ") else "",
+            if (hours > 0 || days > 0) paste0(sprintf("%02d", hours), "h ") else "",
+            if (minutes > 0 || hours > 0 || days > 0) paste0(sprintf("%02d", minutes), "m ") else "",
+            paste0(sprintf("%02d", seconds), "s")
+          )
+        }
+
+        eta_str <- format_duration(estimated_remaining_seconds)
+        completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
       }
-      days <- floor(seconds / (24 * 3600))
-      seconds <- seconds %% (24 * 3600)
-      hours <- floor(seconds / 3600)
-      seconds <- seconds %% 3600
-      minutes <- floor(seconds / 60)
-      seconds <- floor(seconds %% 60)
-      paste0(
-        if (days > 0) paste0(days, "d ") else "",
-        if (hours > 0 || days > 0) paste0(sprintf("%02d", hours), ":") else "",
-        if (minutes > 0 || hours > 0 || days > 0) paste0(sprintf("%02d", minutes), ":") else "",
-        paste0(sprintf("%02d", seconds), if (minutes > 0 || hours > 0 || days > 0) "" else "s")
-      )
     }
-
-    eta_str <- format_duration(estimated_remaining_seconds)
-    completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
 
     log_info(verbose, paste0(
       "Retrieved page ",
       current_page_number,
       "/",
       if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-        sprintf("%d(%d)", ceiling(maxFetch / items_per_page), total_pages)
+        sprintf("%d (%d)", ceiling(maxFetch / items_per_page), total_pages)
       } else {
         sprintf("%d", total_pages)
       },
@@ -428,13 +435,12 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       } else {
         paste0(
           " in ",
-          sprintf("%3.1f", time_per_page),
-          "s ETA: ", eta_str, " (", completion_time_str, ")",
+          if (!is.na(time_per_page)) format(time_per_page, digits = 2) else "?",
+          "s. ETA: ", eta_str, " (", completion_time_str, ")",
           "\n"
         )
       }
     ))
-
 
     page <- page + 1
     results <- results + res$meta$itemsPerPage
