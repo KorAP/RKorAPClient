@@ -383,6 +383,13 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     total_pages <- ceiling(kqo@totalResults / items_per_page)
     current_page_number <- ceiling(nrow(collectedMatches) / items_per_page)
 
+    # Determine the actual total pages to display, considering maxFetch
+    actual_total_pages <- if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
+      ceiling(maxFetch / items_per_page)
+    } else {
+      total_pages
+    }
+
     # Estimate remaining time
     time_per_page <- NA
     eta_str <- "N/A"
@@ -423,19 +430,19 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     log_info(verbose, paste0(
       "Retrieved page ",
-      current_page_number,
+      sprintf(paste0("%", nchar(actual_total_pages), "d"), current_page_number),
       "/",
       if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-        sprintf("%d (%d)", ceiling(maxFetch / items_per_page), total_pages)
+        sprintf("%d (%d)", actual_total_pages, total_pages)
       } else {
-        sprintf("%d", total_pages)
+        sprintf("%d", actual_total_pages)
       },
       if (!is.null(res$meta$cached)) {
         " [cached]\n"
       } else {
         paste0(
           " in ",
-          if (!is.na(time_per_page)) format(time_per_page, digits = 2) else "?",
+          if (!is.na(time_per_page)) sprintf("%4.1f", time_per_page) else "?",
           "s. ETA: ", eta_str, " (", completion_time_str, ")",
           "\n"
         )
