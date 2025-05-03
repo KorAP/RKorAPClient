@@ -1,3 +1,10 @@
+# Unpublished 1.0.0.9000
+
+- timed out corpus queries are no longer cached (see [issue #7](https://github.com/KorAP/RKorAPClient/issues/7))
+- improved error handling
+- improved logging
+- added ETAs to logging in verboose mode
+
 # RKorAPClient 1.0.0
 
 - Simplified authorization process for accessing restricted data via the new `auth()` function (see `?auth`)
