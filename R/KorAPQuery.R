@@ -321,19 +321,59 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     return(kqo)
   }
   use_korap_api <- Sys.getenv("USE_KORAP_API", unset = NA)
-  page <- kqo@nextStartIndex / maxResultsPerPage + 1
+  # Calculate the initial page number (not used directly - keeping for reference)
   collectedMatches <- kqo@collectedMatches
 
+  # For randomized page order, generate a list of randomized page indices
   if (randomizePageOrder) {
-    pages <- head(sample.int(ceiling(kqo@totalResults / maxResultsPerPage)), maxFetch) - 1
+    # Calculate how many pages we need to fetch based on maxFetch
+    total_pages_to_fetch <- if (!is.na(maxFetch)) {
+      # Either limited by maxFetch or total results, whichever is smaller
+      min(ceiling(maxFetch / maxResultsPerPage), ceiling(kqo@totalResults / maxResultsPerPage))
+    } else {
+      # All pages
+      ceiling(kqo@totalResults / maxResultsPerPage)
+    }
+
+    # Generate randomized page indices (0-based for API)
+    pages <- sample.int(ceiling(kqo@totalResults / maxResultsPerPage), total_pages_to_fetch) - 1
+    page_index <- 1 # Index to track which page in the randomized list we're on
   }
 
   if (is.null(collectedMatches)) {
     collectedMatches <- data.frame()
   }
+
+  # Initialize the page counter properly based on nextStartIndex and any previously fetched results
+  # We add 1 to make it 1-based for display purposes since users expect page numbers to start from 1
+  # For first call, this will be 1, for subsequent calls, it will reflect our actual position
+  current_page_number <- ceiling(offset / maxResultsPerPage) + 1
+
+  # For sequential fetches, keep track of which global page we're on
+  # This is important for correctly showing page numbers in subsequent fetchNext calls
+  page_count_start <- current_page_number
+
   repeat {
-    page <- nrow(collectedMatches) %/% maxResultsPerPage + 1
-    currentOffset <- ifelse(randomizePageOrder, pages[page], page - 1) * maxResultsPerPage
+    # Determine which page to fetch next
+    if (randomizePageOrder) {
+      # In randomized mode, get the page from our randomized list using the page_index
+      # Make sure we don't exceed the array bounds
+      if (page_index > length(pages)) {
+        break # No more pages to fetch in randomized mode
+      }
+      current_offset_page <- pages[page_index]
+      # For display purposes in randomized mode, show which page out of the total we're fetching
+      display_page_number <- page_index
+    } else {
+      # In sequential mode, use the current_page_number to calculate the offset
+      current_offset_page <- (current_page_number - 1)
+      display_page_number <- current_page_number
+    }
+
+    # Calculate the actual offset in tokens
+    currentOffset <- current_offset_page * maxResultsPerPage
+
+    # Build the query with the appropriate count and offset
     query <- paste0(kqo@requestUrl, "&count=", min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage), "&offset=", currentOffset, "&cutoff=true")
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
@@ -378,17 +418,18 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
 
-    # Calculate page numbers regardless of ETA calculation
-    items_per_page <- res$meta$itemsPerPage
-    total_pages <- ceiling(kqo@totalResults / items_per_page)
-    current_page_number <- ceiling(nrow(collectedMatches) / items_per_page)
+    # Get the actual items per page from the API response
+    # We now consistently use maxResultsPerPage instead
 
-    # Determine the actual total pages to display, considering maxFetch
-    actual_total_pages <- if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-      ceiling(maxFetch / items_per_page)
-    } else {
-      total_pages
-    }
+    # Calculate total pages consistently using fixed maxResultsPerPage
+    # This ensures consistent page counting across the function
+    total_pages <- ceiling(kqo@totalResults / maxResultsPerPage)
+
+    # Calculate the total pages based on what we've already fetched plus what we'll fetch
+    # This ensures the correct denominator is displayed for subsequent fetchNext calls
+
+    # Calculate the total number of pages for the entire result set
+    # This calculation is kept for reference and for showing in parentheses
 
     # Estimate remaining time
     time_per_page <- NA
@@ -399,7 +440,37 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       # benchmark looks like "0.123s"
       time_per_page <- suppressWarnings(as.numeric(sub("s", "", res$meta$benchmark)))
       if (!is.na(time_per_page)) {
-        remaining_pages <- total_pages - current_page_number
+        # First determine our current global position for ETA calculation
+        current_global_position <- if (randomizePageOrder) {
+          # In randomized mode, this is how many pages we've processed so far in this batch
+          page_index - 1 # -1 because we're calculating remaining
+        } else {
+          page_count_start + (current_page_number - 1) - 1 # -1 because we're calculating remaining
+        }
+
+        # Calculate remaining pages based on maxFetch if specified
+        if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
+          # We need to fetch up to maxFetch results
+          remaining_items_to_fetch <- maxFetch - nrow(collectedMatches)
+          remaining_pages <- ceiling(remaining_items_to_fetch / maxResultsPerPage)
+        } else {
+          # We need to fetch all results - account for our actual global position
+          # For randomized order, calculate remaining pages based on the randomized list or maxFetch
+          if (randomizePageOrder) {
+            if (exists("pages") && length(pages) > 0) {
+              remaining_pages <- length(pages) - page_index
+            } else if (!is.na(maxFetch)) {
+              # If pages is not available, use maxFetch to estimate remaining pages
+              remaining_pages <- ceiling(maxFetch / maxResultsPerPage) - page_index
+            } else {
+              # Fallback to a reasonable default
+              remaining_pages <- 1
+            }
+          } else {
+            # For sequential order, use the current global position
+            remaining_pages <- total_pages - current_global_position
+          }
+        }
 
         estimated_remaining_seconds <- remaining_pages * time_per_page
         estimated_completion_time <- Sys.time() + estimated_remaining_seconds
@@ -407,7 +478,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         # Format time nicely
         format_duration <- function(seconds) {
           if (is.na(seconds) || seconds < 0) {
-            return("N/A")
+            # Instead of "N/A", return "00s" as a fallback
+            return("00s")
           }
           days <- floor(seconds / (24 * 3600))
           seconds <- seconds %% (24 * 3600)
@@ -428,28 +500,90 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       }
     }
 
-    log_info(verbose, paste0(
-      "Retrieved page ",
-      sprintf(paste0("%", nchar(actual_total_pages), "d"), current_page_number),
-      "/",
-      if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-        sprintf("%d (%d)", actual_total_pages, total_pages)
-      } else {
-        sprintf("%d", actual_total_pages)
-      },
-      if (!is.null(res$meta$cached)) {
-        " [cached]\n"
-      } else {
-        paste0(
-          " in ",
-          if (!is.na(time_per_page)) sprintf("%4.1f", time_per_page) else "?",
-          "s. ETA: ", eta_str, " (", completion_time_str, ")",
-          "\n"
-        )
-      }
-    ))
+    # Create the page display string with proper formatting
 
-    page <- page + 1
+    # For global page tracking, calculate the absolute page number
+    actual_display_number <- if (randomizePageOrder) {
+      current_offset_page + 1 # In randomized mode, this is the actual page (0-based + 1)
+    } else {
+      # In sequential mode, the absolute page number is the actual offset page + 1 (to make it 1-based)
+      current_offset_page + 1
+    }
+
+    # For subsequent calls to fetchNext, we need to calculate the correct page numbers
+    # based on the current batch being fetched
+
+    # For each call to fetchNext, we want to show 1/2, 2/2 (not 3/4, 4/4)
+    # Simply count from 1 within the current batch
+
+    # The relative page number is simply the current position in this batch
+    if (randomizePageOrder) {
+      relative_page_number <- page_index # In randomized mode, we start from 1 in each batch
+    } else {
+      relative_page_number <- display_page_number - (page_count_start - 1)
+    }
+
+    # How many pages will we fetch in this batch?
+    # If maxFetch is specified, calculate based on it
+    pages_in_this_batch <- if (!is.na(maxFetch)) {
+      ceiling(maxFetch / maxResultsPerPage)
+    } else {
+      # Otherwise fetch all remaining pages
+      total_pages - page_count_start + 1
+    }
+
+    # The total pages to be shown in this batch
+    batch_total_pages <- pages_in_this_batch
+
+    page_display <- paste0(
+      "Retrieved page ",
+      sprintf(paste0("%", nchar(batch_total_pages), "d"), relative_page_number),
+      "/",
+      sprintf("%d", batch_total_pages)
+    )
+
+    # If randomized, also show which actual page we fetched
+    if (randomizePageOrder) {
+      # Determine the maximum width needed for page numbers (based on total pages)
+      # This ensures consistent alignment
+      max_page_width <- nchar(as.character(total_pages))
+      # Add the actual page number that was fetched (0-based + 1 for display) with proper padding
+      page_display <- paste0(page_display, 
+                            sprintf(" (actual page %*d)", max_page_width, current_offset_page + 1))
+    }
+    # Always show the absolute page number and total pages (for clarity)
+    else {
+      # Show the absolute page number (out of total possible pages)
+      page_display <- paste0(page_display, sprintf(
+        " (page %d of %d total)",
+        actual_display_number, total_pages
+      ))
+    }
+
+    # Add caching or timing information
+    if (!is.null(res$meta$cached)) {
+      page_display <- paste0(page_display, " [cached]")
+    } else {
+      page_display <- paste0(
+        page_display,
+        " in ",
+        if (!is.na(time_per_page)) sprintf("%4.1f", time_per_page) else "?",
+        "s. ETA: ",
+        # Display ETA for both randomized and sequential modes
+        eta_str,
+        # Show completion time for both modes
+        paste0(" (", completion_time_str, ")")
+      )
+    }
+
+    log_info(verbose, paste0(page_display, "\n"))
+
+    # Increment the appropriate counter based on mode
+    if (randomizePageOrder) {
+      page_index <- page_index + 1
+    } else {
+      current_page_number <- current_page_number + 1
+    }
     results <- results + res$meta$itemsPerPage
     if (nrow(collectedMatches) >= kqo@totalResults || (!is.na(maxFetch) && results >= maxFetch)) {
       break
