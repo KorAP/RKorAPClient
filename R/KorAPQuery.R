@@ -234,7 +234,16 @@ setMethod(
         if (!is.null(res$meta$cached)) {
           log_info(verbose, " [cached]\n")
         } else if (!is.null(res$meta$benchmark)) {
-          log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+          # Round the benchmark time to 2 decimal places for better readability
+          # If it's a string ending with 's', extract the number, round it, and re-add 's'
+          if (is.character(res$meta$benchmark) && grepl("s$", res$meta$benchmark)) {
+            time_value <- as.numeric(sub("s$", "", res$meta$benchmark))
+            formatted_time <- paste0(round(time_value, 2), "s")
+            log_info(verbose, ", took ", formatted_time, "\n", sep = "")
+          } else {
+            # Fallback if the format is different than expected
+            log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
+          }
         } else {
           log_info(verbose, "\n")
         }
@@ -548,8 +557,10 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       # This ensures consistent alignment
       max_page_width <- nchar(as.character(total_pages))
       # Add the actual page number that was fetched (0-based + 1 for display) with proper padding
-      page_display <- paste0(page_display, 
-                            sprintf(" (actual page %*d)", max_page_width, current_offset_page + 1))
+      page_display <- paste0(
+        page_display,
+        sprintf(" (actual page %*d)", max_page_width, current_offset_page + 1)
+      )
     }
     # Always show the absolute page number and total pages (for clarity)
     else {
