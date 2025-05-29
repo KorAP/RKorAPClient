@@ -190,10 +190,127 @@ setMethod(
            context = NULL) {
     if (length(query) > 1 || length(vc) > 1) {
       grid <- if (expand) expand_grid(query = query, vc = vc) else tibble(query = query, vc = vc)
-      purrr::pmap(grid, function(query, vc, ...) {
-        corpusQuery(kco, query = query, vc = vc, ql = ql, verbose = verbose, as.df = TRUE)
-      }) %>%
-        bind_rows()
+
+      # Initialize timing variables for ETA calculation
+      total_queries <- nrow(grid)
+      current_query <- 0
+      start_time <- Sys.time()
+
+      # Helper function to format duration
+      format_duration <- function(seconds) {
+        if (is.na(seconds) || seconds < 0) {
+          return("00s")
+        }
+        days <- floor(seconds / (24 * 3600))
+        seconds <- seconds %% (24 * 3600)
+        hours <- floor(seconds / 3600)
+        seconds <- seconds %% 3600
+        minutes <- floor(seconds / 60)
+        seconds <- floor(seconds %% 60)
+        paste0(
+          if (days > 0) paste0(days, "d ") else "",
+          if (hours > 0 || days > 0) paste0(sprintf("%02d", hours), "h ") else "",
+          if (minutes > 0 || hours > 0 || days > 0) paste0(sprintf("%02d", minutes), "m ") else "",
+          paste0(sprintf("%02d", seconds), "s")
+        )
+      }
+
+      results <- purrr::pmap(grid, function(query, vc, ...) {
+        current_query <<- current_query + 1
+
+        # Execute the single query directly (avoiding recursive call)
+        contentFields <- c("snippet", "tokens")
+        query_fields <- fields
+        if (metadataOnly) {
+          query_fields <- query_fields[!query_fields %in% contentFields]
+        }
+        if (!"textSigle" %in% query_fields) {
+          query_fields <- c(query_fields, "textSigle")
+        }
+        request <-
+          paste0(
+            "?q=",
+            url_encode(enc2utf8(query)),
+            ifelse(!metadataOnly && !is.null(context) && context != "", paste0("&context=", url_encode(enc2utf8(context))), ""),
+            ifelse(vc != "", paste0("&cq=", url_encode(enc2utf8(vc))), ""),
+            ifelse(!metadataOnly, "&show-tokens=true", ""),
+            "&ql=", ql
+          )
+        webUIRequestUrl <- paste0(kco@KorAPUrl, request)
+        requestUrl <- paste0(
+          kco@apiUrl,
+          "search",
+          request,
+          "&fields=",
+          paste(query_fields, collapse = ","),
+          if (metadataOnly) "&access-rewrite-disabled=true" else ""
+        )
+
+        # Show individual query progress
+        log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"", sep = "")
+        res <- apiCall(kco, paste0(requestUrl, "&count=0"))
+        if (is.null(res)) {
+          log_info(verbose, ": API call failed\n")
+          totalResults <- 0
+        } else {
+          totalResults <- as.integer(res$meta$totalResults)
+          log_info(verbose, ": ", totalResults, " hits")
+          if (!is.null(res$meta$cached)) {
+            log_info(verbose, " [cached]")
+          } else if (!is.null(res$meta$benchmark)) {
+            if (is.character(res$meta$benchmark) && grepl("s$", res$meta$benchmark)) {
+              time_value <- as.numeric(sub("s$", "", res$meta$benchmark))
+              formatted_time <- paste0(round(time_value, 2), "s")
+              log_info(verbose, ", took ", formatted_time)
+            } else {
+              log_info(verbose, ", took ", res$meta$benchmark)
+            }
+          }
+          log_info(verbose, "\n")
+        }
+
+        result <- data.frame(
+          query = query,
+          totalResults = totalResults,
+          vc = vc,
+          webUIRequestUrl = webUIRequestUrl,
+          stringsAsFactors = FALSE
+        )
+
+        # Calculate and display ETA information if verbose and we have more than one query
+        if (verbose && total_queries > 1) {
+          elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+
+          if (current_query > 1) { # Only calculate ETA after the first query
+            avg_time_per_query <- elapsed_time / current_query
+            remaining_queries <- total_queries - current_query
+            estimated_remaining_seconds <- remaining_queries * avg_time_per_query
+            estimated_completion_time <- Sys.time() + estimated_remaining_seconds
+
+            eta_str <- format_duration(estimated_remaining_seconds)
+            completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
+
+            # Create progress display
+            progress_display <- paste0(
+              "Query ",
+              sprintf(paste0("%", nchar(total_queries), "d"), current_query),
+              "/",
+              sprintf("%d", total_queries),
+              " completed. Avg: ",
+              sprintf("%.1f", avg_time_per_query),
+              "s/query. ETA: ",
+              eta_str,
+              " (", completion_time_str, ")"
+            )
+
+            log_info(verbose, progress_display, "\n")
+          }
+        }
+
+        return(result)
+      })
+
+      results %>% bind_rows()
     } else {
       contentFields <- c("snippet", "tokens")
       if (metadataOnly) {
