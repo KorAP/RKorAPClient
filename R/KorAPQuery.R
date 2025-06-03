@@ -5,6 +5,7 @@
 #' represent the current state of a query to a KorAP server.
 #'
 #' @include KorAPConnection.R
+#' @include logging.R
 #' @import httr2
 #'
 #' @include RKorAPClient-package.R
@@ -196,25 +197,6 @@ setMethod(
       current_query <- 0
       start_time <- Sys.time()
 
-      # Helper function to format duration
-      format_duration <- function(seconds) {
-        if (is.na(seconds) || seconds < 0) {
-          return("00s")
-        }
-        days <- floor(seconds / (24 * 3600))
-        seconds <- seconds %% (24 * 3600)
-        hours <- floor(seconds / 3600)
-        seconds <- seconds %% 3600
-        minutes <- floor(seconds / 60)
-        seconds <- floor(seconds %% 60)
-        paste0(
-          if (days > 0) paste0(days, "d ") else "",
-          if (hours > 0 || days > 0) paste0(sprintf("%02d", hours), "h ") else "",
-          if (minutes > 0 || hours > 0 || days > 0) paste0(sprintf("%02d", minutes), "m ") else "",
-          paste0(sprintf("%02d", seconds), "s")
-        )
-      }
-
       results <- purrr::pmap(grid, function(query, vc, ...) {
         current_query <<- current_query + 1
 
@@ -279,16 +261,10 @@ setMethod(
 
         # Calculate and display ETA information if verbose and we have more than one query
         if (verbose && total_queries > 1) {
-          elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
-
-          if (current_query > 1) { # Only calculate ETA after the first query
+          eta_info <- calculate_eta(current_query, total_queries, start_time)
+          if (eta_info != "") {
+            elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
             avg_time_per_query <- elapsed_time / current_query
-            remaining_queries <- total_queries - current_query
-            estimated_remaining_seconds <- remaining_queries * avg_time_per_query
-            estimated_completion_time <- Sys.time() + estimated_remaining_seconds
-
-            eta_str <- format_duration(estimated_remaining_seconds)
-            completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
 
             # Create progress display
             progress_display <- paste0(
@@ -298,9 +274,8 @@ setMethod(
               sprintf("%d", total_queries),
               " completed. Avg: ",
               sprintf("%.1f", avg_time_per_query),
-              "s/query. ETA: ",
-              eta_str,
-              " (", completion_time_str, ")"
+              "s/query",
+              eta_info
             )
 
             log_info(verbose, progress_display, "\n")

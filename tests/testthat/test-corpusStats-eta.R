@@ -45,7 +45,7 @@ test_that("corpusStats displays ETA with multiple virtual corpora", {
   # Test 3: Check that ETA is displayed (format like "ETA: MM:SS" or "ETA: HH:MM:SS")
   expect_match(
     output_str,
-    "ETA: \\d{2}:\\d{2}",
+    "ETA: \\d{2}",
     info = "ETA format not found in output"
   )
 

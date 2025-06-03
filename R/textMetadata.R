@@ -1,4 +1,5 @@
-setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
+#' @include logging.R
+setGeneric("textMetadata", function(kco, ...) standardGeneric("textMetadata"))
 
 #' Retrieve metadata for a text, identified by its sigle (id)
 #'
@@ -27,48 +28,53 @@ setGeneric("textMetadata", function(kco, ...)  standardGeneric("textMetadata") )
 #' }
 #'
 #' @export
-setMethod("textMetadata", "KorAPConnection",
- function(kco, textSigle, verbose = kco@verbose) {
-  # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-  key <- 0
-  if (length(textSigle) > 1)
-    do.call(bind_rows, Map(function(atomicSigle)
-      textMetadata(kco, atomicSigle), textSigle))
-  else {
-    url <-
-      paste0(kco@apiUrl, 'corpus/',
-             URLencode(enc2utf8(textSigle), reserved = TRUE))
-    log_info(verbose, "Getting metadata for ", textSigle, sep = "")
-    res <- apiCall(kco, url)
-    log_info(verbose, ifelse(is.null(res) || "errors" %in% names(res), " [error]\n",  "\n"))
-
-    if(is.null(res)) {
-      res <- tibble(errors="API request failed")
+setMethod(
+  "textMetadata", "KorAPConnection",
+  function(kco, textSigle, verbose = kco@verbose) {
+    # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+    key <- 0
+    if (length(textSigle) > 1) {
+      do.call(bind_rows, Map(function(atomicSigle) {
+        textMetadata(kco, atomicSigle)
+      }, textSigle))
     } else {
-      if ("document" %in% names(res) & "fields" %in% names(res$document) && length(res$document$fields) > 0) {
-        res <- as_tibble(res$document$fields) %>%
-          dplyr::mutate(across(where(is.list), ~ purrr::map(.x, ~ if (length(.x) < 2) unlist(.x) else paste(.x, collapse = "\\t")))) %>%
-          select(key, value) %>%
-          tidyr::pivot_wider(names_from = key, values_from = value, names_repair = "unique") %>%
-          mutate(
-            textSigle = as.character(textSigle),
-            requestUrl = url,
-            webUIRequestUrl = paste0(kco@KorAPUrl, sprintf('?q=<base/s=t>&cq=textSigle+%%3D+"%s"', url_encode(enc2utf8(textSigle))))) %>%
-          mutate(across(everything(), as.character)) %>%
-          relocate(textSigle)
+      url <-
+        paste0(
+          kco@apiUrl, "corpus/",
+          URLencode(enc2utf8(textSigle), reserved = TRUE)
+        )
+      log_info(verbose, "Getting metadata for ", textSigle, sep = "")
+      res <- apiCall(kco, url)
+      log_info(verbose, ifelse(is.null(res) || "errors" %in% names(res), " [error]\n", "\n"))
+
+      if (is.null(res)) {
+        res <- tibble(errors = "API request failed")
       } else {
-        res <- lapply(res, function(x) paste0(x, collapse = "\\t")) # flatten list
-        res <- as_tibble(res) %>%
-          head(n=1) %>%
-          mutate(
-            requestUrl = url,
-            textSigle = textSigle,
-            webUIRequestUrl = paste0(kco@KorAPUrl, sprintf('?q=<base/s=t>&cq=textSigle+%%3D+"%s"', url_encode(enc2utf8(textSigle))))) %>%
-          relocate(textSigle)
+        if ("document" %in% names(res) & "fields" %in% names(res$document) && length(res$document$fields) > 0) {
+          res <- as_tibble(res$document$fields) %>%
+            dplyr::mutate(across(where(is.list), ~ purrr::map(.x, ~ if (length(.x) < 2) unlist(.x) else paste(.x, collapse = "\\t")))) %>%
+            select(key, value) %>%
+            tidyr::pivot_wider(names_from = key, values_from = value, names_repair = "unique") %>%
+            mutate(
+              textSigle = as.character(textSigle),
+              requestUrl = url,
+              webUIRequestUrl = paste0(kco@KorAPUrl, sprintf('?q=<base/s=t>&cq=textSigle+%%3D+"%s"', url_encode(enc2utf8(textSigle))))
+            ) %>%
+            mutate(across(everything(), as.character)) %>%
+            relocate(textSigle)
+        } else {
+          res <- lapply(res, function(x) paste0(x, collapse = "\\t")) # flatten list
+          res <- as_tibble(res) %>%
+            head(n = 1) %>%
+            mutate(
+              requestUrl = url,
+              textSigle = textSigle,
+              webUIRequestUrl = paste0(kco@KorAPUrl, sprintf('?q=<base/s=t>&cq=textSigle+%%3D+"%s"', url_encode(enc2utf8(textSigle))))
+            ) %>%
+            relocate(textSigle)
+        }
       }
+      res
     }
-    res
   }
-})
-
-
+)

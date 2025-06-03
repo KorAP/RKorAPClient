@@ -4,6 +4,7 @@
 #' `KorAPCorpusStats` objects can be obtained by the [corpusStats()] method.
 #'
 #' @include KorAPConnection.R
+#' @include logging.R
 #'
 #' @export
 #' @slot vc definition of the virtual corpus
@@ -14,11 +15,6 @@
 #' @slot webUIRequestUrl link to the web user interface with the current vc definition
 setClass("KorAPCorpusStats", slots = c(vc = "character", documents = "numeric", tokens = "numeric", sentences = "numeric", paragraphs = "numeric", webUIRequestUrl = "character"))
 
-log_info <- function(v, ...) {
-  green <- "\033[32m"
-  reset <- "\033[0m"
-  cat(ifelse(v, paste0(green, ..., reset), ""))
-}
 setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 
 #' Fetch information about a (virtual) corpus
@@ -37,22 +33,6 @@ setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 #' }
 #'
 #' @aliases corpusStats
-# Helper function to format duration with leading zeros
-format_duration <- function(seconds) {
-  if (is.na(seconds) || !is.finite(seconds) || seconds <= 0) {
-    return("N/A")
-  }
-
-  hours <- floor(seconds / 3600)
-  minutes <- floor((seconds %% 3600) / 60)
-  secs <- round(seconds %% 60)
-
-  if (hours > 0) {
-    return(sprintf("%02d:%02d:%02d", hours, minutes, secs))
-  } else {
-    return(sprintf("%02d:%02d", minutes, secs))
-  }
-}
 
 #' @export
 setMethod("corpusStats", "KorAPConnection", function(kco,

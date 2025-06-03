@@ -77,4 +77,5 @@ Collate:
     'misc.R'
     'reexports.R'
     'textMetadata.R'
+    'logging.R'
 Roxygen: list(markdown = TRUE)

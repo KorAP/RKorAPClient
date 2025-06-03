@@ -1,4 +1,5 @@
-setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocationAnalysis") )
+#' @include logging.R
+setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocationAnalysis"))
 
 #' Collocation analysis
 #'
@@ -52,10 +53,12 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' @examples
 #' \dontrun{
 #'
-#'  # Find top collocates of "Packung" inside and outside the sports domain.
-#'  KorAPConnection(verbose = TRUE) |>
-#'   collocationAnalysis("Packung", vc=c("textClass=sport", "textClass!=sport"),
-#'                       leftContextSize=1, rightContextSize=1, topCollocatesLimit=20) |>
+#' # Find top collocates of "Packung" inside and outside the sports domain.
+#' KorAPConnection(verbose = TRUE) |>
+#'   collocationAnalysis("Packung",
+#'     vc = c("textClass=sport", "textClass!=sport"),
+#'     leftContextSize = 1, rightContextSize = 1, topCollocatesLimit = 20
+#'   ) |>
 #'   dplyr::filter(logDice >= 5)
 #' }
 #'
@@ -65,150 +68,154 @@ setGeneric("collocationAnalysis", function(kco, ...)  standardGeneric("collocati
 #' # Note that, currently, the use of focus function disallows exactFrequencies.
 #' KorAPConnection(verbose = TRUE) |>
 #'   collocationAnalysis("focus(in [tt/p=NN] {[tt/l=setzen]})",
-#'     leftContextSize=1, rightContextSize=0, exactFrequencies=FALSE, topCollocatesLimit=20)
+#'     leftContextSize = 1, rightContextSize = 0, exactFrequencies = FALSE, topCollocatesLimit = 20
+#'   )
 #' }
 #'
 #' @export
-setMethod("collocationAnalysis", "KorAPConnection",
-          function(kco,
-                   node,
-                   vc = "",
-                   lemmatizeNodeQuery = FALSE,
-                   minOccur = 5,
-                   leftContextSize = 5,
-                   rightContextSize = 5,
-                   topCollocatesLimit = 200,
-                   searchHitsSampleLimit = 20000,
-                   ignoreCollocateCase = FALSE,
-                   withinSpan = ifelse(exactFrequencies, "base/s=s", ""),
-                   exactFrequencies = TRUE,
-                   stopwords = append(RKorAPClient::synsemanticStopwords(), node),
-                   seed = 7,
-                   expand = length(vc) != length(node),
-                   maxRecurse = 0,
-                   addExamples = FALSE,
-                   thresholdScore = "logDice",
-                   threshold = 2.0,
-                   localStopwords = c(),
-                   collocateFilterRegex = '^[:alnum:]+-?[:alnum:]*$',
-                   ...) {
-            # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-            word <- frequency <- O <- NULL
+setMethod(
+  "collocationAnalysis", "KorAPConnection",
+  function(kco,
+           node,
+           vc = "",
+           lemmatizeNodeQuery = FALSE,
+           minOccur = 5,
+           leftContextSize = 5,
+           rightContextSize = 5,
+           topCollocatesLimit = 200,
+           searchHitsSampleLimit = 20000,
+           ignoreCollocateCase = FALSE,
+           withinSpan = ifelse(exactFrequencies, "base/s=s", ""),
+           exactFrequencies = TRUE,
+           stopwords = append(RKorAPClient::synsemanticStopwords(), node),
+           seed = 7,
+           expand = length(vc) != length(node),
+           maxRecurse = 0,
+           addExamples = FALSE,
+           thresholdScore = "logDice",
+           threshold = 2.0,
+           localStopwords = c(),
+           collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
+           ...) {
+    # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
+    word <- frequency <- O <- NULL
 
-            if(!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nchar(withinSpan)>0 )) {
-              stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
-            }
+    if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nchar(withinSpan) > 0)) {
+      stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
+    }
 
-            warnIfNotAuthorized(kco)
+    warnIfNotAuthorized(kco)
 
-            if (lemmatizeNodeQuery) {
-              node <- lemmatizeWordQuery(node)
-            }
+    if (lemmatizeNodeQuery) {
+      node <- lemmatizeWordQuery(node)
+    }
 
-            result <- if (length(node) > 1 || length(vc) > 1) {
-              grid <- if (expand) expand_grid(node=node, vc=vc) else tibble(node=node, vc=vc)
-              purrr::pmap(grid, function(node, vc, ...)
-                        collocationAnalysis(kco,
-                                            node =node,
-                                            vc = vc,
-                                            minOccur = minOccur,
-                                            leftContextSize = leftContextSize,
-                                            rightContextSize = rightContextSize,
-                                            topCollocatesLimit = topCollocatesLimit,
-                                            searchHitsSampleLimit = searchHitsSampleLimit,
-                                            ignoreCollocateCase = ignoreCollocateCase,
-                                            withinSpan = withinSpan,
-                                            exactFrequencies = exactFrequencies,
-                                            stopwords = stopwords,
-                                            addExamples = TRUE,
-                                            localStopwords = localStopwords,
-                                            seed = seed,
-                                            expand = expand,
-                                            ...) ) |>
-                bind_rows()
-            } else {
-              set.seed(seed)
-              candidates <- collocatesQuery(
-                kco,
-                node,
-                vc = vc,
-                minOccur = minOccur,
-                leftContextSize = leftContextSize,
-                rightContextSize = rightContextSize,
-                searchHitsSampleLimit = searchHitsSampleLimit,
-                ignoreCollocateCase = ignoreCollocateCase,
-                stopwords = append(stopwords, localStopwords),
-                ...
-              )
+    result <- if (length(node) > 1 || length(vc) > 1) {
+      grid <- if (expand) expand_grid(node = node, vc = vc) else tibble(node = node, vc = vc)
+      purrr::pmap(grid, function(node, vc, ...) {
+        collocationAnalysis(kco,
+          node = node,
+          vc = vc,
+          minOccur = minOccur,
+          leftContextSize = leftContextSize,
+          rightContextSize = rightContextSize,
+          topCollocatesLimit = topCollocatesLimit,
+          searchHitsSampleLimit = searchHitsSampleLimit,
+          ignoreCollocateCase = ignoreCollocateCase,
+          withinSpan = withinSpan,
+          exactFrequencies = exactFrequencies,
+          stopwords = stopwords,
+          addExamples = TRUE,
+          localStopwords = localStopwords,
+          seed = seed,
+          expand = expand,
+          ...
+        )
+      }) |>
+        bind_rows()
+    } else {
+      set.seed(seed)
+      candidates <- collocatesQuery(
+        kco,
+        node,
+        vc = vc,
+        minOccur = minOccur,
+        leftContextSize = leftContextSize,
+        rightContextSize = rightContextSize,
+        searchHitsSampleLimit = searchHitsSampleLimit,
+        ignoreCollocateCase = ignoreCollocateCase,
+        stopwords = append(stopwords, localStopwords),
+        ...
+      )
 
-              if (nrow(candidates) > 0) {
-                candidates <- candidates |>
-                  filter(frequency >= minOccur) |>
-                  slice_head(n=topCollocatesLimit)
-                collocationScoreQuery(
-                  kco,
-                  node = node,
-                  collocate = candidates$word,
-                  vc = vc,
-                  leftContextSize = leftContextSize,
-                  rightContextSize = rightContextSize,
-                  observed = if (exactFrequencies) NA else candidates$frequency,
-                  ignoreCollocateCase = ignoreCollocateCase,
-                  withinSpan = withinSpan,
-                  ...
-                ) |>
-                  filter(O >= minOccur) |>
-                  dplyr::arrange(dplyr::desc(logDice))
-              } else {
-                tibble()
-              }
-            }
-            if (maxRecurse > 0 & length(result) > 0 && any(!!thresholdScore >= threshold)) {
-              recurseWith <- result |>
-                filter(!!as.name(thresholdScore) >= threshold)
-              result <- collocationAnalysis(
-                kco,
-                node = paste0("(", buildCollocationQuery(
-                  removeWithinSpan(recurseWith$node, withinSpan),
-                  recurseWith$collocate,
-                  leftContextSize = leftContextSize,
-                  rightContextSize = rightContextSize,
-                  withinSpan = ""
-                ), ")"),
-                vc = vc,
-                minOccur = minOccur,
-                leftContextSize = leftContextSize,
-                rightContextSize = rightContextSize,
-                withinSpan = withinSpan,
-                maxRecurse = maxRecurse - 1,
-                stopwords = stopwords,
-                localStopwords = recurseWith$collocate,
-                exactFrequencies = exactFrequencies,
-                searchHitsSampleLimit = searchHitsSampleLimit,
-                topCollocatesLimit = topCollocatesLimit,
-                addExamples = FALSE
-              ) |>
-                bind_rows(result) |>
-                filter(logDice >= 2) |>
-                filter(.$O >= minOccur) |>
-                dplyr::arrange(dplyr::desc(logDice))
-            }
-            if (addExamples && length(result) > 0) {
-              result$query <-buildCollocationQuery(
-                result$node,
-                result$collocate,
-                leftContextSize = leftContextSize,
-                rightContextSize = rightContextSize,
-                withinSpan = withinSpan
-              )
-              result$example <- findExample(
-                kco,
-                query = result$query,
-                vc = result$vc
-              )
-            }
-            result
-          }
+      if (nrow(candidates) > 0) {
+        candidates <- candidates |>
+          filter(frequency >= minOccur) |>
+          slice_head(n = topCollocatesLimit)
+        collocationScoreQuery(
+          kco,
+          node = node,
+          collocate = candidates$word,
+          vc = vc,
+          leftContextSize = leftContextSize,
+          rightContextSize = rightContextSize,
+          observed = if (exactFrequencies) NA else candidates$frequency,
+          ignoreCollocateCase = ignoreCollocateCase,
+          withinSpan = withinSpan,
+          ...
+        ) |>
+          filter(O >= minOccur) |>
+          dplyr::arrange(dplyr::desc(logDice))
+      } else {
+        tibble()
+      }
+    }
+    if (maxRecurse > 0 & length(result) > 0 && any(!!thresholdScore >= threshold)) {
+      recurseWith <- result |>
+        filter(!!as.name(thresholdScore) >= threshold)
+      result <- collocationAnalysis(
+        kco,
+        node = paste0("(", buildCollocationQuery(
+          removeWithinSpan(recurseWith$node, withinSpan),
+          recurseWith$collocate,
+          leftContextSize = leftContextSize,
+          rightContextSize = rightContextSize,
+          withinSpan = ""
+        ), ")"),
+        vc = vc,
+        minOccur = minOccur,
+        leftContextSize = leftContextSize,
+        rightContextSize = rightContextSize,
+        withinSpan = withinSpan,
+        maxRecurse = maxRecurse - 1,
+        stopwords = stopwords,
+        localStopwords = recurseWith$collocate,
+        exactFrequencies = exactFrequencies,
+        searchHitsSampleLimit = searchHitsSampleLimit,
+        topCollocatesLimit = topCollocatesLimit,
+        addExamples = FALSE
+      ) |>
+        bind_rows(result) |>
+        filter(logDice >= 2) |>
+        filter(.$O >= minOccur) |>
+        dplyr::arrange(dplyr::desc(logDice))
+    }
+    if (addExamples && length(result) > 0) {
+      result$query <- buildCollocationQuery(
+        result$node,
+        result$collocate,
+        leftContextSize = leftContextSize,
+        rightContextSize = rightContextSize,
+        withinSpan = withinSpan
+      )
+      result$example <- findExample(
+        kco,
+        query = result$query,
+        vc = result$vc
+      )
+    }
+    result
+  }
 )
 
 # #' @export
@@ -217,9 +224,9 @@ removeWithinSpan <- function(query, withinSpan) {
     return(query)
   }
   needle <- sprintf("^\\(contains\\(<%s>, ?(.*)\\){2}$", withinSpan)
-  res <- gsub(needle, '\\1', query)
+  res <- gsub(needle, "\\1", query)
   needle <- sprintf("^contains\\(<%s>, ?(.*)\\)$", withinSpan)
-  res <- gsub(needle, '\\1', res)
+  res <- gsub(needle, "\\1", res)
   return(res)
 }
 
@@ -234,20 +241,21 @@ matches2FreqTable <- function(matches,
                               rightContextSize = 5,
                               ignoreCollocateCase = FALSE,
                               stopwords = c(),
-                              collocateFilterRegex =  '^[:alnum:]+-?[:alnum:]*$',
+                              collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1)),
                               verbose = TRUE) {
   word <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   frequency <- NULL
 
   if (nrow(matches) < 1) {
-    dplyr::tibble(word=c(), frequency=c())
+    dplyr::tibble(word = c(), frequency = c())
   } else if (index == 0) {
-    if (! "tokens" %in% colnames(matches) || ! is.list(matches$tokens)) {
+    if (!"tokens" %in% colnames(matches) || !is.list(matches$tokens)) {
       log_info(verbose, "Outdated KorAP server: Falling back to client side tokenization.\n")
-      return(snippet2FreqTable(matches$snippet, minOccur, leftContextSize, rightContextSize, ignoreCollocateCase = ignoreCollocateCase,
-                        stopwords = stopwords, oldTable = oldTable, verbose = verbose))
-
+      return(snippet2FreqTable(matches$snippet, minOccur, leftContextSize, rightContextSize,
+        ignoreCollocateCase = ignoreCollocateCase,
+        stopwords = stopwords, oldTable = oldTable, verbose = verbose
+      ))
     }
     log_info(verbose, paste("Joining", nrow(matches), "kwics\n"))
     for (i in 1:nrow(matches)) {
@@ -262,30 +270,30 @@ matches2FreqTable <- function(matches,
       )
     }
     log_info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
-    oldTable  |>
+    oldTable |>
       group_by(word) |>
       mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) |>
-      summarise(frequency=sum(frequency), .groups = "drop") |>
+      summarise(frequency = sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
-    stopwordsTable <- dplyr::tibble(word=stopwords)
+    stopwordsTable <- dplyr::tibble(word = stopwords)
 
     left <- tail(unlist(matches$tokens$left[index]), leftContextSize)
 
-#    cat(paste("left:", left, "\n", collapse=" "))
+    #    cat(paste("left:", left, "\n", collapse=" "))
 
     right <- head(unlist(matches$tokens$right[index]), rightContextSize)
 
-#    cat(paste("right:", right, "\n", collapse=" "))
+    #    cat(paste("right:", right, "\n", collapse=" "))
 
-    if(length(left) + length(right) == 0) {
+    if (length(left) + length(right) == 0) {
       oldTable
     } else {
       table(c(left, right)) |>
         dplyr::as_tibble(.name_repair = "minimal") |>
         dplyr::rename(word = 1, frequency = 2) |>
         dplyr::filter(str_detect(word, collocateFilterRegex)) |>
-        dplyr::anti_join(stopwordsTable, by="word")  |>
+        dplyr::anti_join(stopwordsTable, by = "word") |>
         dplyr::bind_rows(oldTable)
     }
   }
@@ -302,14 +310,14 @@ snippet2FreqTable <- function(snippet,
                               ignoreCollocateCase = FALSE,
                               stopwords = c(),
                               tokenizeRegex = "([! )(\uc2\uab,.:?\u201e\u201c\'\"]+|&quot;)",
-                              collocateFilterRegex =  '^[:alnum:]+-?[:alnum:]*$',
+                              collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
                               oldTable = data.frame(word = rep(NA, 1), frequency = rep(NA, 1)),
                               verbose = TRUE) {
   word <- NULL # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   frequency <- NULL
 
   if (length(snippet) < 1) {
-    dplyr::tibble(word=c(), frequency=c())
+    dplyr::tibble(word = c(), frequency = c())
   } else if (length(snippet) > 1) {
     log_info(verbose, paste("Joining", length(snippet), "kwics\n"))
     for (s in snippet) {
@@ -323,39 +331,41 @@ snippet2FreqTable <- function(snippet,
       )
     }
     log_info(verbose, paste("Aggregating", length(oldTable$word), "tokens\n"))
-    oldTable  |>
+    oldTable |>
       group_by(word) |>
       mutate(word = dplyr::case_when(ignoreCollocateCase ~ tolower(word), TRUE ~ word)) |>
-      summarise(frequency=sum(frequency), .groups = "drop") |>
+      summarise(frequency = sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
-    stopwordsTable <- dplyr::tibble(word=stopwords)
+    stopwordsTable <- dplyr::tibble(word = stopwords)
     match <-
       str_match(
         snippet,
         '<span class="context-left">(<span class="more"></span>)?(.*[^ ]) *</span><span class="match"><mark>.*</mark></span><span class="context-right"> *([^<]*)'
       )
 
-    left <- if(leftContextSize > 0)
+    left <- if (leftContextSize > 0) {
       tail(unlist(str_split(match[1, 3], tokenizeRegex)), leftContextSize)
-    else
+    } else {
       ""
-#    cat(paste("left:", left, "\n", collapse=" "))
+    }
+    #    cat(paste("left:", left, "\n", collapse=" "))
 
-    right <- if(rightContextSize > 0)
+    right <- if (rightContextSize > 0) {
       head(unlist(str_split(match[1, 4], tokenizeRegex)), rightContextSize)
-    else
-        ""
-#    cat(paste("right:", right, "\n", collapse=" "))
+    } else {
+      ""
+    }
+    #    cat(paste("right:", right, "\n", collapse=" "))
 
-    if(is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
+    if (is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
       oldTable
     } else {
       table(c(left, right)) |>
         dplyr::as_tibble(.name_repair = "minimal") |>
         dplyr::rename(word = 1, frequency = 2) |>
         dplyr::filter(str_detect(word, collocateFilterRegex)) |>
-        dplyr::anti_join(stopwordsTable, by="word")  |>
+        dplyr::anti_join(stopwordsTable, by = "word") |>
         dplyr::bind_rows(oldTable)
     }
   }
@@ -442,21 +452,22 @@ findExample <-
            matchOnly = TRUE) {
     out <- character(length = length(query))
 
-    if (length(vc) < length(query))
+    if (length(vc) < length(query)) {
       vc <- rep(vc, length(query))
+    }
 
     for (i in seq_along(query)) {
       q <- corpusQuery(kco, paste0("(", query[i], ")"), vc = vc[i], metadataOnly = FALSE)
       if (q@totalResults > 0) {
-        q <- fetchNext(q, maxFetch=50, randomizePageOrder=F)
+        q <- fetchNext(q, maxFetch = 50, randomizePageOrder = F)
         example <- as.character((q@collectedMatches)$snippet[1])
-        out[i] <- if(matchOnly) {
-          gsub('.*<mark>(.+)</mark>.*', '\\1', example)
+        out[i] <- if (matchOnly) {
+          gsub(".*<mark>(.+)</mark>.*", "\\1", example)
         } else {
-          stringr::str_replace(example, '<[^>]*>', '')
+          stringr::str_replace(example, "<[^>]*>", "")
         }
       } else {
-        out[i] = ""
+        out[i] <- ""
       }
     }
     out
@@ -475,19 +486,20 @@ collocatesQuery <-
            ...) {
     frequency <- NULL
     q <- corpusQuery(kco, query, vc, metadataOnly = F, ...)
-    if(q@totalResults == 0) {
-      tibble(word=c(), frequency=c())
+    if (q@totalResults == 0) {
+      tibble(word = c(), frequency = c())
     } else {
-      q <- fetchNext(q, maxFetch=searchHitsSampleLimit, randomizePageOrder=TRUE)
-      matches2FreqTable (q@collectedMatches,
-                         0,
-                        minOccur = minOccur,
-                        leftContextSize = leftContextSize,
-                        rightContextSize = rightContextSize,
-                        ignoreCollocateCase = ignoreCollocateCase,
-                        stopwords = stopwords,
-                        ...,
-                        verbose = kco@verbose) |>
+      q <- fetchNext(q, maxFetch = searchHitsSampleLimit, randomizePageOrder = TRUE)
+      matches2FreqTable(q@collectedMatches,
+        0,
+        minOccur = minOccur,
+        leftContextSize = leftContextSize,
+        rightContextSize = rightContextSize,
+        ignoreCollocateCase = ignoreCollocateCase,
+        stopwords = stopwords,
+        ...,
+        verbose = kco@verbose
+      ) |>
         mutate(frequency = frequency * q@totalResults / min(q@totalResults, searchHitsSampleLimit)) |>
         filter(frequency >= minOccur)
     }

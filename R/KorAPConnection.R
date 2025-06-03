@@ -13,6 +13,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @import R.cache
 #' @import utils
 #' @import methods
+#' @include logging.R
 #' @slot KorAPUrl        URL of the web user interface of the KorAP server used in the connection.
 #' @slot apiVersion      requested KorAP API version.
 #' @slot indexRevision   indexRevision code as reported from API via `X-Index-Revision` HTTP header.
