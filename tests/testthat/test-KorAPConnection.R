@@ -3,7 +3,7 @@ test_that("KorAPConnection fails gracefully on unresolvable host", {
 })
 
 test_that("KorAPConnection fails gracefully on timeout", {
-  expect_message(KorAPConnection(apiUrl="http://httpbin.org/delay/3", accessToken = NULL, timeout = 0.2), "No internet|Timeout|json|progress")
+  expect_message(KorAPConnection(apiUrl="http://httpbin.org/delay/3", accessToken = NULL, timeout = 0.2), "No internet|Timeout|json|progress|Unavailable")
 })
 
 test_that("KorAPConnection fails gracefully on Bad Gateway errors", {
