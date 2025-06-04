@@ -64,6 +64,7 @@ Suggests:
     raster,
     tidyverse
 Collate: 
+    'logging.R'
     'KorAPConnection.R'
     'KorAPCorpusStats.R'
     'RKorAPClient-package.R'
@@ -77,5 +78,4 @@ Collate:
     'misc.R'
     'reexports.R'
     'textMetadata.R'
-    'logging.R'
 Roxygen: list(markdown = TRUE)

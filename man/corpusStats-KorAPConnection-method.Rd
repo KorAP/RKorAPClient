@@ -23,7 +23,6 @@
 Fetch information about a (virtual) corpus
 }
 \examples{
-
 \dontrun{
 
 kco <- KorAPConnection()

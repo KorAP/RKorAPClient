@@ -100,10 +100,12 @@ user interface.
 \examples{
 \dontrun{
 
- # Find top collocates of "Packung" inside and outside the sports domain.
- KorAPConnection(verbose = TRUE) |>
-  collocationAnalysis("Packung", vc=c("textClass=sport", "textClass!=sport"),
-                      leftContextSize=1, rightContextSize=1, topCollocatesLimit=20) |>
+# Find top collocates of "Packung" inside and outside the sports domain.
+KorAPConnection(verbose = TRUE) |>
+  collocationAnalysis("Packung",
+    vc = c("textClass=sport", "textClass!=sport"),
+    leftContextSize = 1, rightContextSize = 1, topCollocatesLimit = 20
+  ) |>
   dplyr::filter(logDice >= 5)
 }
 
@@ -113,7 +115,8 @@ user interface.
 # Note that, currently, the use of focus function disallows exactFrequencies.
 KorAPConnection(verbose = TRUE) |>
   collocationAnalysis("focus(in [tt/p=NN] {[tt/l=setzen]})",
-    leftContextSize=1, rightContextSize=0, exactFrequencies=FALSE, topCollocatesLimit=20)
+    leftContextSize = 1, rightContextSize = 0, exactFrequencies = FALSE, topCollocatesLimit = 20
+  )
 }
 
 }
