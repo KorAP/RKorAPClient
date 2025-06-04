@@ -197,7 +197,7 @@ setMethod(
       ) |>
         bind_rows(result) |>
         filter(logDice >= 2) |>
-        filter(.$O >= minOccur) |>
+        filter(O >= minOccur) |>
         dplyr::arrange(dplyr::desc(logDice))
     }
     if (addExamples && length(result) > 0) {
