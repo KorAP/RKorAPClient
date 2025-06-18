@@ -552,35 +552,26 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       # benchmark looks like "0.123s"
       time_per_page <- suppressWarnings(as.numeric(sub("s", "", res$meta$benchmark)))
       if (!is.na(time_per_page)) {
-        # First determine our current global position for ETA calculation
-        current_global_position <- if (randomizePageOrder) {
-          # In randomized mode, this is how many pages we've processed so far in this batch
-          page_index - 1 # -1 because we're calculating remaining
+        # Calculate remaining pages based on what we still need to fetch
+        if (!is.na(maxFetch)) {
+          # Use the same logic as page display calculation - account for offset
+          remaining_results_after_offset <- max(0, kqo@totalResults - offset)
+          total_pages_this_batch <- min(ceiling(maxFetch / maxResultsPerPage), ceiling(remaining_results_after_offset / maxResultsPerPage))
+          current_page_in_batch <- ceiling(nrow(collectedMatches) / maxResultsPerPage) + 1
+          remaining_pages <- max(0, total_pages_this_batch - current_page_in_batch)
         } else {
-          page_count_start + (current_page_number - 1) - 1 # -1 because we're calculating remaining
-        }
-
-        # Calculate remaining pages based on maxFetch if specified
-        if (!is.na(maxFetch) && maxFetch < kqo@totalResults) {
-          # We need to fetch up to maxFetch results
-          remaining_items_to_fetch <- maxFetch - nrow(collectedMatches)
-          remaining_pages <- ceiling(remaining_items_to_fetch / maxResultsPerPage)
-        } else {
-          # We need to fetch all results - account for our actual global position
-          # For randomized order, calculate remaining pages based on the randomized list or maxFetch
+          # We need to fetch all results - calculate based on actual position
           if (randomizePageOrder) {
             if (exists("pages") && length(pages) > 0) {
-              remaining_pages <- length(pages) - page_index
-            } else if (!is.na(maxFetch)) {
-              # If pages is not available, use maxFetch to estimate remaining pages
-              remaining_pages <- ceiling(maxFetch / maxResultsPerPage) - page_index
+              remaining_pages <- max(0, length(pages) - page_index)
             } else {
               # Fallback to a reasonable default
               remaining_pages <- 1
             }
           } else {
-            # For sequential order, use the current global position
-            remaining_pages <- total_pages - current_global_position
+            # For sequential order, calculate remaining pages from current offset
+            current_absolute_page <- ceiling((currentOffset + maxResultsPerPage) / maxResultsPerPage)
+            remaining_pages <- max(0, total_pages - current_absolute_page)
           }
         }
 
@@ -636,9 +627,11 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
 
     # How many pages will we fetch in this batch?
-    # If maxFetch is specified, calculate based on it
+    # If maxFetch is specified, calculate the total pages for this fetch operation
     pages_in_this_batch <- if (!is.na(maxFetch)) {
-      ceiling(maxFetch / maxResultsPerPage)
+      # Account for offset - we can only fetch from the remaining results after offset
+      remaining_results_after_offset <- max(0, kqo@totalResults - offset)
+      min(ceiling(maxFetch / maxResultsPerPage), ceiling(remaining_results_after_offset / maxResultsPerPage))
     } else {
       # Otherwise fetch all remaining pages
       total_pages - page_count_start + 1
