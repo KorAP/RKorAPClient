@@ -1,5 +1,6 @@
 # Unpublished 1.0.0.9000
 
+- bug with fetching result pages with an offset >= 10,000 (=1e+05 ...) fixed
 - timed out corpus queries are no longer cached (see [issue #7](https://github.com/KorAP/RKorAPClient/issues/7))
 - improved error handling
 - improved logging
