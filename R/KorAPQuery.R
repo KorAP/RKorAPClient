@@ -474,8 +474,19 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     # Calculate the actual offset in tokens
     currentOffset <- current_offset_page * maxResultsPerPage
 
-    # Build the query with the appropriate count and offset
-    query <- paste0(kqo@requestUrl, "&count=", min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage), "&offset=", currentOffset, "&cutoff=true")
+    # Build the query with the appropriate count and offset using httr2
+    count_param <- min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage)
+    
+    # Parse existing URL to preserve all query parameters
+    parsed_url <- httr2::url_parse(kqo@requestUrl)
+    existing_query <- parsed_url$query
+    
+    # Add/update count and offset parameters
+    existing_query$count <- count_param
+    existing_query$offset <- currentOffset
+    
+    # Rebuild the URL with all parameters
+    query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
