@@ -753,8 +753,8 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' @aliases fetchRest
 #' @rdname KorAPQuery-class
 #' @export
-setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
-  return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
+setMethod("fetchRest", "KorAPQuery", function(kqo, offset = kqo@nextStartIndex, verbose = kqo@korapConnection@verbose, ...) {
+  return(fetchNext(kqo, offset = offset, maxFetch = NA, verbose = verbose, ...))
 })
 
 #' Query frequencies of search expressions in virtual corpora
