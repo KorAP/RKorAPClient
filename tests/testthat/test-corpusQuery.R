@@ -103,6 +103,14 @@ test_that("Non-empty query result is printable", {
   expect_output(print(q), "Ameisenplage.*pubDate since 2014")
 })
 
+test_that("fetchNext with offset 1000000 (= 1e+06) works", {
+  skip_if_offline()
+  kco <- KorAPConnection(accessToken = NULL, verbose = TRUE, cache = FALSE)
+  q <- corpusQuery(kco, "<base/s=t>")
+  q <- fetchNext(q, offset = 1000000)
+  expect_gt(nrow(q@collectedMatches), 10)
+})
+
 test_that("Query from KorAP URL returns as many results as corresponding direct query", {
   skip_if_offline()
   kco <- KorAPConnection(accessToken = NULL)
