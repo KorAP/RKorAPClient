@@ -16,3 +16,4 @@ collocation_score_by_country    Plot collocation scores depending on country of 
 pluralGenderVariants            Plot frequencies of the plural gender variants of a word in the core corpus of the Council for German Orthography (OKK) over time.
 adjectiveCollocates             Shows adjective collocates of 'Gendern'.
 relativeTextpositionBoxplot     Plot the relative text positions of a some adverbs as highcharter boxplot.
+retrieveTitlesFromDeliko				Retrieves and shows all titles from novels of a chosen genre in the DeLiKo@DNB German fiction corpus.
