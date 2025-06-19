@@ -12,3 +12,5 @@
 ^CRAN-SUBMISSION$
 ^ci
 ^.gitlab-ci
+^CLAUDE.md
+^.claude
