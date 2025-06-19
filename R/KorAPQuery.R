@@ -578,25 +578,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         estimated_remaining_seconds <- remaining_pages * time_per_page
         estimated_completion_time <- Sys.time() + estimated_remaining_seconds
 
-        # Format time nicely
-        format_duration <- function(seconds) {
-          if (is.na(seconds) || seconds < 0) {
-            # Instead of "N/A", return "00s" as a fallback
-            return("00s")
-          }
-          days <- floor(seconds / (24 * 3600))
-          seconds <- seconds %% (24 * 3600)
-          hours <- floor(seconds / 3600)
-          seconds <- seconds %% 3600
-          minutes <- floor(seconds / 60)
-          seconds <- floor(seconds %% 60)
-          paste0(
-            if (days > 0) paste0(days, "d ") else "",
-            if (hours > 0 || days > 0) paste0(sprintf("%02d", hours), "h ") else "",
-            if (minutes > 0 || hours > 0 || days > 0) paste0(sprintf("%02d", minutes), "m ") else "",
-            paste0(sprintf("%02d", seconds), "s")
-          )
-        }
+        # Format time nicely using centralized function from logging.R
 
         eta_str <- format_duration(estimated_remaining_seconds)
         completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")

@@ -70,50 +70,24 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
 
       # Calculate timing and ETA after first few items, using cache-aware approach
       if (i >= 2) {
-        # Use recent non-cached times for better ETA estimates
-        # Exclude very fast responses (< 0.1s) as likely cached
-        non_cached_times <- individual_times[1:i][individual_times[1:i] >= 0.1]
+        eta_info <- calculate_sophisticated_eta(individual_times, i, total_items)
+        cache_indicator <- get_cache_indicator(eta_info$is_cached)
+        eta_display <- format_eta_display(eta_info$eta_seconds, eta_info$estimated_completion_time)
 
-        if (length(non_cached_times) >= 1) {
-          # Use median of recent non-cached times for more stable estimates
-          recent_window <- min(5, length(non_cached_times))
-          recent_times <- tail(non_cached_times, recent_window)
-          time_per_item <- median(recent_times)
-
-          remaining_items <- total_items - i
-          eta_seconds <- time_per_item * remaining_items
-          estimated_completion_time <- Sys.time() + eta_seconds
-
-          # Show current item time and cache status
-          cache_indicator <- if (individual_times[i] < 0.1) " [cached]" else ""
-
-          log_info(verbose, sprintf(
-            "Processed vc %s/%d: \"%s\" in %4.1fs%s, ETA: %s (%s\n",
-            current_item_formatted,
-            total_items,
-            vc_display,
-            individual_times[i],
-            cache_indicator,
-            format_duration(eta_seconds),
-            format(estimated_completion_time, "%Y-%m-%d %H:%M:%S)")
-          ))
-        } else {
-          # All responses so far appear cached, show without ETA
-          cache_indicator <- if (individual_times[i] < 0.1) " [cached]" else ""
-          log_info(verbose, sprintf(
-            "Processed vc %s/%d: \"%s\" in %4.1fs%s\n",
-            current_item_formatted,
-            total_items,
-            vc_display,
-            individual_times[i],
-            cache_indicator
-          ))
-        }
-      } else {
-        # Log first item without ETA
-        cache_indicator <- if (individual_times[i] < 0.1) " [cached]" else ""
         log_info(verbose, sprintf(
-          "Processed VC %s/%d: \"%s\" (%4.1fs%s)\n",
+          "Processed vc %s/%d: \"%s\" in %4.1fs%s%s\n",
+          current_item_formatted,
+          total_items,
+          vc_display,
+          individual_times[i],
+          cache_indicator,
+          eta_display
+        ))
+      } else {
+        # First item, show without ETA
+        cache_indicator <- get_cache_indicator(individual_times[i] < 0.1)
+        log_info(verbose, sprintf(
+          "Processed vc %s/%d: \"%s\" in %4.1fs%s\n",
           current_item_formatted,
           total_items,
           vc_display,

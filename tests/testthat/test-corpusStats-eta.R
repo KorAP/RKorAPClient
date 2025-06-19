@@ -132,6 +132,71 @@ test_that("corpusStats handles cache detection correctly", {
   )
 })
 
+test_that("fetchNext ETA calculation with offset works correctly", {
+  skip_if_offline()
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+
+  # Create a query and fetchNext with offset
+  temp_file <- tempfile()
+  sink(temp_file)
+
+  kqo <- corpusQuery(kco, 'geht', metadataOnly = TRUE)
+  result <- fetchNext(kqo, offset = 1000, maxFetch = 200)
+  cat("\n")
+
+  sink()
+
+  # Read the captured output
+  output <- readLines(temp_file)
+  unlink(temp_file)
+
+  # Echo the output to console for debugging
+  cat("\nCaptured output from fetchNext with offset:\n")
+  cat(paste(output, collapse = "\n"))
+
+  # Combined output string for all tests - strip ANSI color codes
+  output_str <- paste(output, collapse = "\n")
+  # Remove ANSI escape sequences
+  output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
+
+  # Test 1: Check that page numbers are reasonable (not showing huge totals like 5504)
+  if (grepl("Retrieved page", output_str)) {
+    # Extract the denominator from "Retrieved page X/Y"
+    page_match <- regmatches(output_str, regexpr("Retrieved page \\d+/(\\d+)", output_str))
+    if (length(page_match) > 0) {
+      denominator <- as.numeric(sub("Retrieved page \\d+/(\\d+)", "\\1", page_match[1]))
+      expect_true(denominator <= 10,
+        info = paste("Page denominator should be reasonable, got:", denominator))
+    }
+  }
+
+  # Test 2: Check that ETA format is present and reasonable
+  expect_match(
+    output_str,
+    "ETA: \\d+[smhd]",
+    info = "ETA should be displayed with time unit"
+  )
+
+  # Test 3: Check that completion time format is present
+  expect_match(
+    output_str,
+    "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}",
+    info = "Completion time should be displayed in proper format"
+  )
+
+  # Test 4: Check that completion time is reasonable (within 1 hour of current time)
+  if (grepl("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}", output_str)) {
+    completion_match <- regmatches(output_str, regexpr("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}", output_str))
+    if (length(completion_match) > 0) {
+      completion_time <- as.POSIXct(completion_match[1])
+      current_time <- Sys.time()
+      time_diff <- abs(as.numeric(difftime(completion_time, current_time, units = "hours")))
+      expect_true(time_diff <= 1,
+        info = paste("Completion time should be within 1 hour of current time, got:", time_diff, "hours"))
+    }
+  }
+})
+
 test_that("corpusStats handles long VC definitions with truncation", {
   # skip_if_offline()
   kco <- KorAPConnection(verbose = TRUE, cache = FALSE)

@@ -4,6 +4,7 @@
 #' for progress reporting and ETA calculations.
 
 #' Log informational messages with optional coloring
+#' @importFrom stats median
 #'
 #' @param v logical flag indicating whether to output the message
 #' @param ... message components to concatenate and display
@@ -74,4 +75,82 @@ calculate_eta <- function(current_item, total_items, start_time) {
   completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
 
   paste0(". ETA: ", format_duration(eta_seconds), " (", completion_time_str, ")")
+}
+
+#' Calculate sophisticated ETA using median of recent non-cached times
+#'
+#' Advanced ETA calculation that excludes cached responses and uses median
+#' of recent timing data for more stable estimates. This is particularly
+#' useful for operations where some responses may be cached and much faster.
+#'
+#' @param individual_times numeric vector of individual item processing times
+#' @param current_item current item number (1-based)
+#' @param total_items total number of items to process
+#' @param cache_threshold minimum time in seconds to consider as non-cached (default: 0.1)
+#' @param window_size number of recent non-cached times to use for median calculation (default: 5)
+#' @return list with eta_seconds, estimated_completion_time, and is_cached flag
+#' @keywords internal
+calculate_sophisticated_eta <- function(individual_times, current_item, total_items, 
+                                       cache_threshold = 0.1, window_size = 5) {
+  if (current_item < 2) {
+    return(list(eta_seconds = NA, estimated_completion_time = NA, is_cached = FALSE))
+  }
+  
+  # Get times up to current item
+  current_times <- individual_times[1:current_item]
+  current_time <- individual_times[current_item]
+  is_cached <- current_time < cache_threshold
+  
+  # Use recent non-cached times for better ETA estimates
+  # Exclude very fast responses as likely cached
+  non_cached_times <- current_times[current_times >= cache_threshold]
+  
+  if (length(non_cached_times) >= 1) {
+    # Use median of recent non-cached times for more stable estimates
+    recent_window <- min(window_size, length(non_cached_times))
+    recent_times <- tail(non_cached_times, recent_window)
+    time_per_item <- median(recent_times)
+    
+    remaining_items <- total_items - current_item
+    eta_seconds <- time_per_item * remaining_items
+    estimated_completion_time <- Sys.time() + eta_seconds
+    
+    return(list(
+      eta_seconds = eta_seconds,
+      estimated_completion_time = estimated_completion_time,
+      is_cached = is_cached
+    ))
+  } else {
+    # All responses so far appear cached
+    return(list(eta_seconds = NA, estimated_completion_time = NA, is_cached = is_cached))
+  }
+}
+
+#' Format ETA information for display
+#'
+#' Helper function to format ETA information consistently across different methods.
+#'
+#' @param eta_seconds numeric ETA in seconds (can be NA)
+#' @param estimated_completion_time POSIXct estimated completion time (can be NA)
+#' @return character string with formatted ETA or empty string if NA
+#' @keywords internal
+format_eta_display <- function(eta_seconds, estimated_completion_time) {
+  if (is.na(eta_seconds) || is.na(estimated_completion_time)) {
+    return("")
+  }
+  
+  completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
+  paste0(", ETA: ", format_duration(eta_seconds), " (", completion_time_str, ")")
+}
+
+#' Get cache indicator string
+#'
+#' Helper function to generate cache indicator for logging.
+#'
+#' @param is_cached logical indicating if the item was cached
+#' @param cache_threshold minimum time threshold for non-cached items
+#' @return character string with cache indicator or empty string
+#' @keywords internal
+get_cache_indicator <- function(is_cached, cache_threshold = 0.1) {
+  if (is_cached) " [cached]" else ""
 }
