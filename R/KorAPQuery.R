@@ -97,7 +97,20 @@ utils::globalVariables(c("."))
 #'   of the RKorAPClient Readme on GitHub and set the `metadataOnly` parameter to
 #'   `FALSE`.
 #' @param ql string to choose the query language (see [section on Query Parameters](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters) in the Kustvakt-Wiki for possible values.
-#' @param fields (meta)data fields that will be fetched for every match.
+#' @param fields character vector specifying which metadata fields to retrieve for each match.
+#' Available fields depend on the corpus. For DeReKo (German Reference Corpus), possible fields include:
+#' \describe{
+#'   \item{**Text identification**:}{`textSigle`, `docSigle`, `corpusSigle` - hierarchical text identifiers}
+#'   \item{**Publication info**:}{`author`, `editor`, `title`, `docTitle`, `corpusTitle` - authorship and titles}
+#'   \item{**Temporal data**:}{`pubDate`, `creationDate` - when text was published/created}
+#'   \item{**Publication details**:}{`pubPlace`, `publisher`, `reference` - where/how published}
+#'   \item{**Text classification**:}{`textClass`, `textType`, `textTypeArt`, `textDomain`, `textColumn` - topic domain, genre, text type and column}
+#'   \item{**Adminstrative and technical info**:}{`corpusEditor`, `availability`, `language`, `foundries` - access rights and annotations}
+#'   \item{**Content data**:}{`snippet`, `tokens`, `tokenSource`, `externalLink` - actual text content, tokenization, and link to source text}
+#'   \item{**System data**:}{`indexCreationDate`, `indexLastModified` - corpus indexing info}
+#' }
+#' Use `c("textSigle", "pubDate", "author")` to retrieve multiple fields.
+#' Default fields provide basic text identification and publication metadata. The actual text content (`snippet` and `tokens`) are activated by default  if `metadataOnly` is set to `FALSE`.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
@@ -115,10 +128,17 @@ utils::globalVariables(c("."))
 #' @examples
 #' \dontrun{
 #'
-#' # Fetch metadata of every query hit for "Ameisenplage" and show a summary
+#' # Fetch basic metadata for "Ameisenplage"
 #' KorAPConnection() %>%
 #'   corpusQuery("Ameisenplage") %>%
 #'   fetchAll()
+#'
+#' # Fetch specific metadata fields for bibliographic analysis
+#' query <- KorAPConnection() %>%
+#'   corpusQuery("Ameisenplage",
+#'               fields = c("textSigle", "author", "title", "pubDate", "pubPlace", "textType"))
+#' results <- fetchAll(query)
+#' results@collectedMatches
 #' }
 #'
 #' \dontrun{

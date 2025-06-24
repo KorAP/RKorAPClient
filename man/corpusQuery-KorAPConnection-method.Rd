@@ -45,7 +45,20 @@ of the RKorAPClient Readme on GitHub and set the \code{metadataOnly} parameter t
 
 \item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
 
-\item{fields}{(meta)data fields that will be fetched for every match.}
+\item{fields}{character vector specifying which metadata fields to retrieve for each match.
+Available fields depend on the corpus. For DeReKo (German Reference Corpus), possible fields include:
+\describe{
+\item{\strong{Text identification}:}{\code{textSigle}, \code{docSigle}, \code{corpusSigle} - hierarchical text identifiers}
+\item{\strong{Publication info}:}{\code{author}, \code{editor}, \code{title}, \code{docTitle}, \code{corpusTitle} - authorship and titles}
+\item{\strong{Temporal data}:}{\code{pubDate}, \code{creationDate} - when text was published/created}
+\item{\strong{Publication details}:}{\code{pubPlace}, \code{publisher}, \code{reference} - where/how published}
+\item{\strong{Text classification}:}{\code{textClass}, \code{textType}, \code{textTypeArt}, \code{textDomain}, \code{textColumn} - topic domain, genre, text type and column}
+\item{\strong{Adminstrative and technical info}:}{\code{corpusEditor}, \code{availability}, \code{language}, \code{foundries} - access rights and annotations}
+\item{\strong{Content data}:}{\code{snippet}, \code{tokens}, \code{tokenSource}, \code{externalLink} - actual text content, tokenization, and link to source text}
+\item{\strong{System data}:}{\code{indexCreationDate}, \code{indexLastModified} - corpus indexing info}
+}
+Use \code{c("textSigle", "pubDate", "author")} to retrieve multiple fields.
+Default fields provide basic text identification and publication metadata. The actual text content (\code{snippet} and \code{tokens}) are activated by default  if \code{metadataOnly} is set to \code{FALSE}.}
 
 \item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).}
 
@@ -73,10 +86,17 @@ Please make sure to check \verb{$collection$rewrites} to see if any unforeseen a
 \examples{
 \dontrun{
 
-# Fetch metadata of every query hit for "Ameisenplage" and show a summary
+# Fetch basic metadata for "Ameisenplage"
 KorAPConnection() \%>\%
   corpusQuery("Ameisenplage") \%>\%
   fetchAll()
+
+# Fetch specific metadata fields for bibliographic analysis
+query <- KorAPConnection() \%>\%
+  corpusQuery("Ameisenplage",
+              fields = c("textSigle", "author", "title", "pubDate", "pubPlace", "textType"))
+results <- fetchAll(query)
+results@collectedMatches
 }
 
 \dontrun{
