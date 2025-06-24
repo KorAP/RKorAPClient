@@ -227,10 +227,25 @@ q@collectedMatches
 }
 
 \dontrun{
-
-q <- KorAPConnection() \%>\%
-  corpusQuery("Ameisenplage") \%>\%
+# Fetch all metadata of every query hit for "Ameisenplage" and show a summary
+q <- KorAPConnection() |>
+  corpusQuery("Ameisenplage") |>
   fetchAll()
+q@collectedMatches
+
+# Fetch also all KWICs
+q <- KorAPConnection() |> auth() |>
+ corpusQuery("Ameisenplage", metadataOnly = FALSE) |>
+ fetchAll()
+q@collectedMatches
+
+# Retrieve title and text sigle metadata of all texts published on 1958-03-12
+q <- KorAPConnection() |>
+ corpusQuery("<base/s=t>", # this matches each text once
+    vc = "pubDate in 1958-03-12",
+    fields = c("textSigle", "title"),
+) |>
+ fetchAll()
 q@collectedMatches
 }
 

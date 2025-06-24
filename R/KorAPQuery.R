@@ -476,15 +476,15 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     # Build the query with the appropriate count and offset using httr2
     count_param <- min(if (!is.na(maxFetch)) maxFetch - results else maxResultsPerPage, maxResultsPerPage)
-    
+
     # Parse existing URL to preserve all query parameters
     parsed_url <- httr2::url_parse(kqo@requestUrl)
     existing_query <- parsed_url$query
-    
+
     # Add/update count and offset parameters
     existing_query$count <- count_param
     existing_query$offset <- currentOffset
-    
+
     # Rebuild the URL with all parameters
     query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
     res <- apiCall(kqo@korapConnection, query)
@@ -700,10 +700,25 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #'
 #' @examples
 #' \dontrun{
-#'
-#' q <- KorAPConnection() %>%
-#'   corpusQuery("Ameisenplage") %>%
+#' # Fetch all metadata of every query hit for "Ameisenplage" and show a summary
+#' q <- KorAPConnection() |>
+#'   corpusQuery("Ameisenplage") |>
 #'   fetchAll()
+#' q@collectedMatches
+#'
+#' # Fetch also all KWICs
+#' q <- KorAPConnection() |> auth() |>
+#'  corpusQuery("Ameisenplage", metadataOnly = FALSE) |>
+#'  fetchAll()
+#' q@collectedMatches
+#'
+#' # Retrieve title and text sigle metadata of all texts published on 1958-03-12
+#' q <- KorAPConnection() |>
+#'  corpusQuery("<base/s=t>", # this matches each text once
+#'     vc = "pubDate in 1958-03-12",
+#'     fields = c("textSigle", "title"),
+#' ) |>
+#'  fetchAll()
 #' q@collectedMatches
 #' }
 #'
