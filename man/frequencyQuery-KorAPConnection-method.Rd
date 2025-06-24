@@ -54,3 +54,4 @@ KorAPConnection(verbose = TRUE) |>
 }
 
 }
+\concept{frequency analysis}

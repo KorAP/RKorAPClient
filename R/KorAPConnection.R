@@ -5,28 +5,44 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 setClassUnion("listOrNULL", c("list", "NULL"))
 # setOldClass("httr2_oauth_client")
 
-#' Class KorAPConnection
+#' Connect to KorAP Server
 #'
-#' `KorAPConnection` objects represent the connection to a KorAP server.
-#' New `KorAPConnection` objects can be created by `KorAPConnection()`.
+#' `KorAPConnection()` creates a connection to a KorAP server for corpus queries.
+#' This is your starting point for all corpus analysis tasks.
 #'
+#' Use `KorAPConnection()` to connect, then `corpusQuery()` to search, and
+#' `fetchAll()` to retrieve results. For authorized access to restricted corpora,
+#' use `auth()` or provide an `accessToken`.
+#'
+#' @section Basic Workflow:
+#' ```r
+#' # Connect to KorAP
+#' kcon <- KorAPConnection()
+#'
+#' # Search for a term
+#' query <- corpusQuery(kcon, "Ameisenplage")
+#'
+#' # Get all results
+#' results <- fetchAll(query)
+#' ```
+#'
+#' @section Authorization:
+#' For access to restricted corpora, authorize your connection:
+#' ```r
+#' kcon <- KorAPConnection() |> auth()
+#' ```
+#'
+#' @details
+#' The KorAPConnection object contains various configuration slots for advanced users:
+#' KorAPUrl (server URL), apiVersion, accessToken (OAuth2 token),
+#' timeout (request timeout), verbose (logging), cache (local caching),
+#' and other technical parameters. Most users can ignore these implementation details.
+#'
+#' @family initialization functions
 #' @import R.cache
 #' @import utils
 #' @import methods
 #' @include logging.R
-#' @slot KorAPUrl        URL of the web user interface of the KorAP server used in the connection.
-#' @slot apiVersion      requested KorAP API version.
-#' @slot indexRevision   indexRevision code as reported from API via `X-Index-Revision` HTTP header.
-#' @slot apiUrl          full URL of API including version.
-#' @slot accessToken     OAuth2 access token.
-#' @slot oauthClient     OAuth2 client object.
-#' @slot oauthScope      OAuth2 scope.
-#' @slot authorizationSupported logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.
-#' @slot userAgent       user agent string used for connection the API.
-#' @slot timeout         timeout in seconds for API requests (this does not influence server internal timeouts)
-#' @slot verbose         logical that decides whether operations will default to be verbose.
-#' @slot cache           logical that decides if API calls are cached locally.
-#' @slot welcome         list containing HTTP response received from KorAP server welcome function.
 
 #' @export
 KorAPConnection <- setClass("KorAPConnection", slots = c(KorAPUrl = "character", apiVersion = "character", indexRevision = "characterOrNULL", apiUrl = "character", accessToken = "characterOrNULL", oauthClient = "ANY", oauthScope = "characterOrNULL", authorizationSupported = "logical", userAgent = "character", timeout = "numeric", verbose = "logical", cache = "logical", welcome = "listOrNULL"))
@@ -37,6 +53,8 @@ kustvakt_redirect_uri <- "http://localhost:1410/"
 kustvakt_auth_path <- "settings/oauth/authorize"
 
 
+#' Initialize KorAPConnection object
+#' @keywords internal
 #' @param .Object KorAPConnection object
 #' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
 #'   Defaults to the environment variable `KORAP_URL` if set and to the IDS Mannheim KorAP main instance
@@ -110,7 +128,6 @@ kustvakt_auth_path <- "settings/oauth/authorize"
 #' kq@collectedMatches$snippet
 #' }
 #'
-#' @rdname KorAPConnection-class
 
 #' @export
 setMethod("initialize", "KorAPConnection", function(.Object,
@@ -177,6 +194,7 @@ setGeneric("persistAccessToken", function(kco, ...) standardGeneric("persistAcce
 
 #' Persist current access token in keyring
 #'
+#' @family initialization functions
 #' @param kco KorAPConnection object
 #' @param accessToken access token to be persisted. If not supplied, the current access token of the KorAPConnection object will be used.
 #' @return KorAPConnection object.
@@ -216,6 +234,7 @@ setGeneric("clearAccessToken", function(kco) standardGeneric("clearAccessToken")
 
 #' Clear access token from keyring and KorAPConnection object
 #'
+#' @family initialization functions
 #' @aliases clearAccessToken
 #' @import keyring
 #' @param kco KorAPConnection object
@@ -249,6 +268,7 @@ setGeneric("auth", function(kco, app_id = generic_kor_app_id, app_secret = NULL,
 
 #' Authorize RKorAPClient
 #'
+#' @family initialization functions
 #' @aliases auth
 #'
 #' @description
@@ -367,8 +387,9 @@ setGeneric("apiCall", function(kco, ...) standardGeneric("apiCall"))
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 utils::globalVariables(c("."))
 
+#' Internal API call method
+#' @keywords internal
 #' @aliases apiCall
-#' @rdname KorAPConnection-class
 #' @param kco KorAPConnection object
 #' @param url request url
 #' @param json logical that determines if JSON result is expected
@@ -494,13 +515,13 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
 setGeneric("clearCache", function(kco) standardGeneric("clearCache"))
 
 #' @aliases clearCache
-#' @rdname KorAPConnection-class
 #' @export
 setMethod("clearCache", "KorAPConnection", function(kco) {
   R.cache::clearCache(dir = KorAPCacheSubDir())
 })
 
-#' @rdname KorAPConnection-class
+#' Display KorAPConnection object
+#' @keywords internal
 #' @param object KorAPConnection object
 #' @export
 setMethod("show", "KorAPConnection", function(object) {

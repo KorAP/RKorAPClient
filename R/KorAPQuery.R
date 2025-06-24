@@ -1,9 +1,8 @@
-#' Class KorAPQuery
+#' KorAPQuery class (internal)
 #'
-#' This class provides methods to perform different kinds of queries on the KorAP API server.
-#' `KorAPQuery` objects, which are typically created by the [corpusQuery()] method,
-#' represent the current state of a query to a KorAP server.
+#' Internal class for query state management. Users work with `corpusQuery()`, `fetchAll()`, and `fetchNext()` instead.
 #'
+#' @keywords internal
 #' @include KorAPConnection.R
 #' @include logging.R
 #' @import httr2
@@ -25,9 +24,8 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
   "hasMoreMatches"
 ))
 
-#' Method initialize
-#'
-#' @rdname KorAPQuery-class
+#' Initialize KorAPQuery object
+#' @keywords internal
 #' @param .Object …
 #' @param korapConnection KorAPConnection object
 #' @param request query part of the request URL
@@ -77,11 +75,11 @@ maxResultsPerPage <- 50
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 utils::globalVariables(c("."))
 
-#' Corpus query
+#' Search corpus for query terms
 #'
 #' **`corpusQuery`** performs a corpus query via a connection to a KorAP-API-server
 #'
-#' @rdname KorAPQuery-class
+#' @family corpus search functions
 #' @aliases corpusQuery
 #'
 #' @importFrom urltools url_encode
@@ -383,6 +381,8 @@ repair_data_strcuture <- function(x) {
 #'
 #' **`fetchNext`** fetches the next bunch of results of a KorAP query.
 #'
+#' @family corpus search functions
+#'
 #' @param kqo object obtained from [corpusQuery()]
 #' @param offset start offset for query results to fetch
 #' @param maxFetch maximum number of query results to fetch
@@ -403,7 +403,6 @@ repair_data_strcuture <- function(x) {
 #' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
 #'
 #' @aliases fetchNext
-#' @rdname KorAPQuery-class
 #' @importFrom dplyr rowwise mutate bind_rows select summarise n select
 #' @importFrom tibble enframe add_column
 #' @importFrom stringr word
@@ -698,6 +697,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #'
 #' **`fetchAll`** fetches all results of a KorAP query.
 #'
+#' @family corpus search functions
+#'
 #' @examples
 #' \dontrun{
 #' # Fetch all metadata of every query hit for "Ameisenplage" and show a summary
@@ -723,7 +724,6 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' }
 #'
 #' @aliases fetchAll
-#' @rdname KorAPQuery-class
 #' @export
 setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
   return(fetchNext(kqo, offset = 0, maxFetch = NA, verbose = verbose, ...))
@@ -741,7 +741,6 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 #' }
 #'
 #' @aliases fetchRest
-#' @rdname KorAPQuery-class
 #' @export
 setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
@@ -754,6 +753,7 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' confidence intervals of one ore multiple search terms across one or multiple
 #' virtual corpora.
 #'
+#' @family frequency analysis
 #' @aliases frequencyQuery
 #' @examples
 #' \dontrun{

@@ -31,4 +31,10 @@ kco <- KorAPConnection() \%>\%
 }
 \seealso{
 \code{\link[=clearAccessToken]{clearAccessToken()}}, \code{\link[=auth]{auth()}}
+
+Other initialization functions: 
+\code{\link{KorAPConnection-class}},
+\code{\link{auth,KorAPConnection-method}},
+\code{\link{clearAccessToken,KorAPConnection-method}}
 }
+\concept{initialization functions}

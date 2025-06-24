@@ -1,28 +1,40 @@
-#' Class KorAPCorpusStats
+#' KorAPCorpusStats class (internal)
 #'
-#' `KorAPCorpusStats` objects can hold information about a corpus or virtual corpus.
-#' `KorAPCorpusStats` objects can be obtained by the [corpusStats()] method.
+#' Internal class for corpus statistics storage. Users work with `corpusStats()` function instead.
 #'
+#' @keywords internal
 #' @include KorAPConnection.R
 #' @include logging.R
 #'
 #' @export
-#' @slot vc definition of the virtual corpus
-#' @slot tokens number of tokens
-#' @slot documents number of documents
-#' @slot sentences number of sentences
-#' @slot paragraphs number of paragraphs
-#' @slot webUIRequestUrl link to the web user interface with the current vc definition
 setClass("KorAPCorpusStats", slots = c(vc = "character", documents = "numeric", tokens = "numeric", sentences = "numeric", paragraphs = "numeric", webUIRequestUrl = "character"))
 
 setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 
-#' Fetch information about a (virtual) corpus
+#' Get corpus size and statistics
+#'
+#' Retrieve information about corpus size (documents, tokens, sentences, paragraphs) 
+#' for the entire corpus or a virtual corpus subset.
+#'
+#' @section Usage:
+#' ```r
+#' # Get statistics for entire corpus
+#' kcon <- KorAPConnection()
+#' stats <- corpusStats(kcon)
+#' 
+#' # Get statistics for a specific time period
+#' stats <- corpusStats(kcon, "pubDate in 2020")
+#' 
+#' # Access the number of tokens
+#' stats@tokens
+#' ```
+#'
+#' @family corpus analysis
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed.
 #' @param as.df return result as data frame instead of as S4 object?
-#' @return `KorAPCorpusStats` object with the slots `documents`, `tokens`, `sentences`, `paragraphs`
+#' @return Object containing corpus statistics: `documents`, `tokens`, `sentences`, `paragraphs`
 #'
 #' @importFrom urltools url_encode
 #' @examples

@@ -4,171 +4,47 @@
 \name{KorAPConnection-class}
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
-\alias{initialize,KorAPConnection-method}
-\alias{apiCall,KorAPConnection-method}
-\alias{apiCall}
-\alias{clearCache,KorAPConnection-method}
-\alias{clearCache}
-\alias{show,KorAPConnection-method}
-\title{Class KorAPConnection}
-\usage{
-\S4method{initialize}{KorAPConnection}(
-  .Object,
-  KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) | Sys.getenv("KORAP_URL") == "") {
-    
-    "https://korap.ids-mannheim.de/"
- } else {
-     Sys.getenv("KORAP_URL")
- },
-  apiVersion = "v1.0",
-  apiUrl,
-  accessToken = getAccessToken(KorAPUrl),
-  oauthClient = NULL,
-  oauthScope = "search match_info",
-  authorizationSupported = TRUE,
-  userAgent = "R-KorAP-Client",
-  timeout = 240,
-  verbose = FALSE,
-  cache = TRUE
-)
-
-\S4method{apiCall}{KorAPConnection}(
-  kco,
-  url,
-  json = TRUE,
-  getHeaders = FALSE,
-  cache = kco@cache,
-  timeout = kco@timeout
-)
-
-\S4method{clearCache}{KorAPConnection}(kco)
-
-\S4method{show}{KorAPConnection}(object)
-}
-\arguments{
-\item{.Object}{KorAPConnection object}
-
-\item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.
-Defaults to the environment variable \code{KORAP_URL} if set and to the IDS Mannheim KorAP main instance
-to query DeReKo, otherwise.}
-
-\item{apiVersion}{which version of KorAP's API you want to connect to.}
-
-\item{apiUrl}{URL of the KorAP web service.}
-
-\item{accessToken}{OAuth2 access token. For queries on corpus parts with restricted
-access (e.g. textual queries on IPR protected data), you need to authorize
-your application with an access token.
-You can obtain an access token in the OAuth settings of your KorAP web interface.
-
-More details are explained in the
-\href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
-of the RKorAPClient Readme on GitHub.
-
-To use authorization based on an access token
-in subsequent queries, initialize your KorAP connection with:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{kco <- KorAPConnection(accessToken="<access token>")
-}\if{html}{\out{</div>}}
-
-In order to make the API
-token persistent for the currently used \code{KorAPUrl} (you can have one
-token per KorAPUrl / KorAP server instance), use:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{persistAccessToken(kco)
-}\if{html}{\out{</div>}}
-
-This will store it in your keyring using the
-\link[keyring:keyring-package]{keyring::keyring-package}. Subsequent KorAPConnection() calls will
-then automatically retrieve the token from your keying. To stop using a
-persisted token, call \code{clearAccessToken(kco)}. Please note that for
-DeReKo, authorized queries will behave differently inside and outside the
-IDS, because of the special license situation. This concerns also cached
-results which do not take into account from where a request was issued. If
-you experience problems or unexpected results, please try \code{kco <- KorAPConnection(cache=FALSE)} or use
-\code{\link[=clearCache]{clearCache()}} to clear the cache completely.
-
-An alternative to using an access token is to use a browser-based oauth2 workflow
-to obtain an access token. This can be done with the \code{\link[=auth]{auth()}} method.}
-
-\item{oauthClient}{OAuth2 client object.}
-
-\item{oauthScope}{OAuth2 scope.}
-
-\item{authorizationSupported}{logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.}
-
-\item{userAgent}{user agent string.}
-
-\item{timeout}{tineout in seconds for API requests (this does not influence server internal timeouts).}
-
-\item{verbose}{logical that decides whether following operations will default to
-be verbose.}
-
-\item{cache}{logical that decides if API calls are cached locally. You can clear
-the cache with \code{\link[=clearCache]{clearCache()}}.}
-
-\item{kco}{KorAPConnection object}
-
-\item{url}{request url}
-
-\item{json}{logical that determines if JSON result is expected}
-
-\item{getHeaders}{logical that determines if headers and content should be returned (as a list)}
-
-\item{object}{KorAPConnection object}
-}
-\value{
-\code{\link[=KorAPConnection]{KorAPConnection()}} object that can be used e.g. with
-\code{\link[=corpusQuery]{corpusQuery()}}
-}
+\title{Connect to KorAP Server}
 \description{
-\code{KorAPConnection} objects represent the connection to a KorAP server.
-New \code{KorAPConnection} objects can be created by \code{KorAPConnection()}.
+\code{KorAPConnection()} creates a connection to a KorAP server for corpus queries.
+This is your starting point for all corpus analysis tasks.
 }
-\section{Slots}{
+\details{
+Use \code{KorAPConnection()} to connect, then \code{corpusQuery()} to search, and
+\code{fetchAll()} to retrieve results. For authorized access to restricted corpora,
+use \code{auth()} or provide an \code{accessToken}.
 
-\describe{
-\item{\code{KorAPUrl}}{URL of the web user interface of the KorAP server used in the connection.}
+The KorAPConnection object contains various configuration slots for advanced users:
+KorAPUrl (server URL), apiVersion, accessToken (OAuth2 token),
+timeout (request timeout), verbose (logging), cache (local caching),
+and other technical parameters. Most users can ignore these implementation details.
+}
+\section{Basic Workflow}{
 
-\item{\code{apiVersion}}{requested KorAP API version.}
 
-\item{\code{indexRevision}}{indexRevision code as reported from API via \code{X-Index-Revision} HTTP header.}
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{# Connect to KorAP
+kcon <- KorAPConnection()
 
-\item{\code{apiUrl}}{full URL of API including version.}
+# Search for a term
+query <- corpusQuery(kcon, "Ameisenplage")
 
-\item{\code{accessToken}}{OAuth2 access token.}
-
-\item{\code{oauthClient}}{OAuth2 client object.}
-
-\item{\code{oauthScope}}{OAuth2 scope.}
-
-\item{\code{authorizationSupported}}{logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.}
-
-\item{\code{userAgent}}{user agent string used for connection the API.}
-
-\item{\code{timeout}}{timeout in seconds for API requests (this does not influence server internal timeouts)}
-
-\item{\code{verbose}}{logical that decides whether operations will default to be verbose.}
-
-\item{\code{cache}}{logical that decides if API calls are cached locally.}
-
-\item{\code{welcome}}{list containing HTTP response received from KorAP server welcome function.}
-}}
-
-\examples{
-\dontrun{
-
-kcon <- KorAPConnection(verbose = TRUE)
-kq <- corpusQuery(kcon, "Ameisenplage")
-kq <- fetchAll(kq)
+# Get all results
+results <- fetchAll(query)
+}\if{html}{\out{</div>}}
 }
 
-\dontrun{
+\section{Authorization}{
 
-kcon <- KorAPConnection(verbose = TRUE, accessToken = "e739u6eOzkwADQPdVChxFg")
-kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly = FALSE)
-kq <- fetchAll(kq)
-kq@collectedMatches$snippet
+For access to restricted corpora, authorize your connection:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{kcon <- KorAPConnection() |> auth()
+}\if{html}{\out{</div>}}
 }
 
+\seealso{
+Other initialization functions: 
+\code{\link{auth,KorAPConnection-method}},
+\code{\link{clearAccessToken,KorAPConnection-method}},
+\code{\link{persistAccessToken,KorAPConnection-method}}
 }
+\concept{initialization functions}

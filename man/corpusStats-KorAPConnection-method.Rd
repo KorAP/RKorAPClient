@@ -3,7 +3,7 @@
 \name{corpusStats,KorAPConnection-method}
 \alias{corpusStats,KorAPConnection-method}
 \alias{corpusStats}
-\title{Fetch information about a (virtual) corpus}
+\title{Get corpus size and statistics}
 \usage{
 \S4method{corpusStats}{KorAPConnection}(kco, vc = "", verbose = kco@verbose, as.df = FALSE)
 }
@@ -17,11 +17,27 @@
 \item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
-\code{KorAPCorpusStats} object with the slots \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
+Object containing corpus statistics: \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
 }
 \description{
-Fetch information about a (virtual) corpus
+Retrieve information about corpus size (documents, tokens, sentences, paragraphs)
+for the entire corpus or a virtual corpus subset.
 }
+\section{Usage}{
+
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{# Get statistics for entire corpus
+kcon <- KorAPConnection()
+stats <- corpusStats(kcon)
+
+# Get statistics for a specific time period
+stats <- corpusStats(kcon, "pubDate in 2020")
+
+# Access the number of tokens
+stats@tokens
+}\if{html}{\out{</div>}}
+}
+
 \examples{
 \dontrun{
 
@@ -30,3 +46,4 @@ corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
 }
 
 }
+\concept{corpus analysis}

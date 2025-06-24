@@ -2,7 +2,7 @@ library(RKorAPClient)
 library(highcharter)
 library(tidyverse)
 
-QUERIES <- c("[tt/l=verunfallen]", "Sonnabend") # search in treetagger lemma annotations
+QUERIES <- c("(das|einen|den) Cola") # search in treetagger lemma annotations
 COUNTRIES <- c("AT", "BE", "CH", "DE", "IT", "LU")
 
 VCS <- sprintf("textType=/Zeit.*/ & pubPlaceKey=%s", COUNTRIES) # limit virtual corpus to newspapers and magazines

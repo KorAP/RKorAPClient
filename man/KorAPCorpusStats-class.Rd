@@ -4,7 +4,7 @@
 \name{KorAPCorpusStats-class}
 \alias{KorAPCorpusStats-class}
 \alias{show,KorAPCorpusStats-method}
-\title{Class KorAPCorpusStats}
+\title{KorAPCorpusStats class (internal)}
 \usage{
 \S4method{show}{KorAPCorpusStats}(object)
 }
@@ -12,22 +12,6 @@
 \item{object}{KorAPCorpusStats object}
 }
 \description{
-\code{KorAPCorpusStats} objects can hold information about a corpus or virtual corpus.
-\code{KorAPCorpusStats} objects can be obtained by the \code{\link[=corpusStats]{corpusStats()}} method.
+Internal class for corpus statistics storage. Users work with \code{corpusStats()} function instead.
 }
-\section{Slots}{
-
-\describe{
-\item{\code{vc}}{definition of the virtual corpus}
-
-\item{\code{tokens}}{number of tokens}
-
-\item{\code{documents}}{number of documents}
-
-\item{\code{sentences}}{number of sentences}
-
-\item{\code{paragraphs}}{number of paragraphs}
-
-\item{\code{webUIRequestUrl}}{link to the web user interface with the current vc definition}
-}}
-
+\keyword{internal}

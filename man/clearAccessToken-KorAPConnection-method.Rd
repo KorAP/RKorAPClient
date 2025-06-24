@@ -25,4 +25,10 @@ kco <- clearAccessToken(kco)
 }
 \seealso{
 \code{\link[=persistAccessToken]{persistAccessToken()}}
+
+Other initialization functions: 
+\code{\link{KorAPConnection-class}},
+\code{\link{auth,KorAPConnection-method}},
+\code{\link{persistAccessToken,KorAPConnection-method}}
 }
+\concept{initialization functions}

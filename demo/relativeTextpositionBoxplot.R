@@ -1,5 +1,4 @@
 library(RKorAPClient)
-library(highcharter)
 library(tidyverse)
 
 kco <- KorAPConnection(verbose = TRUE)
@@ -27,6 +26,7 @@ df <- c(
   "anfangs/i",
   "zuguterletzt/i",
   "zun\u00e4chst/i", # it is still necessary to encode non ascii characters in R package demos
+  "zuallererst/i",
   "zuerst/i",
   "zuletzt/i",
   "schlie\u00dflich/i"

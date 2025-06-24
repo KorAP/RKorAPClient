@@ -3,6 +3,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 
 #' Collocation analysis
 #'
+#' @family collocation analysis functions
 #' @aliases collocationAnalysis
 #'
 #' @description
@@ -25,7 +26,6 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' This might lead to false negatives and to frequencies that differ from corresponding ones acquired via the web
 #' user interface.
 #'
-#' @family collocation analysis functions
 #'
 #' @param lemmatizeNodeQuery     if TRUE, node query will be lemmatized, i.e. `x -> [tt/l=x]`
 #' @param minOccur               minimum absolute number of observed co-occurrences to consider a collocate candidate
