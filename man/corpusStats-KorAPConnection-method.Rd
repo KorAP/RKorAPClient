@@ -17,7 +17,17 @@
 \item{as.df}{return result as data frame instead of as S4 object?}
 }
 \value{
-Object containing corpus statistics: \code{documents}, \code{tokens}, \code{sentences}, \code{paragraphs}
+Object containing corpus statistics with the following information:
+\describe{
+\item{\code{vc}}{Virtual corpus definition used (empty string for entire corpus)}
+\item{\code{documents}}{Total number of documents in the (virtual) corpus}
+\item{\code{tokens}}{Total number of word tokens in the (virtual) corpus}
+\item{\code{sentences}}{Total number of sentences in the (virtual) corpus}
+\item{\code{paragraphs}}{Total number of paragraphs in the (virtual) corpus}
+\item{\code{webUIRequestUrl}}{URL to view this corpus subset in KorAP web interface}
+}
+When \code{as.df=TRUE}, returns a data frame with these columns.
+When \code{as.df=FALSE} (default), returns a KorAPCorpusStats object with these values as slots.
 }
 \description{
 Retrieve information about corpus size (documents, tokens, sentences, paragraphs)
@@ -42,7 +52,20 @@ stats@tokens
 \dontrun{
 
 kco <- KorAPConnection()
-corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
+
+# Get statistics for entire corpus (returns S4 object)
+stats <- corpusStats(kco)
+stats@tokens  # Access number of tokens
+
+# Get statistics for newspaper texts from 2017 (as data frame)
+df <- corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/", as.df = TRUE)
+df$documents  # Access number of documents
+
+# Compare corpus sizes across years
+years <- 2015:2020
+sizes <- sapply(years, function(y) {
+  corpusStats(kco, paste("pubDate in", y))@tokens
+})
 }
 
 }

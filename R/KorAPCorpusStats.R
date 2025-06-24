@@ -34,14 +34,37 @@ setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed.
 #' @param as.df return result as data frame instead of as S4 object?
-#' @return Object containing corpus statistics: `documents`, `tokens`, `sentences`, `paragraphs`
+#' @return Object containing corpus statistics with the following information:
+#' \describe{
+#'   \item{`vc`}{Virtual corpus definition used (empty string for entire corpus)}
+#'   \item{`documents`}{Total number of documents in the (virtual) corpus}
+#'   \item{`tokens`}{Total number of word tokens in the (virtual) corpus}
+#'   \item{`sentences`}{Total number of sentences in the (virtual) corpus}
+#'   \item{`paragraphs`}{Total number of paragraphs in the (virtual) corpus}
+#'   \item{`webUIRequestUrl`}{URL to view this corpus subset in KorAP web interface}
+#' }
+#' When `as.df=TRUE`, returns a data frame with these columns. 
+#' When `as.df=FALSE` (default), returns a KorAPCorpusStats object with these values as slots.
 #'
 #' @importFrom urltools url_encode
 #' @examples
 #' \dontrun{
-#'
+#' 
 #' kco <- KorAPConnection()
-#' corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/")
+#' 
+#' # Get statistics for entire corpus (returns S4 object)
+#' stats <- corpusStats(kco)
+#' stats@tokens  # Access number of tokens
+#' 
+#' # Get statistics for newspaper texts from 2017 (as data frame)
+#' df <- corpusStats(kco, "pubDate in 2017 & textType=/Zeitung.*/", as.df = TRUE)
+#' df$documents  # Access number of documents
+#' 
+#' # Compare corpus sizes across years
+#' years <- 2015:2020
+#' sizes <- sapply(years, function(y) {
+#'   corpusStats(kco, paste("pubDate in", y))@tokens
+#' })
 #' }
 #'
 #' @aliases corpusStats
