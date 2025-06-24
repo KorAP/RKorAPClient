@@ -4,12 +4,55 @@
 \name{RKorAPClient-package}
 \alias{RKorAPClient}
 \alias{RKorAPClient-package}
-\title{RKorAPClient: 'KorAP' Web Service Client Package}
+\title{R Client for KorAP Corpus Analysis Platform}
 \description{
-\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
-
-A client package that makes the 'KorAP' web service API accessible from R. The corpus analysis platform 'KorAP' has been developed as a scientific tool to make potentially large, stratified and multiply annotated corpora, such as the 'German Reference Corpus DeReKo' or the 'Corpus of the Contemporary Romanian Language CoRoLa', accessible for linguists to let them verify hypotheses and to find interesting patterns in real language use. The 'RKorAPClient' package provides access to 'KorAP' and the corpora behind it for user-created R code, as a programmatic alternative to the 'KorAP' web user-interface. You can learn more about 'KorAP' and use it directly on 'DeReKo' at \url{https://korap.ids-mannheim.de/}.
+RKorAPClient provides programmatic access to KorAP corpus analysis platform instances,
+enabling corpus linguistic research on large corpora like DeReKo, CoRoLa, DeLiKo@DNB.
 }
+\section{Main Functions}{
+
+\describe{
+\item{Connection}{\code{KorAPConnection()}, \code{auth()}, \code{persistAccessToken()}}
+\item{Search}{\code{corpusQuery()}, \code{fetchAll()}, \code{fetchNext()}}
+\item{Analysis}{\code{corpusStats()}, \code{frequencyQuery()}, \code{collocationAnalysis()}}
+}
+}
+
+\section{Quick Start}{
+
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{library(RKorAPClient)
+# Connect and search
+kcon <- KorAPConnection()
+query <- corpusQuery(kcon, "Ameisenplage")
+results <- fetchAll(query)
+
+# Access results
+results@collectedMatches
+results@totalResults
+}\if{html}{\out{</div>}}
+}
+
+\section{Common Workflows}{
+
+
+\strong{Basic Search:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{kcon <- KorAPConnection()
+kcon |> corpusQuery("search term") |> fetchAll()
+}\if{html}{\out{</div>}}
+
+\strong{Frequency Analysis:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{frequencyQuery(kcon, c("term1", "term2"), vc="pubDate in 2020")
+}\if{html}{\out{</div>}}
+
+\strong{Corpus Statistics:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{corpusStats(kcon, vc="textType=Zeitung", as.df=TRUE)
+}\if{html}{\out{</div>}}
+}
+
 \references{
 Kupietz, Marc / Diewald, Nils / Margaretha, Eliza (2020):
 RKorAPClient: An R package for accessing the German Reference Corpus DeReKo
