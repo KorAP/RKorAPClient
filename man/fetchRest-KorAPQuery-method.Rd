@@ -7,6 +7,16 @@
 \usage{
 \S4method{fetchRest}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
 }
+\arguments{
+\item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}}}
+
+\item{verbose}{print progress information if true}
+
+\item{...}{further arguments passed to \code{\link[=fetchNext]{fetchNext()}}}
+}
+\value{
+The updated \code{kqo} object with remaining results in \verb{@collectedMatches}
+}
 \description{
 Fetches the remaining results of a KorAP query.
 }

@@ -718,6 +718,10 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' **`fetchAll`** fetches all results of a KorAP query.
 #'
 #' @family corpus search functions
+#' @param kqo object obtained from [corpusQuery()]
+#' @param verbose print progress information if true
+#' @param ... further arguments passed to [fetchNext()]
+#' @return The updated `kqo` object with all results in `@collectedMatches`
 #'
 #' @examples
 #' \dontrun{
@@ -750,6 +754,11 @@ setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@
 })
 
 #' Fetches the remaining results of a KorAP query.
+#'
+#' @param kqo object obtained from [corpusQuery()]
+#' @param verbose print progress information if true
+#' @param ... further arguments passed to [fetchNext()]
+#' @return The updated `kqo` object with remaining results in `@collectedMatches`
 #'
 #' @examples
 #' \dontrun{

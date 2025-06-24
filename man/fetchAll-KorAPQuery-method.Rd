@@ -7,6 +7,16 @@
 \usage{
 \S4method{fetchAll}{KorAPQuery}(kqo, verbose = kqo@korapConnection@verbose, ...)
 }
+\arguments{
+\item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}}}
+
+\item{verbose}{print progress information if true}
+
+\item{...}{further arguments passed to \code{\link[=fetchNext]{fetchNext()}}}
+}
+\value{
+The updated \code{kqo} object with all results in \verb{@collectedMatches}
+}
 \description{
 \strong{\code{fetchAll}} fetches all results of a KorAP query.
 }

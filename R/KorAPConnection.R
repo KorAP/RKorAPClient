@@ -514,6 +514,20 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
 
 setGeneric("clearCache", function(kco) standardGeneric("clearCache"))
 
+#' Clear local cache
+#'
+#' Clears the local cache of API responses for the current RKorAPClient version.
+#' Useful when you want to force fresh data retrieval or free up disk space.
+#'
+#' @family connection-initialization
+#' @param kco KorAPConnection object
+#' @return Invisible NULL (function called for side effects)
+#' @examples
+#' \dontrun{
+#' kco <- KorAPConnection()
+#' clearCache(kco)
+#' }
+#' 
 #' @aliases clearCache
 #' @export
 setMethod("clearCache", "KorAPConnection", function(kco) {
