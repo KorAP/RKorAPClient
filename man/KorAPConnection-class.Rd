@@ -8,7 +8,9 @@
 \arguments{
 \item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.
 Defaults to the environment variable \code{KORAP_URL} if set and to the IDS Mannheim KorAP main instance
-to query DeReKo, otherwise.}
+to query DeReKo, otherwise. In order to access the KorAP instance at the German
+National Library (DNB) to query the contemporary fiction corpus DeLiKo@DNB,
+for example, set \code{KorAPUrl} to \url{https://korap.dnb.de/}.}
 
 \item{apiVersion}{which version of KorAP's API you want to connect to. Defaults to "v1.0".}
 
@@ -49,7 +51,7 @@ you experience problems or unexpected results, please try \code{kco <- KorAPConn
 An alternative to using an access token is to use a browser-based oauth2 workflow
 to obtain an access token. This can be done with the \code{\link[=auth]{auth()}} method.}
 
-\item{oauthClient}{OAuth2 client object (advanced users only).}
+\item{oauthClient}{OAuth2 client object.}
 
 \item{oauthScope}{OAuth2 scope. Defaults to "search match_info".}
 

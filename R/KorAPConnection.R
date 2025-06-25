@@ -34,7 +34,9 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #'
 #' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
 #'   Defaults to the environment variable `KORAP_URL` if set and to the IDS Mannheim KorAP main instance
-#'   to query DeReKo, otherwise.
+#'   to query DeReKo, otherwise. In order to access the KorAP instance at the German
+#'   National Library (DNB) to query the contemporary fiction corpus DeLiKo@@DNB,
+#'   for example, set `KorAPUrl` to <https://korap.dnb.de/>.
 #' @param apiVersion which version of KorAP's API you want to connect to. Defaults to "v1.0".
 #' @param apiUrl URL of the KorAP web service. If not provided, it will be constructed from KorAPUrl and apiVersion.
 #' @param accessToken OAuth2 access token. For queries on corpus parts with restricted
@@ -74,7 +76,7 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #'
 #'   An alternative to using an access token is to use a browser-based oauth2 workflow
 #'   to obtain an access token. This can be done with the [auth()] method.
-#' @param oauthClient OAuth2 client object (advanced users only).
+#' @param oauthClient     OAuth2 client object.
 #' @param oauthScope OAuth2 scope. Defaults to "search match_info".
 #' @param authorizationSupported logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.
 #' @param userAgent user agent string. Defaults to "R-KorAP-Client".
@@ -109,83 +111,8 @@ kustvakt_auth_path <- "settings/oauth/authorize"
 
 #' Initialize KorAPConnection object
 #' @keywords internal
-#' @param .Object KorAPConnection object
-#' @param KorAPUrl URL of the web user interface of the KorAP server instance you want to access.
-#'   Defaults to the environment variable `KORAP_URL` if set and to the IDS Mannheim KorAP main instance
-#'   (<https://korap.ids-mannheim.de/>) to query DeReKo, otherwise.
-#'   In order to access the KorAP instance at the DNB to query the contemporary fiction corpus DeLiKo@@DNB,
-#'   for example, set `KorAPUrl` to `https://korap.dnb.de/`.
-#' @param apiVersion which version of KorAP's API you want to connect to.
-#' @param apiUrl URL of the KorAP web service.
-#' @param accessToken OAuth2 access token. For queries on corpus parts with restricted
-#'   access (e.g. textual queries on IPR protected data), you need to authorize
-#'   your application with an access token.
-#'   You can obtain an access token in the OAuth settings of your KorAP web interface.
-#'
-#'   More details are explained in the
-#'   [authorization section](https://github.com/KorAP/RKorAPClient#authorization)
-#'   of the RKorAPClient Readme on GitHub.
-#'
-#'   To use authorization based on an access token
-#'   in subsequent queries, initialize your KorAP connection with:
-#'
-#'   ```
-#'   kco <- KorAPConnection(accessToken="<access token>")
-#'   ```
-#'
-#'   In order to make the API
-#'   token persistent for the currently used `KorAPUrl` (you can have one
-#'   token per KorAPUrl / KorAP server instance), use:
-#'
-#'   ```
-#'   persistAccessToken(kco)
-#'   ```
-#'
-#'   This will store it in your keyring using the
-#'   [keyring::keyring-package]. Subsequent KorAPConnection() calls will
-#'   then automatically retrieve the token from your keying. To stop using a
-#'   persisted token, call `clearAccessToken(kco)`. Please note that for
-#'   DeReKo, authorized queries will behave differently inside and outside the
-#'   IDS, because of the special license situation. This concerns also cached
-#'   results which do not take into account from where a request was issued. If
-#'   you experience problems or unexpected results, please try `kco <-
-#'   KorAPConnection(cache=FALSE)` or use
-#'   [clearCache()] to clear the cache completely.
-#'
-#'   An alternative to using an access token is to use a browser-based oauth2 workflow
-#'   to obtain an access token. This can be done with the [auth()] method.
-#'
-#' @param oauthClient     OAuth2 client object.
-#' @param oauthScope      OAuth2 scope.
-#' @param authorizationSupported logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.
-#' @param userAgent user agent string.
-#' @param timeout tineout in seconds for API requests (this does not influence server internal timeouts).
-#' @param verbose logical that decides whether following operations will default to
-#'   be verbose.
-#' @param cache logical that decides if API calls are cached locally. You can clear
-#'   the cache with [clearCache()].
-#' @return [KorAPConnection()] object that can be used e.g. with
-#'   [corpusQuery()]
-#'
-#' @import httr2
-#' @examples
-#' \dontrun{
-#'
-#' kcon <- KorAPConnection(verbose = TRUE)
-#' kq <- corpusQuery(kcon, "Ameisenplage")
-#' kq <- fetchAll(kq)
-#' }
-#'
-#' \dontrun{
-#'
-#' kcon <- KorAPConnection(verbose = TRUE, accessToken = "e739u6eOzkwADQPdVChxFg")
-#' kq <- corpusQuery(kcon, "Ameisenplage", metadataOnly = FALSE)
-#' kq <- fetchAll(kq)
-#' kq@collectedMatches$snippet
-#' }
-#'
-
 #' @export
+#'
 setMethod("initialize", "KorAPConnection", function(.Object,
                                                     KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) |
                                                       Sys.getenv("KORAP_URL") == "") {
