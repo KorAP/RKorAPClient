@@ -23,8 +23,8 @@ Fetches the remaining results of a KorAP query.
 \examples{
 \dontrun{
 
-q <- KorAPConnection() \%>\%
-  corpusQuery("Ameisenplage") \%>\%
+q <- KorAPConnection() |>
+  corpusQuery("Ameisenplage") |>
   fetchRest()
 q@collectedMatches
 }

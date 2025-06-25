@@ -33,8 +33,8 @@ The \code{kqo} input object with updated slots \code{collectedMatches}, \code{ap
 \examples{
 \dontrun{
 
-q <- KorAPConnection() \%>\%
-  corpusQuery("Ameisenplage") \%>\%
+q <- KorAPConnection() |>
+  corpusQuery("Ameisenplage") |>
   fetchNext()
 q@collectedMatches
 }
