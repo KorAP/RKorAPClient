@@ -266,6 +266,20 @@ setMethod(
               log_info(verbose, ", took ", res$meta$benchmark)
             }
           }
+
+          # Calculate and display ETA information on the same line if verbose and we have more than one query
+          if (verbose && total_queries > 1) {
+            eta_info <- calculate_eta(current_query, total_queries, start_time)
+            if (eta_info != "") {
+              elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+              avg_time_per_query <- elapsed_time / current_query
+
+              # Add ETA info to the same line - remove the leading ". " for cleaner formatting
+              clean_eta_info <- sub("^\\. ", ". ", eta_info)
+              log_info(verbose, clean_eta_info)
+            }
+          }
+
           log_info(verbose, "\n")
         }
 
@@ -276,29 +290,6 @@ setMethod(
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
-
-        # Calculate and display ETA information if verbose and we have more than one query
-        if (verbose && total_queries > 1) {
-          eta_info <- calculate_eta(current_query, total_queries, start_time)
-          if (eta_info != "") {
-            elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
-            avg_time_per_query <- elapsed_time / current_query
-
-            # Create progress display
-            progress_display <- paste0(
-              "Query ",
-              sprintf(paste0("%", nchar(total_queries), "d"), current_query),
-              "/",
-              sprintf("%d", total_queries),
-              " completed. Avg: ",
-              sprintf("%.1f", avg_time_per_query),
-              "s/query",
-              eta_info
-            )
-
-            log_info(verbose, progress_display, "\n")
-          }
-        }
 
         return(result)
       })
@@ -568,9 +559,9 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       total_pages
     }
-    
+
     eta_info <- calculate_eta(current_page, total_pages_to_fetch, start_time)
-    
+
     # Extract timing information for display
     time_per_page <- NA
     if (!is.null(res$meta$benchmark) && is.character(res$meta$benchmark)) {

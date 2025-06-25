@@ -90,31 +90,31 @@ calculate_eta <- function(current_item, total_items, start_time) {
 #' @param window_size number of recent non-cached times to use for median calculation (default: 5)
 #' @return list with eta_seconds, estimated_completion_time, and is_cached flag
 #' @keywords internal
-calculate_sophisticated_eta <- function(individual_times, current_item, total_items, 
+calculate_sophisticated_eta <- function(individual_times, current_item, total_items,
                                        cache_threshold = 0.1, window_size = 5) {
   if (current_item < 2) {
     return(list(eta_seconds = NA, estimated_completion_time = NA, is_cached = FALSE))
   }
-  
+
   # Get times up to current item
   current_times <- individual_times[1:current_item]
   current_time <- individual_times[current_item]
   is_cached <- current_time < cache_threshold
-  
+
   # Use recent non-cached times for better ETA estimates
   # Exclude very fast responses as likely cached
   non_cached_times <- current_times[current_times >= cache_threshold]
-  
+
   if (length(non_cached_times) >= 1) {
     # Use median of recent non-cached times for more stable estimates
     recent_window <- min(window_size, length(non_cached_times))
     recent_times <- tail(non_cached_times, recent_window)
     time_per_item <- median(recent_times)
-    
+
     remaining_items <- total_items - current_item
     eta_seconds <- time_per_item * remaining_items
     estimated_completion_time <- Sys.time() + eta_seconds
-    
+
     return(list(
       eta_seconds = eta_seconds,
       estimated_completion_time = estimated_completion_time,
@@ -138,9 +138,9 @@ format_eta_display <- function(eta_seconds, estimated_completion_time) {
   if (is.na(eta_seconds) || is.na(estimated_completion_time)) {
     return("")
   }
-  
+
   completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
-  paste0(", ETA: ", format_duration(eta_seconds), " (", completion_time_str, ")")
+  paste0(". ETA: ", format_duration(eta_seconds), " (", completion_time_str, ")")
 }
 
 #' Get cache indicator string
