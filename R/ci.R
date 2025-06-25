@@ -42,8 +42,11 @@ ci <- function(df,
   x <- enquo(x)
   N <- enquo(N)
   
+  # Ensure df is ungrouped for compatibility with grouped data
+  df <- df |> ungroup()
+  
   # Add row index to preserve original order
-  df <- df %>% mutate(.row_index = row_number())
+  df <- df |> mutate(.row_index = row_number())
   
   # Initialize result with all NA values
   result <- df %>%

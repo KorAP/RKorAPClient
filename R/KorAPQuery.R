@@ -84,7 +84,7 @@ utils::globalVariables(c("."))
 #'
 #' @importFrom urltools url_encode
 #' @importFrom purrr pmap
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows group_by
 #'
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
 #' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
@@ -776,12 +776,12 @@ setMethod(
   function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {
     (if (as.alternatives) {
       corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
-        group_by(vc) %>%
+        group_by(vc) |>
         mutate(total = sum(totalResults))
     } else {
       corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
         mutate(total = corpusStats(kco, vc = vc, as.df = TRUE)$tokens)
-    }) %>%
+    }) |>
       ci(conf.level = conf.level)
   }
 )
