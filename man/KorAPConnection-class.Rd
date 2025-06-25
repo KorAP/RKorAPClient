@@ -5,6 +5,69 @@
 \alias{KorAPConnection-class}
 \alias{KorAPConnection}
 \title{Connect to KorAP Server}
+\arguments{
+\item{KorAPUrl}{URL of the web user interface of the KorAP server instance you want to access.
+Defaults to the environment variable \code{KORAP_URL} if set and to the IDS Mannheim KorAP main instance
+to query DeReKo, otherwise.}
+
+\item{apiVersion}{which version of KorAP's API you want to connect to. Defaults to "v1.0".}
+
+\item{apiUrl}{URL of the KorAP web service. If not provided, it will be constructed from KorAPUrl and apiVersion.}
+
+\item{accessToken}{OAuth2 access token. For queries on corpus parts with restricted
+access (e.g. textual queries on IPR protected data), you need to authorize
+your application with an access token.
+You can obtain an access token in the OAuth settings of your KorAP web interface.
+
+More details are explained in the
+\href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
+of the RKorAPClient Readme on GitHub.
+
+To use authorization based on an access token
+in subsequent queries, initialize your KorAP connection with:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{kco <- KorAPConnection(accessToken="<access token>")
+}\if{html}{\out{</div>}}
+
+In order to make the API
+token persistent for the currently used \code{KorAPUrl} (you can have one
+token per KorAPUrl / KorAP server instance), use:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{persistAccessToken(kco)
+}\if{html}{\out{</div>}}
+
+This will store it in your keyring using the
+\link[keyring:keyring-package]{keyring::keyring-package}. Subsequent KorAPConnection() calls will
+then automatically retrieve the token from your keying. To stop using a
+persisted token, call \code{clearAccessToken(kco)}. Please note that for
+DeReKo, authorized queries will behave differently inside and outside the
+IDS, because of the special license situation. This concerns also cached
+results which do not take into account from where a request was issued. If
+you experience problems or unexpected results, please try \code{kco <- KorAPConnection(cache=FALSE)} or use
+\code{\link[=clearCache]{clearCache()}} to clear the cache completely.
+
+An alternative to using an access token is to use a browser-based oauth2 workflow
+to obtain an access token. This can be done with the \code{\link[=auth]{auth()}} method.}
+
+\item{oauthClient}{OAuth2 client object (advanced users only).}
+
+\item{oauthScope}{OAuth2 scope. Defaults to "search match_info".}
+
+\item{authorizationSupported}{logical that indicates if authorization is supported/necessary for the current KorAP instance. Automatically set during initialization.}
+
+\item{userAgent}{user agent string. Defaults to "R-KorAP-Client".}
+
+\item{timeout}{timeout in seconds for API requests (this does not influence server internal timeouts). Defaults to 240 seconds.}
+
+\item{verbose}{logical that decides whether following operations will default to
+be verbose. Defaults to FALSE.}
+
+\item{cache}{logical that decides if API calls are cached locally. You can clear
+the cache with \code{\link[=clearCache]{clearCache()}}. Defaults to TRUE.}
+}
+\value{
+\code{\link[=KorAPConnection]{KorAPConnection()}} object that can be used e.g. with \code{\link[=corpusQuery]{corpusQuery()}}
+}
 \description{
 \code{KorAPConnection()} creates a connection to a KorAP server for corpus queries.
 This is your starting point for all corpus analysis tasks.

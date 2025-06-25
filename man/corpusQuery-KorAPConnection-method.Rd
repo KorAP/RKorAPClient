@@ -87,12 +87,12 @@ Please make sure to check \verb{$collection$rewrites} to see if any unforeseen a
 \dontrun{
 
 # Fetch basic metadata for "Ameisenplage"
-KorAPConnection() \%>\%
-  corpusQuery("Ameisenplage") \%>\%
+KorAPConnection() |>
+  corpusQuery("Ameisenplage") |>
   fetchAll()
 
 # Fetch specific metadata fields for bibliographic analysis
-query <- KorAPConnection() \%>\%
+query <- KorAPConnection() |>
   corpusQuery("Ameisenplage",
               fields = c("textSigle", "author", "title", "pubDate", "pubPlace", "textType"))
 results <- fetchAll(query)
@@ -104,7 +104,7 @@ results@collectedMatches
 # Use the copy of a KorAP-web-frontend URL for an API query of "Ameise" in a virtual corpus
 # and show the number of query hits (but don't fetch them).
 
-KorAPConnection(verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) |>
   corpusQuery(
     KorAPUrl =
       "https://korap.ids-mannheim.de/?q=Ameise&cq=pubDate+since+2017&ql=poliqarp"
@@ -114,22 +114,22 @@ KorAPConnection(verbose = TRUE) \%>\%
 \dontrun{
 
 # Plot the time/frequency curve of "Ameisenplage"
-KorAPConnection(verbose = TRUE) \%>\%
+KorAPConnection(verbose = TRUE) |>
   {
     . ->> kco
-  } \%>\%
-  corpusQuery("Ameisenplage") \%>\%
-  fetchAll() \%>\%
-  slot("collectedMatches") \%>\%
-  mutate(year = lubridate::year(pubDate)) \%>\%
-  dplyr::select(year) \%>\%
-  group_by(year) \%>\%
-  summarise(Count = dplyr::n()) \%>\%
+  } |>
+  corpusQuery("Ameisenplage") |>
+  fetchAll() |>
+  slot("collectedMatches") |>
+  mutate(year = lubridate::year(pubDate)) |>
+  dplyr::select(year) |>
+  group_by(year) |>
+  summarise(Count = dplyr::n()) |>
   mutate(Freq = mapply(function(f, y) {
     f / corpusStats(kco, paste("pubDate in", y))@tokens
-  }, Count, year)) \%>\%
-  dplyr::select(-Count) \%>\%
-  complete(year = min(year):max(year), fill = list(Freq = 0)) \%>\%
+  }, Count, year)) |>
+  dplyr::select(-Count) |>
+  complete(year = min(year):max(year), fill = list(Freq = 0)) |>
   plot(type = "l")
 }
 }
