@@ -25,8 +25,6 @@
 KorAPConnection object with access token set in \verb{@accessToken}.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-
 Authorize RKorAPClient to make KorAP queries and download results on behalf of the user.
 }
 \examples{

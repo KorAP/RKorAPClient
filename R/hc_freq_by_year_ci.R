@@ -1,7 +1,6 @@
 #' Plot interactive frequency curves with confidence intervals
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
 #'
 #' Convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
 #'

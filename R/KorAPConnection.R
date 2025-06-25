@@ -255,7 +255,6 @@ setGeneric("auth", function(kco, app_id = generic_kor_app_id, app_secret = NULL,
 #' @aliases auth
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
 #'
 #' Authorize RKorAPClient to make KorAP queries and download results on behalf of the user.
 #'

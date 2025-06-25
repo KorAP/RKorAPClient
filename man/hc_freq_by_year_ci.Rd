@@ -27,8 +27,6 @@ hc_freq_by_year_ci(
 A highchart htmlwidget object containing the frequency plot.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-
 Convenience function for plotting typical frequency by year graphs with confidence intervals using highcharter.
 
 \strong{Warning:} This function may be moved to a new package.
