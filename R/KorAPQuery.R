@@ -444,6 +444,9 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
   # Calculate the initial page number (not used directly - keeping for reference)
   collectedMatches <- kqo@collectedMatches
 
+  # Track start time for ETA calculation
+  start_time <- Sys.time()
+
   # For randomized page order, generate a list of randomized page indices
   if (randomizePageOrder) {
     # Calculate how many pages we need to fetch based on maxFetch
@@ -556,52 +559,22 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     # This ensures consistent page counting across the function
     total_pages <- ceiling(kqo@totalResults / maxResultsPerPage)
 
-    # Calculate the total pages based on what we've already fetched plus what we'll fetch
-    # This ensures the correct denominator is displayed for subsequent fetchNext calls
-
-    # Calculate the total number of pages for the entire result set
-    # This calculation is kept for reference and for showing in parentheses
-
-    # Estimate remaining time
+    # Calculate ETA using the centralized function from logging.R
+    current_page <- if (randomizePageOrder) page_index else display_page_number
+    total_pages_to_fetch <- if (!is.na(maxFetch)) {
+      # Account for offset - we can only fetch from the remaining results after offset
+      remaining_results_after_offset <- max(0, kqo@totalResults - offset)
+      min(ceiling(maxFetch / maxResultsPerPage), ceiling(remaining_results_after_offset / maxResultsPerPage))
+    } else {
+      total_pages
+    }
+    
+    eta_info <- calculate_eta(current_page, total_pages_to_fetch, start_time)
+    
+    # Extract timing information for display
     time_per_page <- NA
-    eta_str <- "N/A"
-    completion_time_str <- "N/A"
-
     if (!is.null(res$meta$benchmark) && is.character(res$meta$benchmark)) {
-      # benchmark looks like "0.123s"
       time_per_page <- suppressWarnings(as.numeric(sub("s", "", res$meta$benchmark)))
-      if (!is.na(time_per_page)) {
-        # Calculate remaining pages based on what we still need to fetch
-        if (!is.na(maxFetch)) {
-          # Use the same logic as page display calculation - account for offset
-          remaining_results_after_offset <- max(0, kqo@totalResults - offset)
-          total_pages_this_batch <- min(ceiling(maxFetch / maxResultsPerPage), ceiling(remaining_results_after_offset / maxResultsPerPage))
-          current_page_in_batch <- ceiling(nrow(collectedMatches) / maxResultsPerPage) + 1
-          remaining_pages <- max(0, total_pages_this_batch - current_page_in_batch)
-        } else {
-          # We need to fetch all results - calculate based on actual position
-          if (randomizePageOrder) {
-            if (exists("pages") && length(pages) > 0) {
-              remaining_pages <- max(0, length(pages) - page_index)
-            } else {
-              # Fallback to a reasonable default
-              remaining_pages <- 1
-            }
-          } else {
-            # For sequential order, calculate remaining pages from current offset
-            current_absolute_page <- ceiling((currentOffset + maxResultsPerPage) / maxResultsPerPage)
-            remaining_pages <- max(0, total_pages - current_absolute_page)
-          }
-        }
-
-        estimated_remaining_seconds <- remaining_pages * time_per_page
-        estimated_completion_time <- Sys.time() + estimated_remaining_seconds
-
-        # Format time nicely using centralized function from logging.R
-
-        eta_str <- format_duration(estimated_remaining_seconds)
-        completion_time_str <- format(estimated_completion_time, "%Y-%m-%d %H:%M:%S")
-      }
     }
 
     # Create the page display string with proper formatting
@@ -676,11 +649,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         page_display,
         " in ",
         if (!is.na(time_per_page)) sprintf("%4.1f", time_per_page) else "?",
-        "s. ETA: ",
-        # Display ETA for both randomized and sequential modes
-        eta_str,
-        # Show completion time for both modes
-        paste0(" (", completion_time_str, ")")
+        "s",
+        eta_info
       )
     }
 
