@@ -1,5 +1,27 @@
 ## Notes
 
+* bug fixes
+* overhauled, less class centric documentation
+* improved test coverage
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 42 with R version 4.5.1
+* github workflow on Windows with R 4.5.1
+* github workflow on macOS 14.7.6 with R 4.5.1 for macOS (ARM64)
+* github workflow on Ubuntu with R 4.6.0
+* github workflow on Ubuntu with R 4.5.1
+* github workflow on Ubuntu with R 4.4.3
+* win-builder workflow using R Under development (unstable) (2025-02-18 r87748 ucrt)
+
+## Notes on 1.0.0
+
 * switched to httr2 resulting in simplified authorization
 * minimum R version bumped to 4.1.0
 * changes made it time for v1.0.0
