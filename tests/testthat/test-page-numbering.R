@@ -2,7 +2,7 @@
 
 test_that("page numbering is displayed correctly in sequential mode", {
   skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
   q <- kco %>% corpusQuery("Test", "pubDate since 2014", fields = c("sigle"))
 
   # Capture output - we need to use sink to capture the actual console output
@@ -47,7 +47,7 @@ test_that("page numbering is displayed correctly in sequential mode", {
 
 test_that("page numbering and ETA are displayed correctly in randomized mode", {
   skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
   q <- kco %>% corpusQuery("Test", "pubDate since 2014", fields = c("sigle"))
 
   # Set a fixed seed for reproducible tests
@@ -95,7 +95,7 @@ test_that("page numbering and ETA are displayed correctly in randomized mode", {
 
 test_that("page numbering and ETA are displayed correctly in subsequent calls with randomized mode", {
   skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
   q <- kco %>% corpusQuery("Test", "pubDate since 2014", fields = c("sigle"))
 
   # Set a fixed seed for reproducible tests

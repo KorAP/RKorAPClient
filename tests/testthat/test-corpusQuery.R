@@ -263,7 +263,7 @@ test_that("frequencyQuery with as.alternatives=TRUE works correctly", {
 
   # Test 10: Check that relative frequencies are between 0 and 1
   expect_true(all(df1$f >= 0 & df1$f <= 1), info = "Relative frequencies should be between 0 and 1")
-  
+
   # Test with multiple VCs (this would fail before the ungroup() fix)
   # This test ensures all rows get valid results, not just the first two
   multiple_years <- c(1999, 2000, 2001, 2002)
@@ -271,10 +271,10 @@ test_that("frequencyQuery with as.alternatives=TRUE works correctly", {
                         query = c("macht", "ergibt", "ist", "wird"),
                         vc = paste("textType = /Zeit.*/ & pubDate in", multiple_years),
                         as.alternatives = TRUE)
-  
+
   # Test 11: All rows should have valid f values (this failed before the fix)
   expect_true(all(!is.na(df3$f)), info = "All rows should have valid f values (not just first two)")
-  
+
   # Test 12: Each VC should have f=1.0 (since each query is in its own VC)
   expect_true(all(abs(df3$f - 1.0) < 1e-10), info = "Each single query in its own VC should have f=1.0")
 })

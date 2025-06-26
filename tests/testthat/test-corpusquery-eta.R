@@ -1,6 +1,6 @@
 test_that("corpusQuery displays ETA with multiple queries", {
-  skip_if_offline()  # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  skip_if_offline() # Commented out for testing
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Use simple queries to ensure they complete quickly
   query <- c("Test", "der")
@@ -53,16 +53,17 @@ test_that("corpusQuery displays ETA with multiple queries", {
   # Test 4: Check that we get results for all query combinations
   # Note: with expand=TRUE (default), we should get length(query) * length(vc) results
   expect_equal(nrow(result), length(query) * length(vc),
-               info = paste("Should get results for all query/vc combinations. Got:", nrow(result), "Expected:", length(query) * length(vc)))
+    info = paste("Should get results for all query/vc combinations. Got:", nrow(result), "Expected:", length(query) * length(vc))
+  )
 })
 
 test_that("corpusQuery ETA works with frequencyQuery", {
-  skip_if_offline()  # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  skip_if_offline() # Commented out for testing
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Test the exact pattern from the user's example (but smaller)
   query <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
-  years <- c(2020:2021)  # Just 2 years for testing
+  years <- c(2020:2021) # Just 2 years for testing
   as.alternatives <- TRUE
   vc <- "textType = /Zeit.*/ & pubDate in"
 
@@ -105,18 +106,20 @@ test_that("corpusQuery ETA works with frequencyQuery", {
 
   # Test 3: Check that we get results
   expect_true(nrow(result) > 0,
-              info = "Should get frequency query results")
+    info = "Should get frequency query results"
+  )
 
   # Test 4: Check that result has expected columns
   expect_true(all(c("query", "vc", "totalResults") %in% names(result)),
-              info = "Result should contain expected columns")
+    info = "Result should contain expected columns"
+  )
 })
 
 test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries", {
-  skip_if_offline()  # Commented out for testing
+  skip_if_offline() # Commented out for testing
 
   # Test with verbose=FALSE - should not show ETA
-  kco_quiet <- KorAPConnection(verbose = FALSE, cache = FALSE)
+  kco_quiet <- KorAPConnection(verbose = FALSE, cache = FALSE, accessToken = NULL)
   query <- c("Test", "der")
   vc <- c("pubDate in 2020", "pubDate in 2021")
 
@@ -135,14 +138,17 @@ test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries"
 
   # Should not contain ETA information when verbose=FALSE
   expect_false(grepl("ETA:", output_str),
-               info = "ETA should not be displayed when verbose=FALSE")
+    info = "ETA should not be displayed when verbose=FALSE"
+  )
 
   # Test with single query - should not show ETA even with verbose=TRUE
-  kco_verbose <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco_verbose <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
   temp_file2 <- tempfile()
   sink(temp_file2)
-  result2 <- corpusQuery(kco_verbose, query = "Test", vc = "pubDate in 2020",
-                        metadataOnly = TRUE, as.df = TRUE)
+  result2 <- corpusQuery(kco_verbose,
+    query = "Test", vc = "pubDate in 2020",
+    metadataOnly = TRUE, as.df = TRUE
+  )
   cat("\n")
   sink()
 
@@ -154,14 +160,15 @@ test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries"
 
   # Should not contain ETA for single query
   expect_false(grepl("ETA:", output_str2),
-               info = "ETA should not be displayed for single queries")
+    info = "ETA should not be displayed for single queries"
+  )
 })
 
 test_that("corpusQuery ETA format_duration function works correctly", {
   # This tests the internal format_duration function indirectly
   # by checking that ETA displays reasonable time formats
-  skip_if_offline()  # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  skip_if_offline() # Commented out for testing
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Use multiple queries to trigger ETA display
   query <- c("Test", "der", "und")
