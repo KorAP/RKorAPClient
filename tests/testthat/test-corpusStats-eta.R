@@ -1,6 +1,6 @@
 test_that("corpusStats displays ETA with multiple virtual corpora", {
   skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Use different virtual corpora to ensure varied processing times
   vc_list <- c(
@@ -85,7 +85,7 @@ test_that("corpusStats displays ETA with multiple virtual corpora", {
 
 test_that("corpusStats handles cache detection correctly", {
   # skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = TRUE) # Enable caching
+  kco <- KorAPConnection(verbose = TRUE, cache = TRUE, accessToken = NULL) # Enable caching
 
   # Use the same VC twice to test cache detection
   vc_list <- c(
@@ -134,7 +134,7 @@ test_that("corpusStats handles cache detection correctly", {
 
 test_that("fetchNext ETA calculation with offset works correctly", {
   skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Create a query and fetchNext with offset
   temp_file <- tempfile()
@@ -199,7 +199,7 @@ test_that("fetchNext ETA calculation with offset works correctly", {
 
 test_that("corpusStats handles long VC definitions with truncation", {
   # skip_if_offline()
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE)
+  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
 
   # Create a very long VC definition to test truncation
   long_vc <- paste0(
