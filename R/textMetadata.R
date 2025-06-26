@@ -8,6 +8,8 @@ setGeneric("textMetadata", function(kco, ...) standardGeneric("textMetadata"))
 #' @description
 #' Retrieves metadata for a text, identified by its sigle (id) using the corresponding KorAP API
 #' (see [Kustvakt Wiki](https://github.com/KorAP/Kustvakt/wiki/Service:-Metadata-Retrieval)).
+#' To retrieve the metadata for every text in a virtual corpus, use [corpusQuery()]
+#' with `<base/s=t>` as query, instead.
 #'
 #'
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`)
@@ -24,7 +26,7 @@ setGeneric("textMetadata", function(kco, ...) standardGeneric("textMetadata"))
 #'
 #' @examples
 #' \dontrun{
-#' KorAPConnection() %>% textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
+#' KorAPConnection() |> textMetadata(c("WUD17/A97/08542", "WUD17/B96/57558", "WUD17/A97/08541"))
 #' }
 #'
 #' @export
