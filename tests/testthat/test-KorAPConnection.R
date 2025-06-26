@@ -54,6 +54,18 @@ test_that("show method displays connection info correctly", {
 
 test_that("persistAccessToken works with valid token", {
   skip_if_not_installed("keyring")
+
+  # Test keyring functionality - skip if keyring setup fails
+  keyring_available <- tryCatch({
+    # Try to access keyring backend
+    keyring::default_backend()
+    TRUE
+  }, error = function(e) {
+    FALSE
+  })
+
+  skip_if(!keyring_available, "Keyring not properly configured for testing")
+
   kco <- KorAPConnection(accessToken = NULL, timeout = 1)
   test_token <- "test_access_token_123"
 
@@ -61,7 +73,6 @@ test_that("persistAccessToken works with valid token", {
   expect_true(is.function(persistAccessToken))
 
   # Test that we can call the function with a token
-  # This will test the function logic without relying on keyring
   expect_error(persistAccessToken(kco, accessToken = test_token), NA)
 })
 
@@ -76,6 +87,18 @@ test_that("persistAccessToken warns about OAuth client tokens", {
 
 test_that("clearAccessToken removes token", {
   skip_if_not_installed("keyring")
+
+  # Test keyring functionality - skip if keyring setup fails
+  keyring_available <- tryCatch({
+    # Try to access keyring backend
+    keyring::default_backend()
+    TRUE
+  }, error = function(e) {
+    FALSE
+  })
+
+  skip_if(!keyring_available, "Keyring not properly configured for testing")
+
   kco <- KorAPConnection(accessToken = "test_token", timeout = 1)
 
   # Test that clearAccessToken function exists and is callable
