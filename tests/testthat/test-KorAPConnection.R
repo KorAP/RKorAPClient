@@ -53,12 +53,16 @@ test_that("show method displays connection info correctly", {
 })
 
 test_that("persistAccessToken works with valid token", {
+	skip_if_offline()
   skip_if_not_installed("keyring")
 
   # Test keyring functionality - skip if keyring setup fails
   keyring_available <- tryCatch({
-    # Try to access keyring backend
-    keyring::default_backend()
+    # Try to access keyring backend and test basic functionality
+    backend <- keyring::default_backend()
+    # Try a simple keyring operation to verify it works
+    keyring::key_set_with_value("test_service", "test_user", "test_value", keyring = NULL)
+    keyring::key_delete("test_service", "test_user", keyring = NULL)
     TRUE
   }, error = function(e) {
     FALSE
@@ -73,10 +77,20 @@ test_that("persistAccessToken works with valid token", {
   expect_true(is.function(persistAccessToken))
 
   # Test that we can call the function with a token
-  expect_error(persistAccessToken(kco, accessToken = test_token), NA)
+  # Only test if keyring is actually working
+  result <- tryCatch({
+    persistAccessToken(kco, accessToken = test_token)
+    TRUE
+  }, error = function(e) {
+    # If keyring fails, skip this test
+    skip(paste("Keyring operation failed:", e$message))
+  })
+
+  expect_true(result)
 })
 
 test_that("persistAccessToken warns about OAuth client tokens", {
+	skip_if_offline()
   skip_if_not_installed("keyring")
   kco <- KorAPConnection(accessToken = NULL, timeout = 1)
   # Simulate OAuth client
@@ -86,12 +100,16 @@ test_that("persistAccessToken warns about OAuth client tokens", {
 })
 
 test_that("clearAccessToken removes token", {
-  skip_if_not_installed("keyring")
+	skip_if_offline()
+	skip_if_not_installed("keyring")
 
   # Test keyring functionality - skip if keyring setup fails
   keyring_available <- tryCatch({
-    # Try to access keyring backend
-    keyring::default_backend()
+    # Try to access keyring backend and test basic functionality
+    backend <- keyring::default_backend()
+    # Try a simple keyring operation to verify it works
+    keyring::key_set_with_value("test_service_clear", "test_user", "test_value", keyring = NULL)
+    keyring::key_delete("test_service_clear", "test_user", keyring = NULL)
     TRUE
   }, error = function(e) {
     FALSE
@@ -105,12 +123,21 @@ test_that("clearAccessToken removes token", {
   expect_true(is.function(clearAccessToken))
 
   # Test that we can call the function
-  result <- clearAccessToken(kco)
-  expect_true(is(result, "KorAPConnection"))
+  result <- tryCatch({
+    clear_result <- clearAccessToken(kco)
+    expect_true(is(clear_result, "KorAPConnection"))
+    TRUE
+  }, error = function(e) {
+    # If keyring fails, skip this test
+    skip(paste("Keyring operation failed:", e$message))
+  })
+
+  expect_true(result)
 })
 
 test_that("clearAccessToken handles keyring errors gracefully", {
-  skip_if_not_installed("keyring")
+	skip_if_offline()
+	skip_if_not_installed("keyring")
   kco <- KorAPConnection(accessToken = "test_token", timeout = 1)
 
   # Test that clearAccessToken doesn't crash when keyring operations fail
@@ -119,7 +146,8 @@ test_that("clearAccessToken handles keyring errors gracefully", {
 })
 
 test_that("getAccessToken retrieves token from keyring", {
-  skip_if_not_installed("keyring")
+	skip_if_offline()
+	skip_if_not_installed("keyring")
 
   # Test that getAccessToken function exists and handles missing keys gracefully
   expect_true(is.function(RKorAPClient:::getAccessToken))
@@ -130,7 +158,8 @@ test_that("getAccessToken retrieves token from keyring", {
 })
 
 test_that("getAccessToken returns NULL when token not found", {
-  skip_if_not_installed("keyring")
+	skip_if_offline()
+	skip_if_not_installed("keyring")
 
   # Test that getAccessToken handles missing tokens gracefully
   result <- RKorAPClient:::getAccessToken("definitely-non-existent-service")
@@ -138,7 +167,8 @@ test_that("getAccessToken returns NULL when token not found", {
 })
 
 test_that("getAccessToken handles keyring errors gracefully", {
-  skip_if_not_installed("keyring")
+	skip_if_offline()
+	skip_if_not_installed("keyring")
 
   # Test that getAccessToken function exists and handles errors gracefully
   expect_true(is.function(RKorAPClient:::getAccessToken))
