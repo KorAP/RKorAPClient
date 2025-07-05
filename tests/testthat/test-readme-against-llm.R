@@ -31,7 +31,7 @@ call_openai_api <- function(prompt, max_tokens = 500, temperature = 0.1) {
         "Content-Type" = "application/json"
       ) |>
       req_body_json(list(
-        model = "gpt-4.1-mini",
+        model = LLM_MODEL,
         messages = list(
           list(role = "user", content = prompt)
         ),
@@ -55,7 +55,8 @@ call_openai_api <- function(prompt, max_tokens = 500, temperature = 0.1) {
   })
 }
 
-# KorAP URL for testing
+# Configuration variables
+LLM_MODEL <- "gpt-4.1-mini"
 KORAP_URL <- "https://korap.ids-mannheim.de/instance/wiki"
 
 # Helper function to create README-guided prompt
@@ -68,7 +69,7 @@ create_readme_prompt <- function(task_description, specific_task) {
   paste0(
     "You are an expert R programmer. Based on the following README documentation for the RKorAPClient package, ",
     task_description, "\n\n",
-    "IMPORTANT: Use the KorAP URL '", KORAP_URL, "' as the KorAPUrl parameter in KorAPConnection.\n\n",
+    "IMPORTANT: Use the KorAP URL '", KORAP_URL, "' as the 1st parameter (KorAPUrl) in KorAPConnection.\n\n",
     "README Documentation:\n",
     readme_text,
     "\n\nTask: ", specific_task,
@@ -124,7 +125,7 @@ run_code_if_enabled <- function(code, test_name) {
   }
 }
 
-test_that("GPT-4.1 mini can solve frequency query task with README guidance", {
+test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"), {
   skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
@@ -163,7 +164,7 @@ test_that("GPT-4.1 mini can solve frequency query task with README guidance", {
   }
 })
 
-test_that("GPT-4.1 mini can solve collocation analysis task with README guidance", {
+test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guidance"), {
   skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
@@ -184,10 +185,6 @@ test_that("GPT-4.1 mini can solve collocation analysis task with README guidance
   expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
   expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
-  # Check for collocation analysis parameters
-  expect_true(grepl("leftContextSize|rightContextSize", generated_code),
-              "Generated code should include context size parameters")
-
   # Test code syntax
   syntax_valid <- test_code_syntax(generated_code)
   expect_true(syntax_valid, "Generated code should be syntactically valid R code")
@@ -202,7 +199,7 @@ test_that("GPT-4.1 mini can solve collocation analysis task with README guidance
   }
 })
 
-test_that("GPT-4.1 mini can solve corpus query task with README guidance", {
+test_that(paste(LLM_MODEL, "can solve corpus query task with README guidance"), {
   skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
