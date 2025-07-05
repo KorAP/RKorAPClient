@@ -39,6 +39,8 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 ```
 ![](man/figures/Readme-Example-1.png)<!-- -->
 
+`frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals.
+
 ### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
 
 See the [Highcharts license notes](#highcharts) below.
@@ -76,6 +78,11 @@ KorAPConnection(verbose = TRUE) |> auth() |>
   head(10) |>
   kable(format="pipe", digits=2)
 ```
+
+The focus, here, with the `[tt/l=setzen]` in braces, makes sure that the left context size parameter 1 is understood relative to the lemma `setzen`. 
+The `[tt/p=NN]` in the focus query makes sure that only nouns (at this position) are considered as collocates.
+To perform a simple collocation analysis for a word form, rather then a lemma and without restriction to light verb constructions, simply use, for instance, `KorAPConnection(verbose = TRUE) |> auth() |> collocationAnalysis("setzts")`.
+
 
 |LVC                                                                                                                                                                  | logDice|   pmi|        ll|
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------:|-----:|---------:|

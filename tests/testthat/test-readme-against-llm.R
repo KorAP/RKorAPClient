@@ -85,6 +85,45 @@ extract_r_code <- function(response_text) {
   trimws(code)
 }
 
+# Helper function to test code syntax
+test_code_syntax <- function(code) {
+  tryCatch({
+    parse(text = code)
+    TRUE
+  }, error = function(e) {
+    cat("Syntax error:", as.character(e), "\n")
+    FALSE
+  })
+}
+
+# Helper function to run code if RUN_LLM_CODE is set
+run_code_if_enabled <- function(code, test_name) {
+  if (nzchar(Sys.getenv("RUN_LLM_CODE")) && Sys.getenv("RUN_LLM_CODE") == "true") {
+    cat("Running generated code for", test_name, "...\n")
+    tryCatch({
+      result <- eval(parse(text = code))
+      cat("Code executed successfully. Result type:", class(result), "\n")
+      if (is.data.frame(result)) {
+        cat("Result dimensions:", nrow(result), "rows,", ncol(result), "columns\n")
+        if (nrow(result) > 0) {
+          cat("First few rows:\n")
+          print(head(result, 3))
+        }
+      } else {
+        cat("Result preview:\n")
+        print(result)
+      }
+      return(TRUE)
+    }, error = function(e) {
+      cat("Runtime error:", as.character(e), "\n")
+      return(FALSE)
+    })
+  } else {
+    cat("Skipping code execution (set RUN_LLM_CODE=true to enable)\n")
+    return(NA)
+  }
+}
+
 test_that("GPT-4.1 mini can solve frequency query task with README guidance", {
   skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
@@ -110,18 +149,18 @@ test_that("GPT-4.1 mini can solve frequency query task with README guidance", {
   expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code),
               "Generated code should use pipe operators")
 
-  # Optional: Try to parse the generated code to check for syntax errors
-  parsed_successfully <- tryCatch({
-    parse(text = generated_code)
-    TRUE
-  }, error = function(e) {
-    FALSE
-  })
-
-  expect_true(parsed_successfully, "Generated code should be syntactically valid R code")
+  # Test code syntax
+  syntax_valid <- test_code_syntax(generated_code)
+  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
 
   # Print the generated code for manual inspection
   cat("Generated code:\n", generated_code, "\n")
+
+  # Run the code if RUN_LLM_CODE is set
+  execution_result <- run_code_if_enabled(generated_code, "frequency query")
+  if (!is.na(execution_result)) {
+    expect_true(execution_result, "Generated code should execute without runtime errors")
+  }
 })
 
 test_that("GPT-4.1 mini can solve collocation analysis task with README guidance", {
@@ -130,7 +169,7 @@ test_that("GPT-4.1 mini can solve collocation analysis task with README guidance
 
   # Create the prompt for collocation analysis
   prompt <- create_readme_prompt(
-    "write R code to perform a collocation analysis for the word 'setzen' (looking for light verb constructions). The code should use the RKorAPClient package's collocationAnalysis function.",
+    "write R code to perform a collocation analysis for the lemma 'setzen'. The code should use the RKorAPClient package's collocationAnalysis function.",
     "Write R code to perform collocation analysis for 'setzen' using RKorAPClient."
   )
 
@@ -149,8 +188,18 @@ test_that("GPT-4.1 mini can solve collocation analysis task with README guidance
   expect_true(grepl("leftContextSize|rightContextSize", generated_code),
               "Generated code should include context size parameters")
 
+  # Test code syntax
+  syntax_valid <- test_code_syntax(generated_code)
+  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+
   # Print the generated code for manual inspection
   cat("Generated collocation analysis code:\n", generated_code, "\n")
+
+  # Run the code if RUN_LLM_CODE is set
+  execution_result <- run_code_if_enabled(generated_code, "collocation analysis")
+  if (!is.na(execution_result)) {
+    expect_true(execution_result, "Generated code should execute without runtime errors")
+  }
 })
 
 test_that("GPT-4.1 mini can solve corpus query task with README guidance", {
@@ -178,6 +227,16 @@ test_that("GPT-4.1 mini can solve corpus query task with README guidance", {
   expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code),
               "Generated code should use pipe operators")
 
+  # Test code syntax
+  syntax_valid <- test_code_syntax(generated_code)
+  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+
   # Print the generated code for manual inspection
   cat("Generated corpus query code:\n", generated_code, "\n")
+
+  # Run the code if RUN_LLM_CODE is set
+  execution_result <- run_code_if_enabled(generated_code, "corpus query")
+  if (!is.na(execution_result)) {
+    expect_true(execution_result, "Generated code should execute without runtime errors")
+  }
 })
