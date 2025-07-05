@@ -55,6 +55,9 @@ call_openai_api <- function(prompt, max_tokens = 500, temperature = 0.1) {
   })
 }
 
+# KorAP URL for testing
+KORAP_URL <- "https://korap.ids-mannheim.de/instance/wiki"
+
 # Helper function to create README-guided prompt
 create_readme_prompt <- function(task_description, specific_task) {
   readme_text <- read_readme_content()
@@ -65,6 +68,7 @@ create_readme_prompt <- function(task_description, specific_task) {
   paste0(
     "You are an expert R programmer. Based on the following README documentation for the RKorAPClient package, ",
     task_description, "\n\n",
+    "IMPORTANT: Use the KorAP URL '", KORAP_URL, "' as the KorAPUrl parameter in KorAPConnection.\n\n",
     "README Documentation:\n",
     readme_text,
     "\n\nTask: ", specific_task,
@@ -100,6 +104,7 @@ test_that("GPT-4.1 mini can solve frequency query task with README guidance", {
   expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
   expect_true(grepl("Deutschland", generated_code), "Generated code should include the search term 'Deutschland'")
   expect_true(grepl("201[0-5]", generated_code), "Generated code should include years 2010-2015")
+  expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Check that the generated code contains essential RKorAPClient patterns
   expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code),
@@ -138,6 +143,7 @@ test_that("GPT-4.1 mini can solve collocation analysis task with README guidance
   expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
   expect_true(grepl("setzen", generated_code), "Generated code should include the search term 'setzen'")
   expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
+  expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Check for collocation analysis parameters
   expect_true(grepl("leftContextSize|rightContextSize", generated_code),
@@ -166,6 +172,7 @@ test_that("GPT-4.1 mini can solve corpus query task with README guidance", {
   expect_true(grepl("corpusQuery", generated_code), "Generated code should include corpusQuery")
   expect_true(grepl("Hello world", generated_code), "Generated code should include the search term 'Hello world'")
   expect_true(grepl("fetchAll", generated_code), "Generated code should include fetchAll")
+  expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Check that the generated code follows the README example pattern
   expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code),
