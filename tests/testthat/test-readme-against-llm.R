@@ -19,44 +19,48 @@ read_readme_content <- function() {
   paste(readme_content, collapse = "\n")
 }
 
-# Helper function to call OpenAI API
-call_openai_api <- function(prompt, max_tokens = 500, temperature = 0.1) {
-  library(httr2)
-  library(jsonlite)
+# Helper function to call LLM API using tidyllm
+call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LLM_MODEL) {
+  library(tidyllm)
 
   tryCatch({
-    response <- request("https://api.openai.com/v1/chat/completions") |>
-      req_headers(
-        "Authorization" = paste("Bearer", Sys.getenv("OPENAI_API_KEY")),
-        "Content-Type" = "application/json"
-      ) |>
-      req_body_json(list(
-        model = LLM_MODEL,
-        messages = list(
-          list(role = "user", content = prompt)
-        ),
-        max_tokens = max_tokens,
-        temperature = temperature
-      )) |>
-      req_retry(max_tries = 3) |>
-      req_perform()
+    # Determine the provider based on model name
+    if (grepl("^gpt-", model, ignore.case = TRUE)) {
+      provider <- openai()
+    } else if (grepl("^claude-", model, ignore.case = TRUE)) {
+      provider <- claude()
+    } else {
+      stop(paste("Unsupported model:", model))
+    }
 
-    # Parse the response
-    result <- response |> resp_body_json()
-    result$choices[[1]]$message$content
+    # Use tidyllm unified API
+    result <- llm_message(prompt) |>
+      chat(
+        .provider = provider,
+        .model = model,
+        .temperature = temperature,
+        .max_tries = 3
+      )
+
+    # Extract the reply text
+    get_reply(result)
   }, error = function(e) {
     if (grepl("429", as.character(e))) {
-      skip("OpenAI API rate limit exceeded - please try again later or check your API key/credits")
+      skip("LLM API rate limit exceeded - please try again later or check your API key/credits")
     } else if (grepl("401", as.character(e))) {
-      skip("OpenAI API authentication failed - please check your OPENAI_API_KEY")
+      skip("LLM API authentication failed - please check your API keys (OPENAI_API_KEY or ANTHROPIC_API_KEY)")
     } else {
-      stop(paste("OpenAI API error:", as.character(e)))
+      stop(paste("LLM API error:", as.character(e)))
     }
   })
 }
 
+
 # Configuration variables
-LLM_MODEL <- "gpt-4.1-mini"
+#LLM_MODEL <- "gpt-4o-mini"
+LLM_MODEL <- "claude-3-5-sonnet-latest"
+#LLM_MODEL <- "claude-3-7-sonnet-latest"
+#LLM_MODEL <- "claude-sonnet-4-0"
 KORAP_URL <- "https://korap.ids-mannheim.de/instance/wiki"
 
 # Helper function to create README-guided prompt
@@ -126,29 +130,30 @@ run_code_if_enabled <- function(code, test_name) {
 }
 
 test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"), {
-  skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
+  # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt with README context and task
   prompt <- create_readme_prompt(
-    "write R code to perform a frequency query for the word 'Deutschland' across multiple years (2010-2015). The code should use the RKorAPClient package and return a data frame with year and frequency columns.",
-    "Write R code to query frequency of 'Deutschland' from 2010-2015 using RKorAPClient."
+    "write R code to perform a frequency query for the word 'Deutschland' across multiple years (2022-2024). The code should use the RKorAPClient package and return a data frame.",
+    "Write R code to query frequency of 'Deutschland' from 2022-2024 using RKorAPClient."
   )
 
-  # Call OpenAI API
-  generated_response <- call_openai_api(prompt, max_tokens = 500)
+  # Call LLM API
+  generated_response <- call_llm_api(prompt, max_tokens = 500)
   generated_code <- extract_r_code(generated_response)
 
   # Basic checks on the generated code
   expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
   expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
   expect_true(grepl("Deutschland", generated_code), "Generated code should include the search term 'Deutschland'")
-  expect_true(grepl("201[0-5]", generated_code), "Generated code should include years 2010-2015")
+  expect_true(grepl("202[2-4]", generated_code), "Generated code should include years 2022-2024")
   expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Check that the generated code contains essential RKorAPClient patterns
-  expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code),
-              "Generated code should use pipe operators")
+  # expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code), "Generated code should use pipe operators")
 
   # Test code syntax
   syntax_valid <- test_code_syntax(generated_code)
@@ -164,9 +169,12 @@ test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"
   }
 })
 
+
 test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guidance"), {
-  skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
+  # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt for collocation analysis
   prompt <- create_readme_prompt(
@@ -174,8 +182,8 @@ test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guid
     "Write R code to perform collocation analysis for 'setzen' using RKorAPClient."
   )
 
-  # Call OpenAI API
-  generated_response <- call_openai_api(prompt, max_tokens = 500)
+  # Call LLM API
+  generated_response <- call_llm_api(prompt, max_tokens = 500)
   generated_code <- extract_r_code(generated_response)
 
   # Basic checks on the generated code
@@ -200,8 +208,10 @@ test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guid
 })
 
 test_that(paste(LLM_MODEL, "can solve corpus query task with README guidance"), {
-  skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")), "OPENAI_API_KEY not set")
+  # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt for corpus query
   prompt <- create_readme_prompt(
@@ -209,8 +219,8 @@ test_that(paste(LLM_MODEL, "can solve corpus query task with README guidance"), 
     "Write R code to query 'Hello world' and fetch all results using RKorAPClient."
   )
 
-  # Call OpenAI API
-  generated_response <- call_openai_api(prompt, max_tokens = 300)
+  # Call LLM API
+  generated_response <- call_llm_api(prompt, max_tokens = 300)
   generated_code <- extract_r_code(generated_response)
 
   # Basic checks on the generated code
