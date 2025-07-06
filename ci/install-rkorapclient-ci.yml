@@ -45,7 +45,7 @@
     - start_section installing "Installing RKorAPClient from source"
     - export PATH=/usr/local/sbin:$PATH
     - R -q -e "install.packages('pak', dependencies=TRUE)"
-    - R -q -e "pak::pak(c('devtools', 'RKorAPClient'), dependencies=TRUE)"
+    - R -q -e "pak::pak(c('devtools', 'RKorAPClient', 'tidyllm'), dependencies=TRUE)"
     - end_section installing
     - start_section linstalling "Installing RKorAPClient from source"
     - R -q -e 'pak::pak(".")'
