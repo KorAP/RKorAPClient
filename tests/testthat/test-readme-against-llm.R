@@ -1,5 +1,13 @@
 library(tidyllm)
 
+# Helper function to skip if no API keys are available
+skip_if_no_api_key <- function() {
+  skip_if_not(nzchar(Sys.getenv("OPENAI_API_KEY")) || 
+              nzchar(Sys.getenv("ANTHROPIC_API_KEY")) || 
+              nzchar(Sys.getenv("GOOGLE_API_KEY")), 
+              "No API keys found (need OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY)")
+}
+
 # Helper function to find README.md file in current or parent directories
 find_readme_path <- function() {
   readme_paths <- c("Readme.md", "../Readme.md", "../../Readme.md")
@@ -57,7 +65,6 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
     }
   })
 }
-
 
 # Configuration variables
 #LLM_MODEL <- "gpt-4o-mini"                  # OpenAI model option
@@ -136,10 +143,14 @@ run_code_if_enabled <- function(code, test_name) {
 }
 
 test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"), {
+  # Skip if offline
+  skip_if_offline()
+  
+  # Skip if no API keys are set
+  skip_if_no_api_key()
+  
   # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
-
-  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt with README context and task
   prompt <- create_readme_prompt(
@@ -179,10 +190,14 @@ test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"
 
 
 test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guidance"), {
+  # Skip if offline
+  skip_if_offline()
+  
+  # Skip if no API keys are set
+  skip_if_no_api_key()
+  
   # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
-
-  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt for collocation analysis
   prompt <- create_readme_prompt(
@@ -216,10 +231,14 @@ test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guid
 })
 
 test_that(paste(LLM_MODEL, "can solve corpus query task with README guidance"), {
+  # Skip if offline
+  skip_if_offline()
+  
+  # Skip if no API keys are set
+  skip_if_no_api_key()
+  
   # Check for README file
   skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
-
-  # Note: tidyllm will handle API key checking and give appropriate errors
 
   # Create the prompt for corpus query
   prompt <- create_readme_prompt(
