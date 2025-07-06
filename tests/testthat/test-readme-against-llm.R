@@ -29,8 +29,11 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
       provider <- openai()
     } else if (grepl("^claude-", model, ignore.case = TRUE)) {
       provider <- claude()
+    } else if (grepl("^gemini-", model, ignore.case = TRUE)) {
+      # Debug Gemini API key
+      provider <- gemini()
     } else {
-      stop(paste("Unsupported model:", model))
+      stop(paste("Unsupported model:", model, "- supported prefixes: gpt-, claude-, gemini-"))
     }
 
     # Use tidyllm unified API
@@ -48,7 +51,7 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
     if (grepl("429", as.character(e))) {
       skip("LLM API rate limit exceeded - please try again later or check your API key/credits")
     } else if (grepl("401", as.character(e))) {
-      skip("LLM API authentication failed - please check your API keys (OPENAI_API_KEY or ANTHROPIC_API_KEY)")
+      skip("LLM API authentication failed - please check your API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY)")
     } else {
       stop(paste("LLM API error:", as.character(e)))
     }
@@ -57,10 +60,13 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
 
 
 # Configuration variables
-#LLM_MODEL <- "gpt-4o-mini"
-LLM_MODEL <- "claude-3-5-sonnet-latest"
-#LLM_MODEL <- "claude-3-7-sonnet-latest"
-#LLM_MODEL <- "claude-sonnet-4-0"
+#LLM_MODEL <- "gpt-4o-mini"                  # OpenAI model option
+#LLM_MODEL <- "claude-3-5-sonnet-latest"      # Claude model option (current)
+#LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
+#LLM_MODEL <- "claude-sonnet-4-0"            # Claude model option
+LLM_MODEL <- "gemini-2.5-pro"               # Google Gemini model option
+#LLM_MODEL <- "gemini-1.5-pro"               # Google Gemini model option
+#LLM_MODEL <- "gemini-2.5-flash"             # Google Gemini model option (faster)
 KORAP_URL <- "https://korap.ids-mannheim.de/instance/wiki"
 
 # Helper function to create README-guided prompt
