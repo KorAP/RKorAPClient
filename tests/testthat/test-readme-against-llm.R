@@ -1,3 +1,5 @@
+library(tidyllm)
+
 # Helper function to find README.md file in current or parent directories
 find_readme_path <- function() {
   readme_paths <- c("Readme.md", "../Readme.md", "../../Readme.md")
@@ -21,8 +23,6 @@ read_readme_content <- function() {
 
 # Helper function to call LLM API using tidyllm
 call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LLM_MODEL) {
-  library(tidyllm)
-
   tryCatch({
     # Determine the provider based on model name
     if (grepl("^gpt-", model, ignore.case = TRUE)) {
