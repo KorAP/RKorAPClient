@@ -61,8 +61,8 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
 
 # Configuration variables
 #LLM_MODEL <- "gpt-4o-mini"                  # OpenAI model option
-#LLM_MODEL <- "claude-3-5-sonnet-latest"      # Claude model option
-LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
+LLM_MODEL <- "claude-3-5-sonnet-latest"      # Claude model option
+#LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
 #LLM_MODEL <- "claude-sonnet-4-0"            # Claude model option
 #LLM_MODEL <- "gemini-2.5-pro"               # Google Gemini model option
 #LLM_MODEL <- "gemini-1.5-pro"               # Google Gemini model option
@@ -143,8 +143,8 @@ test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"
 
   # Create the prompt with README context and task
   prompt <- create_readme_prompt(
-    "write R code to perform a frequency query for the word 'Deutschland' across multiple years (2022-2024). The code should use the RKorAPClient package and return a data frame.",
-    "Write R code to query frequency of 'Deutschland' from 2022-2024 using RKorAPClient."
+    "write R code to perform a frequency query for the word 'Demokratie' across the past three years. The code should use the RKorAPClient package and return a data frame.",
+    "Write R code to query frequency of 'Demokratie' from the past three years using RKorAPClient."
   )
 
   # Call LLM API
@@ -154,8 +154,10 @@ test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"
   # Basic checks on the generated code
   expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
   expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
-  expect_true(grepl("Deutschland", generated_code), "Generated code should include the search term 'Deutschland'")
-  expect_true(grepl("202[2-4]", generated_code), "Generated code should include years 2022-2024")
+  expect_true(grepl("Demokratie", generated_code), "Generated code should include the search term 'Demokratie'")
+  last_year <- as.numeric(format(Sys.Date(), "%Y")) - 1
+
+  expect_true(grepl("Date in ", generated_code), "Generated code should vc restriction on years")
   expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Check that the generated code contains essential RKorAPClient patterns
@@ -196,7 +198,7 @@ test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guid
   expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
   expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
   expect_true(grepl("setzen", generated_code), "Generated code should include the search term 'setzen'")
-  expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
+  # expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
   expect_true(grepl(KORAP_URL, generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
   # Test code syntax

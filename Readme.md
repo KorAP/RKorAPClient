@@ -32,7 +32,7 @@ library(ggplot2)
 kco <- KorAPConnection(verbose=TRUE)
 expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"), 
             year = (2002:2018)) %>%
-    cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", paste0(.$condition," & pubDate in ", .$year)))  %>%
+    cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", paste0(.$condition," & creationDate in ", .$year)))  %>%
     ipm() %>%
     ggplot(aes(x = year, y = ipm, fill = condition, colour = condition)) +
     geom_freq_by_year_ci()
@@ -50,7 +50,7 @@ library(RKorAPClient)
 query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
 years = c(1980:2010)
 as.alternatives = TRUE
-vc = "textType = /Zeit.*/ & pubDate in"
+vc = "textType = /Zeit.*/ & creationDate in"
 KorAPConnection(verbose=T) |>
   frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) |>
   hc_freq_by_year_ci(as.alternatives)
