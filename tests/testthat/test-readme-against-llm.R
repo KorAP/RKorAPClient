@@ -61,10 +61,10 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
 
 # Configuration variables
 #LLM_MODEL <- "gpt-4o-mini"                  # OpenAI model option
-#LLM_MODEL <- "claude-3-5-sonnet-latest"      # Claude model option (current)
-#LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
+#LLM_MODEL <- "claude-3-5-sonnet-latest"      # Claude model option
+LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
 #LLM_MODEL <- "claude-sonnet-4-0"            # Claude model option
-LLM_MODEL <- "gemini-2.5-pro"               # Google Gemini model option
+#LLM_MODEL <- "gemini-2.5-pro"               # Google Gemini model option
 #LLM_MODEL <- "gemini-1.5-pro"               # Google Gemini model option
 #LLM_MODEL <- "gemini-2.5-flash"             # Google Gemini model option (faster)
 KORAP_URL <- "https://korap.ids-mannheim.de/instance/wiki"
