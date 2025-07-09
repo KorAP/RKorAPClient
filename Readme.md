@@ -58,7 +58,22 @@ KorAPConnection(verbose=T) |>
 
 [![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
 
+### Use other corpora than DeReKo as basis
 
+Set the first (`KorAPUrl`) argument of the `KorAPConnection` function to the URL of the KorAP instance, providing the desired corpus, e.g. to 
+
+* `https://korap.ids-mannheim.de/instance/wiki/` for the current German Wikipedia corpus provided by the IDS
+* `https://korap.ids-mannheim.de/instance/english/` for an English Wikipedia corpus provided by the IDS
+* `https://korap.dnb.de/` for the DeLiKo@DNB-XL German fiction corpus
+* `https://korap.racai.ro/` for the Contemporary Corpus of the Romanian Language (CoRoLa)
+
+```r
+library(RKorAPClient)
+KorAPConnection(KorAPUrl = "https://korap.ids-mannheim.de/instance/wiki/", verbose = TRUE) |>
+  corpusQuery("Berlin") |>
+  fetchAll()
+```
+  
 ### Identify *in … setzen* light verb constructions by using the new `collocationAnalysis` function
 
 ```r
@@ -215,7 +230,7 @@ install.packages("RKorAPClient")
 remotes::install_github("KorAP/RKorAPClient")
 ```
 
-### Full installation videos
+## Full installation videos
 
 ## Mac
 
