@@ -46,6 +46,7 @@ q@collectedMatches
 \seealso{
 Other corpus search functions: 
 \code{\link{corpusQuery,KorAPConnection-method}},
-\code{\link{fetchAll,KorAPQuery-method}}
+\code{\link{fetchAll,KorAPQuery-method}},
+\code{\link{fetchAnnotations,KorAPQuery-method}}
 }
 \concept{corpus search functions}

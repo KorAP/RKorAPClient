@@ -17,7 +17,8 @@
   webUIRequestUrl = "",
   apiResponse = NULL,
   hasMoreMatches = FALSE,
-  collectedMatches = NULL
+  collectedMatches = NULL,
+  annotations = NULL
 )
 }
 \arguments{
@@ -44,6 +45,8 @@
 \item{hasMoreMatches}{logical that signals if more query results can be fetched}
 
 \item{collectedMatches}{matches already fetched from the KorAP-API-server}
+
+\item{annotations}{list of annotation data for collected matches}
 }
 \description{
 Initialize KorAPQuery object

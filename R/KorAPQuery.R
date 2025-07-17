@@ -21,7 +21,8 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
   "webUIRequestUrl",
   "apiResponse",
   "collectedMatches",
-  "hasMoreMatches"
+  "hasMoreMatches",
+  "annotations"
 ))
 
 #' Initialize KorAPQuery object
@@ -38,6 +39,7 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 #' @param apiResponse data-frame representation of the JSON response of the API request
 #' @param hasMoreMatches logical that signals if more query results can be fetched
 #' @param collectedMatches matches already fetched from the KorAP-API-server
+#' @param annotations list of annotation data for collected matches
 #'
 #' @importFrom tibble tibble
 #' @export
@@ -47,7 +49,7 @@ setMethod(
              "corpusSigle", "textSigle", "pubDate", "pubPlace",
              "availability", "textClass", "snippet", "tokens"
            ),
-           requestUrl = "", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE, collectedMatches = NULL) {
+           requestUrl = "", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE, collectedMatches = NULL, annotations = NULL) {
     .Object <- callNextMethod()
     .Object@korapConnection <- korapConnection
     .Object@request <- request
@@ -60,6 +62,7 @@ setMethod(
     .Object@apiResponse <- apiResponse
     .Object@hasMoreMatches <- hasMoreMatches
     .Object@collectedMatches <- collectedMatches
+    .Object@annotations <- annotations
     .Object
   }
 )
@@ -68,6 +71,7 @@ setGeneric("corpusQuery", function(kco, ...) standardGeneric("corpusQuery"))
 setGeneric("fetchAll", function(kqo, ...) standardGeneric("fetchAll"))
 setGeneric("fetchNext", function(kqo, ...) standardGeneric("fetchNext"))
 setGeneric("fetchRest", function(kqo, ...) standardGeneric("fetchRest"))
+setGeneric("fetchAnnotations", function(kqo, ...) standardGeneric("fetchAnnotations"))
 setGeneric("frequencyQuery", function(kco, ...) standardGeneric("frequencyQuery"))
 
 maxResultsPerPage <- 50
@@ -736,6 +740,86 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
 })
 
+#' Fetch annotations for all collected matches
+#'
+#' **`fetchAnnotations`** fetches annotations for all matches in the `@collectedMatches` slot
+#' of a KorAPQuery object and stores them in the `@annotations` slot.
+#'
+#' @family corpus search functions
+#' @aliases fetchAnnotations
+#'
+#' @param kqo object obtained from [corpusQuery()] with collected matches
+#' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
+#' @param verbose print progress information if true
+#' @return The updated `kqo` object with annotations in `@annotations` slot
+#'
+#' @examples
+#' \dontrun{
+#'
+#' # Fetch annotations for matches using Tree-Tagger foundry
+#' q <- KorAPConnection() |>
+#'   corpusQuery("Ameisenplage") |>
+#'   fetchNext(maxFetch = 10) |>
+#'   fetchAnnotations()
+#' q@annotations
+#'
+#' # Use a different foundry
+#' q <- KorAPConnection() |>
+#'   corpusQuery("Ameisenplage") |>
+#'   fetchNext(maxFetch = 10) |>
+#'   fetchAnnotations(foundry = "mate")
+#' q@annotations
+#' }
+#'
+#' @export
+setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbose = kqo@korapConnection@verbose) {
+  if (is.null(kqo@collectedMatches) || nrow(kqo@collectedMatches) == 0) {
+    warning("No collected matches found. Please run fetchNext() or fetchAll() first.")
+    return(kqo)
+  }
+  
+  df <- kqo@collectedMatches
+  kco <- kqo@korapConnection
+  annotations_list <- list()
+  
+  if (verbose) {
+    cat("Fetching annotations for", nrow(df), "matches using foundry:", foundry, "\n")
+  }
+  
+  for (i in seq_len(nrow(df))) {
+    if (verbose && i %% 10 == 0) {
+      cat("Processing match", i, "of", nrow(df), "\n")
+    }
+    
+    req <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", df$matchStart[i], "-", df$matchEnd[i], "?foundry=", foundry)
+    
+    tryCatch({
+      res <- apiCall(kco, req)
+      if (!is.null(res)) {
+        annotations_list[[i]] <- res
+      } else {
+        if (verbose) {
+          cat("Warning: No annotations returned for match", i, "\n")
+        }
+        annotations_list[[i]] <- NULL
+      }
+    }, error = function(e) {
+      if (verbose) {
+        cat("Error fetching annotations for match", i, ":", e$message, "\n")
+      }
+      annotations_list[[i]] <- NULL
+    })
+  }
+  
+  if (verbose) {
+    successful_annotations <- sum(!sapply(annotations_list, is.null))
+    cat("Successfully fetched annotations for", successful_annotations, "of", nrow(df), "matches\n")
+  }
+  
+  kqo@annotations <- annotations_list
+  return(kqo)
+})
+
 #' Query frequencies of search expressions in virtual corpora
 #'
 #' **`frequencyQuery`** combines [corpusQuery()], [corpusStats()] and
@@ -851,6 +935,10 @@ format.KorAPQuery <- function(x, ...) {
   }
   cat("   Total results: ", q@totalResults, "\n")
   cat(" Fetched results: ", q@nextStartIndex, "\n")
+  if (!is.null(q@annotations)) {
+    successful_annotations <- sum(!sapply(q@annotations, is.null))
+    cat("     Annotations: ", successful_annotations, " of ", length(q@annotations), " matches\n")
+  }
 }
 
 #' show()

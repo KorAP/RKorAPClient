@@ -141,6 +141,7 @@ KorAPConnection(verbose = TRUE) |>
 
 Other corpus search functions: 
 \code{\link{fetchAll,KorAPQuery-method}},
+\code{\link{fetchAnnotations,KorAPQuery-method}},
 \code{\link{fetchNext,KorAPQuery-method}}
 }
 \concept{corpus search functions}
