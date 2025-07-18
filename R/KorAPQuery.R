@@ -535,6 +535,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     currentMatches <- currentMatches %>%
       select(kqo@fields) %>%
       mutate(
+        matchID = res$matches$matchID,
         tmp_positions = gsub(".*-p(\\d+)-(\\d+).*", "\\1 \\2", res$matches$matchID),
         matchStart = as.integer(stringr::word(tmp_positions, 1)),
         matchEnd = as.integer(stringr::word(tmp_positions, 2)) - 1
@@ -743,7 +744,10 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
 #' Fetch annotations for all collected matches
 #'
 #' **`fetchAnnotations`** fetches annotations for all matches in the `@collectedMatches` slot
-#' of a KorAPQuery object and stores them in the `@annotations` slot.
+#' of a KorAPQuery object and stores them in the `@annotations` slot. The method automatically
+#' uses the `matchID` from collected matches when available for safer and more reliable 
+#' annotation retrieval, falling back to constructing URLs from `matchStart` and `matchEnd`
+#' if necessary.
 #'
 #' @family corpus search functions
 #' @aliases fetchAnnotations
@@ -791,7 +795,31 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
       cat("Processing match", i, "of", nrow(df), "\n")
     }
     
-    req <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", df$matchStart[i], "-", df$matchEnd[i], "?foundry=", foundry)
+    # Use matchID if available, otherwise fall back to constructing from matchStart/matchEnd
+    if ("matchID" %in% colnames(df) && !is.na(df$matchID[i])) {
+      # matchID format: "match-match-A00/JUN/39609-p202-203"
+      # Extract document path and position: A00/JUN/39609-p202-203
+      # Then convert to URL format: A00/JUN/39609/p202-203
+      
+      # First extract the document path with position (everything after the last "match-")
+      doc_path_with_pos <- gsub(".*match-([^-]+(?:/[^-]+)*-p\\d+-\\d+).*", "\\1", df$matchID[i])
+      # Then convert the dash before position to slash
+      match_path <- gsub("-p(\\d+-\\d+)", "/p\\1", doc_path_with_pos)
+      req <- paste0(kco@apiUrl, "corpus/", match_path, "?foundry=", foundry)
+      if (verbose) {
+        cat("Using matchID approach for match", i, ": matchID =", df$matchID[i], "\n")
+        cat("Extracted doc path:", doc_path_with_pos, "\n")
+        cat("Final match path:", match_path, "\n")
+        cat("Constructed URL:", req, "\n")
+      }
+    } else {
+      # Fallback to the old method
+      req <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", df$matchStart[i], "-", df$matchEnd[i], "?foundry=", foundry)
+      if (verbose) {
+        cat("Using fallback approach for match", i, ": textSigle =", df$textSigle[i], "\n")
+        cat("Constructed URL:", req, "\n")
+      }
+    }
     
     tryCatch({
       res <- apiCall(kco, req)
