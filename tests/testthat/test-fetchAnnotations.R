@@ -177,3 +177,52 @@ test_that("matchID is preserved in collectedMatches", {
     expect_equal(q@collectedMatches$matchEnd[i], expected_end)
   }
 })
+
+test_that("fetchAnnotations handles morphological annotations with pipe separators", {
+  skip_if_offline()
+
+  kco <- KorAPConnection("https://korap.dnb.de", verbose = FALSE, cache = FALSE, accessToken = NULL)
+  q <- kco %>%
+    auth() %>%
+    corpusQuery("Ameisenplage", metadataOnly = FALSE) %>%
+    fetchNext(maxFetch = 1)
+
+  # Skip test if no matches found
+  skip_if(is.null(q@collectedMatches) || nrow(q@collectedMatches) == 0, "No matches found for test query")
+
+  # Test with marmot foundry which provides morphological annotations
+  q_with_morph <- fetchAnnotations(q, foundry = "marmot", verbose = FALSE)
+
+  # Check that morphological annotation columns exist
+  expect_true("morph" %in% colnames(q_with_morph@collectedMatches))
+  expect_true("atokens" %in% colnames(q_with_morph@collectedMatches))
+
+  # Test the structure of morphological annotation columns
+  morph <- q_with_morph@collectedMatches$morph
+  expect_true(is.data.frame(morph))
+  expect_true(all(c("left", "match", "right") %in% names(morph)))
+  expect_true(is.list(morph$match))
+
+  # Test that morphological features use pipe separators
+  if (nrow(q_with_morph@collectedMatches) > 0) {
+    morph_data <- morph$match[[1]]
+
+    # Check that we have morphological data
+    expect_true(length(morph_data) > 0)
+
+    # If morphological data exists and is not NA, it should contain pipe separators
+    # for multiple features (e.g., "case:acc|gender:fem|number:sg")
+    if (!is.na(morph_data[1]) && nchar(morph_data[1]) > 0) {
+      # Should contain morphological features separated by pipes
+      expect_true(grepl("^[^|]+", morph_data[1])) # At least one feature
+
+      # If multiple features exist, they should be pipe-separated
+      if (grepl("\\|", morph_data[1])) {
+        features <- unlist(strsplit(morph_data[1], "\\|"))
+        expect_true(length(features) > 1)
+        # Each feature should follow the pattern "attribute:value"
+        expect_true(all(grepl("^[^:]+:[^:]+$", features)))
+      }
+    }
+  }
+})
