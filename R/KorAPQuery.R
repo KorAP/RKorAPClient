@@ -1166,7 +1166,18 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
 
   df$annotation_snippet <- replicate(nrows, NA, simplify = FALSE)
 
+  # Initialize timing for ETA calculation
+  start_time <- Sys.time()
+  if (verbose) {
+    log_info(verbose, paste("Starting to fetch annotations for", nrows, "matches\n"))
+  }
+
   for (i in seq_len(nrow(df))) {
+    # ETA logging
+    if (verbose && i > 1) {
+      eta_info <- calculate_eta(i, nrows, start_time)
+      log_info(verbose, paste("Fetching annotations for match", i, "of", nrows, eta_info, "\n"))
+    }
     # Use matchID if available, otherwise fall back to constructing from matchStart/matchEnd
     if ("matchID" %in% colnames(df) && !is.na(df$matchID[i])) {
       # matchID format: "match-match-A00/JUN/39609-p202-203" or encrypted format like
@@ -1321,6 +1332,11 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
       warning("Failed to add annotation data to collectedMatches")
     })
   })
+
+  if (verbose) {
+    elapsed_time <- Sys.time() - start_time
+    log_info(verbose, paste("Finished fetching annotations for", nrows, "matches in", format_duration(as.numeric(elapsed_time, units = "secs")), "\n"))
+  }
 
   return(kqo)
 })
