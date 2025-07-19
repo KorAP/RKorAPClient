@@ -1194,14 +1194,24 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
         doc_path_with_pos_and_encryption <- gsub("^match-(.+)$", "\\1", df$matchID[i], perl = TRUE)
         # Convert the dash before position to slash, but keep everything after the position
         match_path <- gsub("-p(\\d+-\\d+.*)", "/p\\1", doc_path_with_pos_and_encryption)
-        req <- paste0(kco@apiUrl, "corpus/", match_path, "?foundry=", foundry)
+        # Use httr2 to construct URL safely
+        base_url <- paste0(kco@apiUrl, "corpus/", match_path)
+        req <- httr2::url_modify(base_url, query = list(foundry = foundry))
       } else {
-        # If regex fails, fall back to the old method
-        req <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", df$matchStart[i], "-", df$matchEnd[i], "?foundry=", foundry)
+        # If regex fails, fall back to the old method with httr2
+        # Format numbers to avoid scientific notation
+        match_start <- format(df$matchStart[i], scientific = FALSE)
+        match_end <- format(df$matchEnd[i], scientific = FALSE)
+        base_url <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", match_start, "-", match_end)
+        req <- httr2::url_modify(base_url, query = list(foundry = foundry))
       }
     } else {
-      # Fallback to the old method
-      req <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", df$matchStart[i], "-", df$matchEnd[i], "?foundry=", foundry)
+      # Fallback to the old method with httr2
+      # Format numbers to avoid scientific notation
+      match_start <- format(df$matchStart[i], scientific = FALSE)
+      match_end <- format(df$matchEnd[i], scientific = FALSE)
+      base_url <- paste0(kco@apiUrl, "corpus/", df$textSigle[i], "/", "p", match_start, "-", match_end)
+      req <- httr2::url_modify(base_url, query = list(foundry = foundry))
     }
 
     tryCatch({
