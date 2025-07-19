@@ -1143,33 +1143,24 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
   # Create the structure more explicitly to avoid assignment issues
   nrows <- nrow(df)
 
-  df$pos <- data.frame(
-    left = I(replicate(nrows, character(0), simplify = FALSE)),
-    match = I(replicate(nrows, character(0), simplify = FALSE)),
-    right = I(replicate(nrows, character(0), simplify = FALSE)),
-    stringsAsFactors = FALSE
-  )
+  # Pre-compute the empty character vector list to avoid repeated computation
+  empty_char_list <- I(replicate(nrows, character(0), simplify = FALSE))
+  
+  # Helper function to create annotation data frame structure
+  create_annotation_df <- function(empty_list) {
+    data.frame(
+      left = empty_list,
+      match = empty_list,
+      right = empty_list,
+      stringsAsFactors = FALSE
+    )
+  }
 
-  df$lemma <- data.frame(
-    left = I(replicate(nrows, character(0), simplify = FALSE)),
-    match = I(replicate(nrows, character(0), simplify = FALSE)),
-    right = I(replicate(nrows, character(0), simplify = FALSE)),
-    stringsAsFactors = FALSE
-  )
-
-  df$morph <- data.frame(
-    left = I(replicate(nrows, character(0), simplify = FALSE)),
-    match = I(replicate(nrows, character(0), simplify = FALSE)),
-    right = I(replicate(nrows, character(0), simplify = FALSE)),
-    stringsAsFactors = FALSE
-  )
-
-  df$atokens <- data.frame(
-    left = I(replicate(nrows, character(0), simplify = FALSE)),
-    match = I(replicate(nrows, character(0), simplify = FALSE)),
-    right = I(replicate(nrows, character(0), simplify = FALSE)),
-    stringsAsFactors = FALSE
-  )
+  # Initialize all annotation columns using the helper function
+  annotation_types <- c("pos", "lemma", "morph", "atokens")
+  for (type in annotation_types) {
+    df[[type]] <- create_annotation_df(empty_char_list)
+  }
 
   df$annotation_snippet <- replicate(nrows, NA, simplify = FALSE)
 
