@@ -15,16 +15,22 @@
 \item{verbose}{print progress information if true}
 }
 \value{
-The updated \code{kqo} object with annotation columns added to \verb{@collectedMatches}
+The updated \code{kqo} object with annotation columns
+like \code{pos}, \code{lemma}, \code{morph} (and \code{atokens} and \code{annotation_snippet})
+in the \verb{@collectedMatches} slot. Each column is a data frame
+with \code{left}, \code{match}, and \code{right} columns containing list vectors of annotations
+for the left context, matched tokens, and right context, respectively.
+The original XML snippet for each match is also stored in \code{annotation_snippet}.
 }
 \description{
-\strong{\code{fetchAnnotations}} fetches annotations for all matches in the \verb{@collectedMatches} slot
-of a KorAPQuery object and adds annotation columns directly to the \verb{@collectedMatches}
-data frame. The method automatically uses the \code{matchID} from collected matches when
-available for safer and more reliable annotation retrieval, falling back to constructing
-URLs from \code{matchStart} and \code{matchEnd} if necessary.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \details{
+\strong{\code{fetchAnnotations}} fetches annotations (only token annotations, for now)
+for all matches in the \verb{@collectedMatches} slot
+of a KorAPQuery object and adds annotation columns directly to the \verb{@collectedMatches}
+data frame. The method uses the \code{matchID} from collected matches.
+
 \strong{Important}: For copyright-restricted corpora, users must be authorized via \code{\link[=auth]{auth()}}
 and the initial corpus query must have \code{metadataOnly = FALSE} to ensure snippets are
 available for annotation parsing.
@@ -51,7 +57,7 @@ q <- KorAPConnection() |>
 
 # Access linguistic annotations for match i:
 pos_tags <- q@collectedMatches$pos         # Data frame with left/match/right columns for POS tags
-lemmas <- q@collectedMatches$lemma         # Data frame with left/match/right columns for lemmas  
+lemmas <- q@collectedMatches$lemma         # Data frame with left/match/right columns for lemmas
 morphology <- q@collectedMatches$morph     # Data frame with left/match/right columns for morphological tags
 atokens <- q@collectedMatches$atokens      # Data frame with left/match/right columns for annotation token text
 raw_snippet <- q@collectedMatches$annotation_snippet[[i]] # Original XML snippet for match i
@@ -61,13 +67,13 @@ match_pos <- q@collectedMatches$pos$match[[i]]     # POS tags for the matched to
 left_lemmas <- q@collectedMatches$lemma$left[[i]]  # Lemmas for the left context in match i
 right_tokens <- q@collectedMatches$atokens$right[[i]] # Token text for the right context in match i
 
-# Use a different foundry (e.g., mate-parser)
+# Use a different foundry (e.g., MarMoT)
 q <- KorAPConnection() |>
   auth() |>
   corpusQuery("Ameisenplage", metadataOnly = FALSE) |>
   fetchNext(maxFetch = 10) |>
-  fetchAnnotations(foundry = "mate")
-q@collectedMatches
+  fetchAnnotations(foundry = "marmot")
+q@collectedMatches$pos$left[1] # POS tags for the left context of the first match
 }
 }
 \seealso{
@@ -76,4 +82,5 @@ Other corpus search functions:
 \code{\link{fetchAll,KorAPQuery-method}},
 \code{\link{fetchNext,KorAPQuery-method}}
 }
+\concept{Annotations}
 \concept{corpus search functions}

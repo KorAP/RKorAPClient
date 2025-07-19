@@ -918,7 +918,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
     lemmas <- character(0)
     pos_tags <- character(0)
     morph_tags <- character(0)
-    
+
     # First try to split by spaces between span groups (for multiple tokens)
     # Look for spaces that separate token groups
     if (grepl('</span>\\s+<span', section_content)) {
@@ -928,11 +928,11 @@ parse_xml_annotations_structured <- function(xml_snippet) {
       # Single token (or no spaces between tokens)
       token_groups <- c(section_content)
     }
-    
+
     for (group in token_groups) {
       group <- trimws(group)
       if (nchar(group) == 0) next
-      
+
       # Extract the actual text content (the innermost text)
       text_match <- regexpr('>([^<>]+)</span>', group, perl = TRUE)
       if (text_match > 0) {
@@ -942,20 +942,20 @@ parse_xml_annotations_structured <- function(xml_snippet) {
           # Take the last match (innermost text)
           text_content <- sub('.*>([^<>]+)</span>.*', '\\1', all_texts[length(all_texts)], perl = TRUE)
           text_content <- trimws(text_content)
-          
+
           if (nchar(text_content) > 0 && !grepl('^<', text_content)) {
             tokens <- c(tokens, text_content)
-            
+
             # Extract all title attributes from this group
             titles <- regmatches(group, gregexpr('title="([^"]*)"', group, perl = TRUE))[[1]]
-            
+
             morph_features <- character(0)
             lemma <- NA
             pos_tag <- NA
-            
+
             for (title in titles) {
               content <- sub('title="([^"]*)"', '\\1', title, perl = TRUE)
-              
+
               if (grepl('^[^/]+/l:', content)) {
                 lemma <- sub('^[^/]+/l:(.*)$', '\\1', content)
               } else if (grepl('^[^/]+/p:', content)) {
@@ -965,7 +965,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
                 morph_features <- c(morph_features, morph_feature)
               }
             }
-            
+
             lemmas <- c(lemmas, lemma)
             pos_tags <- c(pos_tags, pos_tag)
             morph_tag <- if (length(morph_features) > 0) paste(morph_features, collapse = "|") else NA
@@ -1066,11 +1066,12 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 
 #' Fetch annotations for all collected matches
 #'
-#' **`fetchAnnotations`** fetches annotations for all matches in the `@collectedMatches` slot
+#' `r lifecycle::badge("experimental")`
+#'
+#' **`fetchAnnotations`** fetches annotations (only token annotations, for now)
+#' for all matches in the `@collectedMatches` slot
 #' of a KorAPQuery object and adds annotation columns directly to the `@collectedMatches`
-#' data frame. The method automatically uses the `matchID` from collected matches when
-#' available for safer and more reliable annotation retrieval, falling back to constructing
-#' URLs from `matchStart` and `matchEnd` if necessary.
+#' data frame. The method uses the `matchID` from collected matches.
 #'
 #' **Important**: For copyright-restricted corpora, users must be authorized via [auth()]
 #' and the initial corpus query must have `metadataOnly = FALSE` to ensure snippets are
@@ -1084,12 +1085,18 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' - `annotation_snippet`: original XML snippet from the annotation API
 #'
 #' @family corpus search functions
+#' @concept Annotations
 #' @aliases fetchAnnotations
 #'
 #' @param kqo object obtained from [corpusQuery()] with collected matches. Note: the original corpus query should have `metadataOnly = FALSE` for annotation parsing to work.
 #' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
 #' @param verbose print progress information if true
-#' @return The updated `kqo` object with annotation columns added to `@collectedMatches`
+#' @return The updated `kqo` object with annotation columns 
+#' like `pos`, `lemma`, `morph` (and `atokens` and `annotation_snippet`)
+#' in the `@collectedMatches` slot. Each column is a data frame
+#' with `left`, `match`, and `right` columns containing list vectors of annotations
+#' for the left context, matched tokens, and right context, respectively.
+#' The original XML snippet for each match is also stored in `annotation_snippet`.
 #'
 #' @examples
 #' \dontrun{
@@ -1114,13 +1121,13 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' left_lemmas <- q@collectedMatches$lemma$left[[i]]  # Lemmas for the left context in match i
 #' right_tokens <- q@collectedMatches$atokens$right[[i]] # Token text for the right context in match i
 #'
-#' # Use a different foundry (e.g., mate-parser)
+#' # Use a different foundry (e.g., MarMoT)
 #' q <- KorAPConnection() |>
 #'   auth() |>
 #'   corpusQuery("Ameisenplage", metadataOnly = FALSE) |>
 #'   fetchNext(maxFetch = 10) |>
-#'   fetchAnnotations(foundry = "mate")
-#' q@collectedMatches
+#'   fetchAnnotations(foundry = "marmot")
+#' q@collectedMatches$pos$left[1] # POS tags for the left context of the first match
 #' }
 #' @export
 setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbose = kqo@korapConnection@verbose) {
