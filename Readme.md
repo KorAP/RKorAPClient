@@ -177,11 +177,13 @@ corpusQuery(kco, "Ameisenplage", metadataOnly = FALSE) |> fetchAll()
 
 should return KWIC snippets, if you have authorized your application successfully.
 
-## Querying and fetching  annotations
+## Querying and fetching annotations
 
 You can use complex annotation queries in all client functions just as in the KorAP web interface (see [KorAP Query Help](https://korap.ids-mannheim.de/doc/ql)). To fetch the annotations for all matches in a `KorAPQuery` object, use the `fetchAnnotations()` method:
 
 ```R
+# fetchAnnotations is currently only available in the development version of RKorAPClient
+devtools::install_github("KorAP/RKorAPClient")
 library(RKorAPClient)
 kco <- KorAPConnection(verbose = TRUE) |> auth()
 q <- corpusQuery(kco, "[marmot/p=ADJA] [tt/l=Ameisenplage & marmot/m=case:acc]", metadataOnly = FALSE) |>
