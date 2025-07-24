@@ -260,6 +260,9 @@ setMethod(
           log_info(verbose, ": API call failed\n")
           totalResults <- 0
         } else {
+          # Check for query rewrites and warn the user
+          warnOnRewrites(res)
+
           totalResults <- as.integer(res$meta$totalResults)
           log_info(verbose, ": ", totalResults, " hits")
           if (!is.null(res$meta$cached)) {
@@ -337,6 +340,9 @@ setMethod(
         message("API call failed.")
         totalResults <- 0
       } else {
+        # Check for query rewrites and warn the user
+        warnOnRewrites(res)
+
         totalResults <- as.integer(res$meta$totalResults)
         log_info(verbose, ": ", totalResults, " hits")
         if (!is.null(res$meta$cached)) {
@@ -386,6 +392,17 @@ setMethod(
     }
   }
 )
+
+# Helper function to check if a query rewrite warning should be shown
+warnOnRewrites <- function(res) {
+  if (!is.null(res$collection$rewrites)) {
+    comment <- res$collection$rewrites$`_comment`
+    # Only show warning if it's not just the standard policy message
+    if (!is.null(comment) && comment != "All corpus access policy has been added.") {
+      warning(res$collection$rewrites$editor, " had to rewrite your query: ", comment)
+    }
+  }
+}
 
 #' @importFrom purrr map
 repair_data_strcuture <- function(x) {
@@ -512,10 +529,14 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     # Rebuild the URL with all parameters
     query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
+
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
     }
+
+    # Check for query rewrites and warn the user
+    warnOnRewrites(res)
 
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
       log_info(verbose, "Using fields API: ")
@@ -555,6 +576,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
+
 
     # Get the actual items per page from the API response
     # We now consistently use maxResultsPerPage instead
@@ -1133,6 +1155,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   and preserve already fetched ones (e.g., keep POS/lemma from a previous
 #'   foundry while adding morph from another).
 #' @param verbose print progress information if true
+#' @return The updated `kqo` object with annotation columns
 #' @return The updated `kqo` object with annotation columns
 #' like `pos`, `lemma`, `morph` (and `atokens` and `annotation_snippet`)
 #' in the `@collectedMatches` slot. Each column is a data frame
