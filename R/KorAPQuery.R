@@ -254,6 +254,9 @@ setMethod(
           log_info(verbose, ": API call failed\n")
           totalResults <- 0
         } else {
+          # Check for query rewrites and warn the user
+          warnOnRewrites(res)
+
           totalResults <- as.integer(res$meta$totalResults)
           log_info(verbose, ": ", totalResults, " hits")
           if (!is.null(res$meta$cached)) {
@@ -331,6 +334,9 @@ setMethod(
         message("API call failed.")
         totalResults <- 0
       } else {
+        # Check for query rewrites and warn the user
+        warnOnRewrites(res)
+
         totalResults <- as.integer(res$meta$totalResults)
         log_info(verbose, ": ", totalResults, " hits")
         if (!is.null(res$meta$cached)) {
@@ -375,6 +381,17 @@ setMethod(
     }
   }
 )
+
+# Helper function to check if a query rewrite warning should be shown
+warnOnRewrites <- function(res) {
+  if (!is.null(res$collection$rewrites)) {
+    comment <- res$collection$rewrites$`_comment`
+    # Only show warning if it's not just the standard policy message
+    if (!is.null(comment) && comment != "All corpus access policy has been added.") {
+      warning(res$collection$rewrites$editor, " had to rewrite your query: ", comment)
+    }
+  }
+}
 
 #' @importFrom purrr map
 repair_data_strcuture <- function(x) {
@@ -501,10 +518,21 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     # Rebuild the URL with all parameters
     query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
+    log_info(verbose, sprintf(
+      "\rFetching page %d/%d (offset %d, count %d) from %s\n",
+      display_page_number,
+      ceiling(kqo@totalResults / maxResultsPerPage),
+      currentOffset,
+      count_param,
+      query
+    ))
     res <- apiCall(kqo@korapConnection, query)
     if (length(res$matches) == 0) {
       break
     }
+
+    # Check for query rewrites and warn the user
+    warnOnRewrites(res)
 
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
       log_info(verbose, "Using fields API: ")
@@ -544,6 +572,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     } else {
       collectedMatches <- bind_rows(collectedMatches, currentMatches)
     }
+
 
     # Get the actual items per page from the API response
     # We now consistently use maxResultsPerPage instead
@@ -1091,7 +1120,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' @param kqo object obtained from [corpusQuery()] with collected matches. Note: the original corpus query should have `metadataOnly = FALSE` for annotation parsing to work.
 #' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
 #' @param verbose print progress information if true
-#' @return The updated `kqo` object with annotation columns 
+#' @return The updated `kqo` object with annotation columns
 #' like `pos`, `lemma`, `morph` (and `atokens` and `annotation_snippet`)
 #' in the `@collectedMatches` slot. Each column is a data frame
 #' with `left`, `match`, and `right` columns containing list vectors of annotations
@@ -1110,10 +1139,10 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   fetchAnnotations()
 #'
 #' # Access linguistic annotations for match i:
-#' pos_tags <- q@collectedMatches$pos         # Data frame with left/match/right columns for POS tags
-#' lemmas <- q@collectedMatches$lemma         # Data frame with left/match/right columns for lemmas
-#' morphology <- q@collectedMatches$morph     # Data frame with left/match/right columns for morphological tags
-#' atokens <- q@collectedMatches$atokens      # Data frame with left/match/right columns for annotation token text
+#' pos_tags <- q@collectedMatches$pos      # df with left/match/right columns for POS tags
+#' lemmas <- q@collectedMatches$lemma      # df with left/match/right columns for lemmas
+#' morphology <- q@collectedMatches$morph  # df with left/match/right columns for morphological tags
+#' atokens <- q@collectedMatches$atokens   # df with left/match/right columns for annotation token text
 #' raw_snippet <- q@collectedMatches$annotation_snippet[[i]] # Original XML snippet for match i
 #'
 #' # Access specific components:
@@ -1145,7 +1174,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
 
   # Pre-compute the empty character vector list to avoid repeated computation
   empty_char_list <- I(replicate(nrows, character(0), simplify = FALSE))
-  
+
   # Helper function to create annotation data frame structure
   create_annotation_df <- function(empty_list) {
     data.frame(
