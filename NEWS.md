@@ -1,6 +1,7 @@
 # RKorAPClient 1.1.0.9000
 
 - `fetchAnnotaions()` method added to `KorAPQuery` class, to fetch annotations for all collected matches
+- warnings are now issued, when queries had to be rewritten (for licensing reasons)
 
 
 # RKorAPClient 1.1.0
