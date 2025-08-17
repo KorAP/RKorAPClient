@@ -16,7 +16,7 @@ mapfile <- file.path(tempdir(), "map-v2.rds")
 
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
-  sp <- readRDS(url(sprintf("https://biogeo.ucdavis.edu/data/gadm3.6/Rsp/gadm36_%s_sp.rds", map)))
+  sp <- readRDS(url(sprintf("https://geodata.ucdavis.edu/gadm/gadm3.6/Rsp/gadm36_%s_sp.rds", map)))
   if (pick > 0) {
     sp@polygons <- sp@polygons[pick]
     sp@data <- sp@data[pick,]
