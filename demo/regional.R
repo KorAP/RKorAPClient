@@ -6,7 +6,7 @@ library(sf)
 
 devAskNewPage(ask = FALSE)
 
-mapfile <- file.path(tempdir(), "map-sf-v1.rds")
+mapfile <- file.path(tempdir(), "map-gadm41-sf-v1.rds")
 
 # Caching data in the user's home filespace by default
 # is not allowed to package demos by CRAN policies ...
@@ -14,9 +14,16 @@ mapfile <- file.path(tempdir(), "map-sf-v1.rds")
 # mapfile <- file.path(R.cache::getCachePath(), "map-v2.rds")
 
 fetchAndPrepareMap <- function(map, pick) {
-  cat("Downloading GADM map data for ", map, "\n")
-  sp <- readRDS(url(sprintf("https://geodata.ucdavis.edu/gadm/gadm3.6/Rsp/gadm36_%s_sp.rds", map)))
-  sfobj <- sf::st_as_sf(sp)
+  cat("Downloading GADM 4.1 map data for ", map, "\n")
+  parts <- strsplit(map, "_")[[1]]
+  iso <- parts[1]
+  level <- as.integer(parts[2])
+  json_url <- sprintf("https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_%s_%d.json", iso, level)
+  sfobj <- tryCatch({
+    suppressWarnings(sf::st_read(json_url, quiet = TRUE))
+  }, error = function(e) {
+    stop(sprintf("Failed to read %s: %s", json_url, conditionMessage(e)))
+  })
   if (pick > 0) {
     sfobj <- sfobj[pick, ]
   }
@@ -29,7 +36,7 @@ fetchMaps <- function(maps, picks) {
   if (file.exists(mapfile)) {
     df <- readRDS(mapfile)
   } else {
-    cat("Downloading and caching GADM map data.\nPlease note that the GADM map data is licensed for academic use and other non-commercial use, only.\nSee https://gadm.org/license.html\n")
+  cat("Downloading and caching GADM 4.1 map data.\nPlease note that the GADM map data is licensed for academic use and other non-commercial use, only.\nSee https://gadm.org/license.html\n")
     # Fetch individual sf layers and row-bind
     sflist <- mapply(fetchAndPrepareMap, maps, picks, SIMPLIFY = FALSE)
     df <- do.call(rbind, sflist)
