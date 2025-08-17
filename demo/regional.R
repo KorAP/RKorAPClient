@@ -1,13 +1,12 @@
 #!/usr/bin/Rscript
 library(RKorAPClient)
 library(ggplot2)
-library(raster)
-library(broom)
+library(sf)
 # library(R.cache)
 
 devAskNewPage(ask = FALSE)
 
-mapfile <- file.path(tempdir(), "map-v2.rds")
+mapfile <- file.path(tempdir(), "map-sf-v1.rds")
 
 # Caching data in the user's home filespace by default
 # is not allowed to package demos by CRAN policies ...
@@ -17,11 +16,13 @@ mapfile <- file.path(tempdir(), "map-v2.rds")
 fetchAndPrepareMap <- function(map, pick) {
   cat("Downloading GADM map data for ", map, "\n")
   sp <- readRDS(url(sprintf("https://geodata.ucdavis.edu/gadm/gadm3.6/Rsp/gadm36_%s_sp.rds", map)))
+  sfobj <- sf::st_as_sf(sp)
   if (pick > 0) {
-    sp@polygons <- sp@polygons[pick]
-    sp@data <- sp@data[pick,]
+    sfobj <- sfobj[pick, ]
   }
-  sp
+  # Keep only geometry to standardize columns across layers
+  sfobj <- sfobj["geometry"]
+  sfobj
 }
 
 fetchMaps <- function(maps, picks) {
@@ -29,11 +30,25 @@ fetchMaps <- function(maps, picks) {
     df <- readRDS(mapfile)
   } else {
     cat("Downloading and caching GADM map data.\nPlease note that the GADM map data is licensed for academic use and other non-commercial use, only.\nSee https://gadm.org/license.html\n")
-    df <- broom::tidy(Reduce(bind, mapply(fetchAndPrepareMap, maps, picks)))
+    # Fetch individual sf layers and row-bind
+    sflist <- mapply(fetchAndPrepareMap, maps, picks, SIMPLIFY = FALSE)
+    df <- do.call(rbind, sflist)
+    # Create a stable group index compatible with original regions index logic
+    df$grp <- seq_len(nrow(df))
     dir.create(dirname(mapfile), recursive = TRUE, showWarnings = FALSE)
     saveRDS(df, mapfile)
   }
-  df$grp <- floor(as.numeric(as.character(df$group)))
+  # If cache is from an older version (non-sf tidy data), refresh
+  if (!inherits(df, "sf")) {
+    cat("Cached map is in outdated format; re-downloading as sf...\n")
+    sflist <- mapply(fetchAndPrepareMap, maps, picks, SIMPLIFY = FALSE)
+    df <- do.call(rbind, sflist)
+    df$grp <- seq_len(nrow(df))
+    dir.create(dirname(mapfile), recursive = TRUE, showWarnings = FALSE)
+    saveRDS(df, mapfile)
+  } else if (is.null(df$grp)) {
+    df$grp <- seq_len(nrow(df))
+  }
   df
 }
 
@@ -72,7 +87,7 @@ updatePlot <- function(query, map, regions) {
   map$region <- sapply(map$grp, function(grp) regions$region[grp])
   map$url <- sapply(map$grp, function(grp) regions$url[grp])
   regionsPlot <- ggplot(map) +
-    geom_polygon(aes(x=long, y=lat, group=group, fill=ipm, hack=region), colour= "black", linewidth=.1) +
+    geom_sf(aes(fill = ipm), colour = "black", linewidth = .1) +
     theme(axis.line.x = element_blank(),
           axis.line.y = element_blank(),
           panel.grid.major = element_blank(),
@@ -83,7 +98,7 @@ updatePlot <- function(query, map, regions) {
           axis.text.y=element_blank(),axis.ticks=element_blank(),
           axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
-    coord_equal(ratio=1.5) +
+    coord_sf() +
     labs(title = sprintf("Regional distribution of \u201c%s\u201d", query))
   print(regionsPlot)
   regionsPlot
