@@ -6,7 +6,29 @@ library(sf)
 
 devAskNewPage(ask = FALSE)
 
-mapfile <- file.path(tempdir(), "map-gadm41-sf-v1.rds")
+# --- CRAN-compliant caching -----------------------------------------------
+# Default to tempdir() during demos/tests. Allow users to opt-in to a
+# persistent cache in a per-user directory via either
+#   options(RKorAPClient.regional.cache = "user")
+# or environment variable
+#   RKORAPCLIENT_CACHE=user
+# Any value among {"user","persistent","cache","true","1","yes"}
+# enables persistent caching. Everything else uses tempdir().
+get_cache_dir <- function() {
+  mode <- tolower(getOption(
+    "RKorAPClient.regional.cache",
+    Sys.getenv("RKORAPCLIENT_CACHE", "temp")
+  ))
+  if (mode %in% c("user", "persistent", "cache", "true", "1", "yes")) {
+    d <- tools::R_user_dir("RKorAPClient", which = "cache")
+  } else {
+    d <- tempdir()
+  }
+  dir.create(d, recursive = TRUE, showWarnings = FALSE)
+  d
+}
+
+mapfile <- file.path(get_cache_dir(), "map-gadm41-sf-v1.rds")
 
 # Caching data in the user's home filespace by default
 # is not allowed to package demos by CRAN policies ...
@@ -35,6 +57,7 @@ fetchAndPrepareMap <- function(map, pick) {
 fetchMaps <- function(maps, picks) {
   if (file.exists(mapfile)) {
     df <- readRDS(mapfile)
+  cat("Using cached map from:", mapfile, "\n")
   } else {
   cat("Downloading and caching GADM 4.1 map data.\nPlease note that the GADM map data is licensed for academic use and other non-commercial use, only.\nSee https://gadm.org/license.html\n")
     # Fetch individual sf layers and row-bind
@@ -42,8 +65,8 @@ fetchMaps <- function(maps, picks) {
     df <- do.call(rbind, sflist)
     # Create a stable group index compatible with original regions index logic
     df$grp <- seq_len(nrow(df))
-    dir.create(dirname(mapfile), recursive = TRUE, showWarnings = FALSE)
     saveRDS(df, mapfile)
+  cat("Saved map cache to:", mapfile, "\n")
   }
   # If cache is from an older version (non-sf tidy data), refresh
   if (!inherits(df, "sf")) {
@@ -51,8 +74,8 @@ fetchMaps <- function(maps, picks) {
     sflist <- mapply(fetchAndPrepareMap, maps, picks, SIMPLIFY = FALSE)
     df <- do.call(rbind, sflist)
     df$grp <- seq_len(nrow(df))
-    dir.create(dirname(mapfile), recursive = TRUE, showWarnings = FALSE)
     saveRDS(df, mapfile)
+  cat("Saved map cache to:", mapfile, "\n")
   } else if (is.null(df$grp)) {
     df$grp <- seq_len(nrow(df))
   }
