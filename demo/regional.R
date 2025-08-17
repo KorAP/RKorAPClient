@@ -134,7 +134,86 @@ updatePlot <- function(query, map, regions) {
   regionsPlot
 }
 
+# --- Alternative: Highcharter interactive map version ---
+geoDistrib_hc <- function(query, kco = KorAPConnection(verbose=TRUE)) {
+  # Ensure optional dependencies are present
+  for (pkg in c("highcharter", "geojsonsf", "viridisLite", "htmlwidgets")) {
+    if (!requireNamespace(pkg, quietly = TRUE))
+      stop(sprintf("Package '%s' is required for the highcharter demo. Install with install.packages('%s')", pkg, pkg))
+  }
+
+  regions <- readRDS("demo/data/regions.rds")
+  regions$freq <- NA
+  regions$url <- NA
+  vc <- ""
+  for (i in 1:nrow(regions)) {
+    if (!is.na(regions[i,]$query)) {
+      cat(as.character(regions[i,]$region), "\n")
+      regions[i,]$total <- corpusStats(kco, vc=paste0(vc, regions[i,]$query))@tokens
+      if (regions[i,]$total == 0) {
+        regions[i,]$afreq <- 0
+        regions[i,]$freq <- NA
+      } else {
+        kqo <- corpusQuery(kco, query, vc=paste0(vc, regions[i,]$query))
+        regions[i,]$afreq <- kqo@totalResults
+        regions[i,]$freq <- regions[i,]$afreq / regions[i,]$total
+        regions[i,]$url <- kqo@webUIRequestUrl
+      }
+      cat(regions[i,]$afreq, regions[i,]$total, regions[i,]$freq, "\n")
+      cat("\n\n")
+    }
+  }
+  plot <- updatePlotHC(query, map, regions)
+  if (interactive()) {
+    print(plot)
+  } else {
+    outfile <- file.path(tempdir(), "regional_map_highcharter.html")
+    htmlwidgets::saveWidget(plot, outfile, selfcontained = TRUE)
+    cat("Saved interactive map to:", outfile, "\n")
+  }
+  plot
+}
+
+updatePlotHC <- function(query, map, regions) {
+  # Build data to join to map via 'grp'
+  df <- data.frame(
+    grp = map$grp,
+    ipm = sapply(map$grp, function(grp) regions$freq[grp] * 10^6),
+    region = sapply(map$grp, function(grp) regions$region[grp]),
+    url = sapply(map$grp, function(grp) regions$url[grp])
+  )
+
+  gj <- jsonlite::fromJSON(geojsonsf::sf_geojson(map), simplifyVector = FALSE)
+
+  hc <- highcharter::highchart(type = "map") |>
+    highcharter::hc_add_series_map(
+      map = gj,
+      df = df,
+      value = "ipm",
+      joinBy = "grp",
+      name = "ipm",
+      borderColor = "#000000",
+      borderWidth = 0.2,
+      nullColor = "#eeeeee"
+    ) |>
+    highcharter::hc_colorAxis(stops = highcharter::color_stops(200, colors = viridisLite::viridis(200))) |>
+    highcharter::hc_title(text = sprintf('Regional distribution of "%s"', query)) |>
+    highcharter::hc_mapNavigation(enabled = TRUE) |>
+    highcharter::hc_tooltip(useHTML = TRUE, pointFormat = "<b>{point.region}</b><br/>{point.value:.1f} per Mio") |>
+    highcharter::hc_plotOptions(
+    	series = list(
+      cursor = "pointer",
+      point = list(events = list(click = htmlwidgets::JS("function(){ if (this.url){ window.open(this.url, '_blank'); }}")))
+    ))
+
+  # Set the raw Highcharts map projection via options (works across versions)
+  hc$x$hc_opts$mapView <- list(projection = list(name = "WebMercator"))
+  hc
+}
+
 #geoDistrib("wegen dem [tt/p=NN]")
 geoDistrib("heuer")
 #geoDistrib("Sonnabend")
 #geoDistrib("eh")
+# To use the Highcharter version, call:
+geoDistrib_hc("heuer")
