@@ -148,6 +148,117 @@ test_that("fetchAnnotations returns structured left/match/right format", {
   }
 })
 
+test_that("parser covers full span across multiple <mark> blocks", {
+  # Local, offline test to ensure correct match extraction when multiple
+  # <mark>…</mark> segments occur within the match span.
+  xml_snippet <- '<span class="context-left"></span>
+  <span class="match">
+    <span title="tt/l:Wir"><span title="tt/p:PPER">Wir</span></span>
+    <mark>
+      <span title="tt/l:können"><span title="tt/p:VVFIN">können</span></span>
+    </mark>
+    <span title="tt/l:alles"><span title="tt/p:PIS">alles</span></span>
+    <mark>
+      <span title="tt/l:außer"><span title="tt/p:APPR">außer</span></span>
+      <span title="tt/l:Plan"><span title="tt/p:NN">Plan</span></span>
+    </mark>
+  </span>
+  <span class="context-right"></span>'
+
+  parsed <- parse_xml_annotations_structured(xml_snippet)
+
+  # Left context contains the pre-mark token
+  expect_equal(parsed$atokens$left, c("Wir"))
+
+  # Match should include everything from the first <mark> to the last </mark>,
+  # including tokens between them
+  expect_equal(parsed$atokens$match, c("können", "alles", "außer", "Plan"))
+
+  # POS and lemma lengths align with tokens in each section
+  expect_length(parsed$pos$match, length(parsed$atokens$match))
+  expect_length(parsed$lemma$match, length(parsed$atokens$match))
+  expect_equal(parsed$pos$match, c("VVFIN", "PIS", "APPR", "NN"))
+  expect_equal(parsed$lemma$match, c("können", "alles", "außer", "Plan"))
+
+  # Right context should be empty in this snippet
+  expect_length(parsed$atokens$right, 0)
+})
+
+test_that("parser keeps tokens separated across &nbsp; between spans", {
+  xml_snippet <- '<span class="context-left"></span>
+  <span class="match">
+    <mark><span title="tt/l:können"><span title="tt/p:VVFIN">können</span></span></mark>&nbsp;<span title="tt/l:alles"><span title="tt/p:PIS">alles</span></span><mark><span title="tt/l:außer"><span title="tt/p:APPR">außer</span></span></mark>
+  </span>
+  <span class="context-right"></span>'
+
+  parsed <- parse_xml_annotations_structured(xml_snippet)
+  expect_equal(parsed$atokens$match, c("können", "alles", "außer"))
+  expect_equal(parsed$pos$match, c("VVFIN", "PIS", "APPR"))
+  expect_equal(parsed$lemma$match, c("können", "alles", "außer"))
+})
+
+test_that("parser keeps tokens separated across punctuation between spans", {
+  xml_snippet <- '<span class="context-left"></span>
+  <span class="match">
+    <mark><span title="tt/l:können"><span title="tt/p:VVFIN">können</span></span></mark>, <span title="tt/l:alles"><span title="tt/p:PIS">alles</span></span><mark><span title="tt/l:außer"><span title="tt/p:APPR">außer</span></span></mark>
+  </span>
+  <span class="context-right"></span>'
+
+  parsed <- parse_xml_annotations_structured(xml_snippet)
+  expect_equal(parsed$atokens$match, c("können", "alles", "außer"))
+  expect_equal(parsed$pos$match, c("VVFIN", "PIS", "APPR"))
+  expect_equal(parsed$lemma$match, c("können", "alles", "außer"))
+})
+
+test_that("online: fetchAnnotations aligns pos/lemma with tokens for complex query", {
+  skip_if_offline()
+
+  kco <- KorAPConnection(verbose = FALSE, cache = FALSE, accessToken = NULL)
+  q <- kco %>%
+    corpusQuery('[orth="[wW]ir"] können alles [orth="ausser" | orth="außer"] [tt/pos=NN]',
+                metadataOnly = FALSE,
+                fields = c("textSigle", "snippet", "tokens")) %>%
+    fetchNext(maxFetch = 20)
+
+  skip_if(is.null(q@collectedMatches) || nrow(q@collectedMatches) == 0, "No matches found for online test")
+
+  q2 <- fetchAnnotations(q, foundry = "tt", verbose = FALSE)
+
+  # For each match, POS and lemma counts must equal token count in the match span
+  for (i in seq_len(nrow(q2@collectedMatches))) {
+    tt <- q2@collectedMatches$tokens$match[[i]]
+    pp <- q2@collectedMatches$pos$match[[i]]
+    ll <- q2@collectedMatches$lemma$match[[i]]
+    expect_equal(length(tt), length(pp))
+    expect_equal(length(tt), length(ll))
+  }
+})
+
+test_that("fetchAnnotations aligns tokens and annotations across multiple <mark> blocks (stubbed API)", {
+  # Define a minimal dummy KorAPConnection-like S4 class for offline testing
+  setClass('DummyKCO', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    list(snippet = '<span class="context-left"></span> <span class="match"> <span title="tt/l:Wir"><span title="tt/p:PPER">Wir</span></span> <mark> <span title="tt/l:können"><span title="tt/p:VVFIN">können</span></span> </mark> <span title="tt/l:alles"><span title="tt/p:PIS">alles</span></span> <mark> <span title="tt/l:außer"><span title="tt/p:APPR">außer</span></span> <span title="tt/l:Plan"><span title="tt/p:NN">Plan</span></span> </mark> </span> <span class="context-right"></span>')
+  })
+
+  # Build a minimal KorAPQuery with a dummy connection and a single match row
+  kco <- new('DummyKCO', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'A/B/C', matchStart = 1, matchEnd = 5, matchID = 'match-A/B/C-p1-5', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  q2 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+
+  # Expect full match span to be covered
+  expect_equal(q2@collectedMatches$atokens$left[[1]], c('Wir'))
+  expect_equal(q2@collectedMatches$atokens$match[[1]], c('können','alles','außer','Plan'))
+  expect_equal(q2@collectedMatches$pos$match[[1]], c('VVFIN','PIS','APPR','NN'))
+  expect_equal(q2@collectedMatches$lemma$match[[1]], c('können','alles','außer','Plan'))
+
+  # Alignment checks
+  expect_length(q2@collectedMatches$pos$match[[1]], length(q2@collectedMatches$atokens$match[[1]]))
+  expect_length(q2@collectedMatches$lemma$match[[1]], length(q2@collectedMatches$atokens$match[[1]]))
+})
+
 test_that("matchID is preserved in collectedMatches", {
   skip_if_offline()
 

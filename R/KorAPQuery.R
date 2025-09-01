@@ -913,65 +913,88 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 
   # Helper function to extract annotations from a span section
   extract_annotations_from_section <- function(section_content) {
-    # Handle both spaced tokens and nested single tokens
+    # Remove any <mark>...</mark> tags that may interrupt token boundaries
+    section_no_marks <- gsub('</?mark[^>]*>', '', section_content, perl = TRUE)
+    # Normalize separators between adjacent top-level spans so splitting is robust.
+    # Replace any punctuation/entity/space run between one-or-more closing spans and the next opening span
+    # with a single space, preserving all closing spans.
+    section_norm <- gsub('((?:</span>)+)[[:space:]]*(?:&[^;]+;|[[:punct:]]|[[:space:]])*[[:space:]]*(<span)', '\\1 \\2', section_no_marks, perl = TRUE)
+    # Handle both spaced tokens and nested single tokens by scanning innermost spans with direct text
     tokens <- character(0)
     lemmas <- character(0)
     pos_tags <- character(0)
     morph_tags <- character(0)
 
-    # First try to split by spaces between span groups (for multiple tokens)
-    # Look for spaces that separate token groups
-    if (grepl('</span>\\s+<span', section_content)) {
-      # Multiple tokens separated by spaces
-      token_groups <- unlist(strsplit(section_content, '(?<=</span>)\\s+(?=<span)', perl = TRUE))
-    } else {
-      # Single token (or no spaces between tokens)
-      token_groups <- c(section_content)
-    }
+    pat_token <- '<span[^>]*title="([^"]*)"[^>]*>([^<]+)</span>'
+    mm <- gregexpr(pat_token, section_norm, perl = TRUE)
+    if (mm[[1]][1] != -1) {
+      starts <- mm[[1]]
+      lens <- attr(mm[[1]], 'match.length')
+      for (k in seq_along(starts)) {
+        s <- starts[k]
+        e <- s + lens[k] - 1
+        fragment <- substr(section_norm, s, e)
+        text_content <- sub(pat_token, '\\2', fragment, perl = TRUE)
+        text_content <- trimws(text_content)
+        title_content <- sub(pat_token, '\\1', fragment, perl = TRUE)
 
-    for (group in token_groups) {
-      group <- trimws(group)
-      if (nchar(group) == 0) next
+        if (nchar(text_content) == 0) next
 
-      # Extract the actual text content (the innermost text)
-      text_match <- regexpr('>([^<>]+)</span>', group, perl = TRUE)
-      if (text_match > 0) {
-        # Find all possible text contents and take the last one (innermost)
-        all_texts <- regmatches(group, gregexpr('>([^<>]+)</span>', group, perl = TRUE))[[1]]
-        if (length(all_texts) > 0) {
-          # Take the last match (innermost text)
-          text_content <- sub('.*>([^<>]+)</span>.*', '\\1', all_texts[length(all_texts)], perl = TRUE)
-          text_content <- trimws(text_content)
+        lemma <- NA
+        pos_tag <- NA
+        morph_features <- character(0)
 
-          if (nchar(text_content) > 0 && !grepl('^<', text_content)) {
-            tokens <- c(tokens, text_content)
-
-            # Extract all title attributes from this group
-            titles <- regmatches(group, gregexpr('title="([^"]*)"', group, perl = TRUE))[[1]]
-
-            morph_features <- character(0)
-            lemma <- NA
-            pos_tag <- NA
-
-            for (title in titles) {
-              content <- sub('title="([^"]*)"', '\\1', title, perl = TRUE)
-
-              if (grepl('^[^/]+/l:', content)) {
-                lemma <- sub('^[^/]+/l:(.*)$', '\\1', content)
-              } else if (grepl('^[^/]+/p:', content)) {
-                pos_tag <- sub('^[^/]+/p:(.*)$', '\\1', content)
-              } else if (grepl('^[^/]+/m:', content)) {
-                morph_feature <- sub('^[^/]+/m:(.*)$', '\\1', content)
-                morph_features <- c(morph_features, morph_feature)
-              }
-            }
-
-            lemmas <- c(lemmas, lemma)
-            pos_tags <- c(pos_tags, pos_tag)
-            morph_tag <- if (length(morph_features) > 0) paste(morph_features, collapse = "|") else NA
-            morph_tags <- c(morph_tags, morph_tag)
+        # parse inner title
+        ann <- unlist(strsplit(title_content, "[[:space:]]+"))
+        for (a in ann) {
+          if (grepl('/l:', a)) {
+            lemma <- sub('.*?/l:(.*)$', '\\1', a, perl = TRUE)
+          } else if (grepl('/p:', a)) {
+            pos_tag <- sub('.*?/p:(.*)$', '\\1', a, perl = TRUE)
+          } else if (grepl('/m:', a)) {
+            morph_features <- c(morph_features, sub('.*?/m:(.*)$', '\\1', a, perl = TRUE))
           }
         }
+
+        # If lemma missing, look back in nearby context for the nearest title containing l:
+        if (is.na(lemma) || nchar(lemma) == 0) {
+          ctx_start <- max(1, s - 500)
+          context <- substr(section_norm, ctx_start, s - 1)
+          tmm <- gregexpr('title="([^"]*)"', context, perl = TRUE)
+          if (tmm[[1]][1] != -1) {
+            ctx_titles <- regmatches(context, tmm)[[1]]
+            for (ti in rev(ctx_titles)) {
+              cont <- sub('title="([^"]*)"', '\\1', ti, perl = TRUE)
+              if (grepl('/l:', cont)) {
+                lemma <- sub('.*?/l:([^ ]+).*', '\\1', cont, perl = TRUE)
+                break
+              }
+            }
+          }
+        }
+
+        # If POS missing, keep NA; morphological features may also appear in outer titles
+        if (length(morph_features) == 0) {
+          ctx_start <- max(1, s - 500)
+          context <- substr(section_norm, ctx_start, s - 1)
+          tmm <- gregexpr('title="([^"]*)"', context, perl = TRUE)
+          if (tmm[[1]][1] != -1) {
+            ctx_titles <- regmatches(context, tmm)[[1]]
+            for (ti in rev(ctx_titles)) {
+              cont <- sub('title="([^"]*)"', '\\1', ti, perl = TRUE)
+              if (grepl('/m:', cont)) {
+                mparts <- unlist(strsplit(cont, "[[:space:]]+"))
+                for (mp in mparts) if (grepl('/m:', mp)) morph_features <- c(morph_features, sub('.*?/m:(.*)$', '\\1', mp, perl = TRUE))
+                break
+              }
+            }
+          }
+        }
+
+        tokens <- c(tokens, text_content)
+        lemmas <- c(lemmas, if (!is.null(lemma)) lemma else NA)
+        pos_tags <- c(pos_tags, if (!is.null(pos_tag)) pos_tag else NA)
+        morph_tags <- c(morph_tags, if (length(morph_features) > 0) paste(morph_features, collapse = "|") else NA)
       }
     }
 
@@ -1010,17 +1033,22 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 
     # Now find the <mark> and </mark> positions within this content
     mark_start <- regexpr('<mark[^>]*>', match_span_content, perl = TRUE)
-    mark_end <- regexpr('</mark>', match_span_content, perl = TRUE)
+    # Use the LAST closing </mark> to cover multi-part matches
+    mark_end_gre <- gregexpr('</mark>', match_span_content, perl = TRUE)
+    mark_end_positions <- mark_end_gre[[1]]
+    mark_end <- if (!is.null(mark_end_positions) && length(mark_end_positions) > 0 && mark_end_positions[1] != -1)
+      mark_end_positions[length(mark_end_positions)] else -1
+    mark_end_len <- if (mark_end != -1) attr(mark_end_gre[[1]], "match.length")[length(mark_end_positions)] else 0
 
     if (mark_start > 0 && mark_end > 0) {
-      # Left context: everything before <mark>
+      # Left context: everything before first <mark>
       left_content <- substr(match_span_content, 1, mark_start - 1)
 
-      # Match content: everything between <mark> and </mark> (including the mark tags for now)
-      match_content <- substr(match_span_content, mark_start, mark_end + attr(mark_end, "match.length") - 1)
+      # Match content: everything between first <mark> and last </mark>
+      match_content <- substr(match_span_content, mark_start, mark_end + mark_end_len - 1)
 
-      # Right context: everything after </mark>
-      right_content_start <- mark_end + attr(mark_end, "match.length")
+      # Right context: everything after last </mark>
+      right_content_start <- mark_end + mark_end_len
       right_content <- substr(match_span_content, right_content_start, nchar(match_span_content))
     } else {
       # No mark tags found, treat entire match span as match content
