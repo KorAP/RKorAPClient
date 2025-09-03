@@ -197,6 +197,19 @@ View(cbind(q@collectedMatches[c("textSigle", "snippet")],
 
 The annotations are stored in `q@collectedMatches$pos`, `q@collectedMatches$morph`, and `q@collectedMatches$lemma` (for foundries that contain lemma annotations, like `tt`, but not `marmot`).
 
+Small workflows you may find useful:
+
+```r
+# 1) Add TT (POS/lemma), then add MarMoT (morph) without overwriting
+q <- corpusQuery(kco, "Ameisenplage", metadataOnly = FALSE) |>
+  fetchAll() |>
+  fetchAnnotations(foundry = "tt") |>
+  fetchAnnotations(foundry = "marmot")  # keeps TT POS/lemma, adds morph
+
+# 2) Force re-fetch to repair damaged annotations
+q <- fetchAnnotations(q, foundry = "tt", overwrite = TRUE)
+```
+
 **Tip**: If you don't know any of the provided query languages or the tag sets, you can use KorAP's *query by example* (or rather *query by match*) feature by searching for a concrete example of the construction you are interested in, and then constructing your complex annotation query by just clicking on the entries in the tokens annotations of the query results, as demonstrated in this [video](https://corpora.ids-mannheim.de/slides/2024-04-24-Current-Challenges/autant-que-je-sache.mp4) (see also Diewald/Barbu Mititelu/Kupietz 2019).
 
 ## Demos

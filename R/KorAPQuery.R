@@ -1118,6 +1118,10 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'
 #' @param kqo object obtained from [corpusQuery()] with collected matches. Note: the original corpus query should have `metadataOnly = FALSE` for annotation parsing to work.
 #' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
+#' @param overwrite logical; if TRUE, re-fetch and replace any existing
+#'   annotation columns. If FALSE (default), only add missing annotation layers
+#'   and preserve already fetched ones (e.g., keep POS/lemma from a previous
+#'   foundry while adding morph from another).
 #' @param verbose print progress information if true
 #' @return The updated `kqo` object with annotation columns 
 #' like `pos`, `lemma`, `morph` (and `atokens` and `annotation_snippet`)
@@ -1158,7 +1162,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' q@collectedMatches$pos$left[1] # POS tags for the left context of the first match
 #' }
 #' @export
-setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbose = kqo@korapConnection@verbose) {
+setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", overwrite = FALSE, verbose = kqo@korapConnection@verbose) {
   if (is.null(kqo@collectedMatches) || nrow(kqo@collectedMatches) == 0) {
     warning("No collected matches found. Please run fetchNext() or fetchAll() first.")
     return(kqo)
@@ -1184,18 +1188,44 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
     )
   }
 
-  # Initialize all annotation columns using the helper function
+  # Track which annotation columns already existed to decide overwrite behavior
+  existing_types <- list(
+    pos = "pos" %in% colnames(df),
+    lemma = "lemma" %in% colnames(df),
+    morph = "morph" %in% colnames(df),
+    atokens = "atokens" %in% colnames(df),
+    annotation_snippet = "annotation_snippet" %in% colnames(df)
+  )
+
+  # Initialize annotation columns using the helper function
   annotation_types <- c("pos", "lemma", "morph", "atokens")
   for (type in annotation_types) {
-    df[[type]] <- create_annotation_df(empty_char_list)
+    if (overwrite || !existing_types[[type]]) {
+      df[[type]] <- create_annotation_df(empty_char_list)
+    }
   }
 
-  df$annotation_snippet <- replicate(nrows, NA, simplify = FALSE)
+  if (overwrite || !existing_types$annotation_snippet) {
+    df$annotation_snippet <- replicate(nrows, NA, simplify = FALSE)
+  }
 
   # Initialize timing for ETA calculation
   start_time <- Sys.time()
   if (verbose) {
     log_info(verbose, paste("Starting to fetch annotations for", nrows, "matches\n"))
+  }
+
+  # Helper to decide if existing annotation row is effectively empty
+  is_empty_annotation_row <- function(ann_df, row_index) {
+    if (is.null(ann_df) || nrow(ann_df) < row_index) return(TRUE)
+    left_val <- ann_df$left[[row_index]]
+    match_val <- ann_df$match[[row_index]]
+    right_val <- ann_df$right[[row_index]]
+    all(
+      (is.null(left_val) || (length(left_val) == 0) || all(is.na(left_val))),
+      (is.null(match_val) || (length(match_val) == 0) || all(is.na(match_val))),
+      (is.null(right_val) || (length(right_val) == 0) || all(is.na(right_val)))
+    )
   }
 
   for (i in seq_len(nrow(df))) {
@@ -1244,8 +1274,10 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
       res <- apiCall(kco, req)
 
       if (!is.null(res)) {
-        # Store the raw annotation snippet
-        df$annotation_snippet[[i]] <- if (is.list(res) && "snippet" %in% names(res)) res$snippet else NA
+        # Store the raw annotation snippet (respect overwrite flag)
+        if (overwrite || !existing_types$annotation_snippet || is.null(df$annotation_snippet[[i]]) || is.na(df$annotation_snippet[[i]])) {
+          df$annotation_snippet[[i]] <- if (is.list(res) && "snippet" %in% names(res)) res$snippet else NA
+        }
 
         # Parse XML annotations if snippet is available
         if (is.list(res) && "snippet" %in% names(res)) {
@@ -1255,97 +1287,141 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", verbos
           # Use individual assignment to avoid data frame mismatch errors
           tryCatch({
             # Assign POS annotations
-            df$pos$left[i] <- list(parsed_annotations$pos$left)
-            df$pos$match[i] <- list(parsed_annotations$pos$match)
-            df$pos$right[i] <- list(parsed_annotations$pos$right)
+            if (overwrite || !existing_types$pos || is_empty_annotation_row(df$pos, i)) {
+              df$pos$left[i] <- list(parsed_annotations$pos$left)
+              df$pos$match[i] <- list(parsed_annotations$pos$match)
+              df$pos$right[i] <- list(parsed_annotations$pos$right)
+            }
 
             # Assign lemma annotations
-            df$lemma$left[i] <- list(parsed_annotations$lemma$left)
-            df$lemma$match[i] <- list(parsed_annotations$lemma$match)
-            df$lemma$right[i] <- list(parsed_annotations$lemma$right)
+            if (overwrite || !existing_types$lemma || is_empty_annotation_row(df$lemma, i)) {
+              df$lemma$left[i] <- list(parsed_annotations$lemma$left)
+              df$lemma$match[i] <- list(parsed_annotations$lemma$match)
+              df$lemma$right[i] <- list(parsed_annotations$lemma$right)
+            }
 
             # Assign morphology annotations
-            df$morph$left[i] <- list(parsed_annotations$morph$left)
-            df$morph$match[i] <- list(parsed_annotations$morph$match)
-            df$morph$right[i] <- list(parsed_annotations$morph$right)
+            if (overwrite || !existing_types$morph || is_empty_annotation_row(df$morph, i)) {
+              df$morph$left[i] <- list(parsed_annotations$morph$left)
+              df$morph$match[i] <- list(parsed_annotations$morph$match)
+              df$morph$right[i] <- list(parsed_annotations$morph$right)
+            }
 
             # Assign token annotations
-            df$atokens$left[i] <- list(parsed_annotations$atokens$left)
-            df$atokens$match[i] <- list(parsed_annotations$atokens$match)
-            df$atokens$right[i] <- list(parsed_annotations$atokens$right)
+            if (overwrite || !existing_types$atokens || is_empty_annotation_row(df$atokens, i)) {
+              df$atokens$left[i] <- list(parsed_annotations$atokens$left)
+              df$atokens$match[i] <- list(parsed_annotations$atokens$match)
+              df$atokens$right[i] <- list(parsed_annotations$atokens$right)
+            }
           }, error = function(assign_error) {
             # Set empty character vectors on assignment error using list assignment
-            df$pos$left[i] <<- list(character(0))
-            df$pos$match[i] <<- list(character(0))
-            df$pos$right[i] <<- list(character(0))
+            if (overwrite || !existing_types$pos) {
+              df$pos$left[i] <<- list(character(0))
+              df$pos$match[i] <<- list(character(0))
+              df$pos$right[i] <<- list(character(0))
+            }
 
-            df$lemma$left[i] <<- list(character(0))
-            df$lemma$match[i] <<- list(character(0))
-            df$lemma$right[i] <<- list(character(0))
+            if (overwrite || !existing_types$lemma) {
+              df$lemma$left[i] <<- list(character(0))
+              df$lemma$match[i] <<- list(character(0))
+              df$lemma$right[i] <<- list(character(0))
+            }
 
-            df$morph$left[i] <<- list(character(0))
-            df$morph$match[i] <<- list(character(0))
-            df$morph$right[i] <<- list(character(0))
+            if (overwrite || !existing_types$morph) {
+              df$morph$left[i] <<- list(character(0))
+              df$morph$match[i] <<- list(character(0))
+              df$morph$right[i] <<- list(character(0))
+            }
 
-            df$atokens$left[i] <<- list(character(0))
-            df$atokens$match[i] <<- list(character(0))
-            df$atokens$right[i] <<- list(character(0))
+            if (overwrite || !existing_types$atokens) {
+              df$atokens$left[i] <<- list(character(0))
+              df$atokens$match[i] <<- list(character(0))
+              df$atokens$right[i] <<- list(character(0))
+            }
           })
         } else {
           # No snippet available, store empty vectors
-          df$pos$left[i] <- list(character(0))
-          df$pos$match[i] <- list(character(0))
-          df$pos$right[i] <- list(character(0))
+          if (overwrite || !existing_types$pos) {
+            df$pos$left[i] <- list(character(0))
+            df$pos$match[i] <- list(character(0))
+            df$pos$right[i] <- list(character(0))
+          }
 
-          df$lemma$left[i] <- list(character(0))
-          df$lemma$match[i] <- list(character(0))
-          df$lemma$right[i] <- list(character(0))
+          if (overwrite || !existing_types$lemma) {
+            df$lemma$left[i] <- list(character(0))
+            df$lemma$match[i] <- list(character(0))
+            df$lemma$right[i] <- list(character(0))
+          }
 
-          df$morph$left[i] <- list(character(0))
-          df$morph$match[i] <- list(character(0))
-          df$morph$right[i] <- list(character(0))
+          if (overwrite || !existing_types$morph) {
+            df$morph$left[i] <- list(character(0))
+            df$morph$match[i] <- list(character(0))
+            df$morph$right[i] <- list(character(0))
+          }
 
-          df$atokens$left[i] <- list(character(0))
-          df$atokens$match[i] <- list(character(0))
-          df$atokens$right[i] <- list(character(0))
+          if (overwrite || !existing_types$atokens) {
+            df$atokens$left[i] <- list(character(0))
+            df$atokens$match[i] <- list(character(0))
+            df$atokens$right[i] <- list(character(0))
+          }
         }
       } else {
         # Store NAs for failed requests
-        df$pos$left[i] <- list(NA)
-        df$pos$match[i] <- list(NA)
-        df$pos$right[i] <- list(NA)
+        if (overwrite || !existing_types$pos) {
+          df$pos$left[i] <- list(NA)
+          df$pos$match[i] <- list(NA)
+          df$pos$right[i] <- list(NA)
+        }
 
-        df$lemma$left[i] <- list(NA)
-        df$lemma$match[i] <- list(NA)
-        df$lemma$right[i] <- list(NA)
+        if (overwrite || !existing_types$lemma) {
+          df$lemma$left[i] <- list(NA)
+          df$lemma$match[i] <- list(NA)
+          df$lemma$right[i] <- list(NA)
+        }
 
-        df$morph$left[i] <- list(NA)
-        df$morph$match[i] <- list(NA)
-        df$morph$right[i] <- list(NA)
+        if (overwrite || !existing_types$morph) {
+          df$morph$left[i] <- list(NA)
+          df$morph$match[i] <- list(NA)
+          df$morph$right[i] <- list(NA)
+        }
 
-        df$atokens$left[i] <- list(NA)
-        df$atokens$match[i] <- list(NA)
-        df$atokens$right[i] <- list(NA)
-        df$annotation_snippet[[i]] <- NA
+        if (overwrite || !existing_types$atokens) {
+          df$atokens$left[i] <- list(NA)
+          df$atokens$match[i] <- list(NA)
+          df$atokens$right[i] <- list(NA)
+        }
+        if (overwrite || !existing_types$annotation_snippet) {
+          df$annotation_snippet[[i]] <- NA
+        }
       }
     }, error = function(e) {
       # Store NAs for failed requests
-      df$pos$left[i] <- list(NA)
-      df$pos$match[i] <- list(NA)
-      df$pos$right[i] <- list(NA)
+      if (overwrite || !existing_types$pos) {
+        df$pos$left[i] <- list(NA)
+        df$pos$match[i] <- list(NA)
+        df$pos$right[i] <- list(NA)
+      }
 
-      df$lemma$left[i] <- list(NA)
-      df$lemma$match[i] <- list(NA)
-      df$lemma$right[i] <- list(NA)
+      if (overwrite || !existing_types$lemma) {
+        df$lemma$left[i] <- list(NA)
+        df$lemma$match[i] <- list(NA)
+        df$lemma$right[i] <- list(NA)
+      }
 
-      df$morph$left[i] <- list(NA)
-      df$morph$match[i] <- list(NA)
-      df$morph$right[i] <- list(NA)
+      if (overwrite || !existing_types$morph) {
+        df$morph$left[i] <- list(NA)
+        df$morph$match[i] <- list(NA)
+        df$morph$right[i] <- list(NA)
+      }
 
-      df$atokens$left[i] <- list(NA)
-      df$atokens$match[i] <- list(NA)
-      df$atokens$right[i] <- list(NA)
-      df$annotation_snippet[[i]] <- NA
+      if (overwrite || !existing_types$atokens) {
+        df$atokens$left[i] <- list(NA)
+        df$atokens$match[i] <- list(NA)
+        df$atokens$right[i] <- list(NA)
+      }
+      if (overwrite || !existing_types$annotation_snippet) {
+        df$annotation_snippet[[i]] <- NA
+      }
     })
   }
 

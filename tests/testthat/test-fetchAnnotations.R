@@ -337,3 +337,51 @@ test_that("fetchAnnotations handles morphological annotations with pipe separato
     }
   }
 })
+
+test_that("fetchAnnotations adds missing layer without overwriting existing, and can overwrite when requested", {
+  # Define a separate dummy connection that serves different snippets by foundry
+  if (!isClass("DummyKCO2")) setClass('DummyKCO2', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO2', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    # Return TT-only snippet by default, and TT+MarMoT morph when foundry=marmot
+    tt_xml <- '<span class="context-left"></span>
+  <span class="match">
+    <mark><span title="tt/l:können tt/p:VVFIN">können</span></mark>&nbsp;<span title="tt/l:alles tt/p:PIS">alles</span><mark><span title="tt/l:außer tt/p:APPR">außer</span></mark>
+  </span>
+  <span class="context-right"></span>'
+    marmot_xml <- '<span class="context-left"></span>
+  <span class="match">
+    <mark><span title="tt/l:können tt/p:VVFIN marmot/m:verbform:fin">können</span></mark>&nbsp;<span title="tt/l:alles tt/p:PIS marmot/m:pos:pron">alles</span><mark><span title="tt/l:außer tt/p:APPR marmot/m:pos:adp|case:acc">außer</span></mark>
+  </span>
+  <span class="context-right"></span>'
+    if (grepl("foundry=marmot", url)) list(snippet = marmot_xml) else list(snippet = tt_xml)
+  })
+
+  # Build query with one match row
+  kco <- new('DummyKCO2', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'X/Y/Z', matchStart = 1, matchEnd = 3, matchID = 'match-X/Y/Z-p1-3', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  # First call with TT: should populate pos/lemma, morph empty/NA
+  q1 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+  pos_tt <- q1@collectedMatches$pos$match[[1]]
+  lem_tt <- q1@collectedMatches$lemma$match[[1]]
+
+  expect_equal(pos_tt, c('VVFIN','PIS','APPR'))
+  expect_equal(lem_tt, c('können','alles','außer'))
+  # Morph should be empty or NA-only at this point
+  morph1 <- q1@collectedMatches$morph$match[[1]]
+  expect_true(length(morph1) == 0 || all(is.na(morph1)))
+
+  # Second call with marmot: should add morph but keep pos/lemma unchanged when overwrite=FALSE
+  q2 <- fetchAnnotations(q1, foundry = 'marmot', verbose = FALSE)
+  expect_equal(q2@collectedMatches$pos$match[[1]], pos_tt)
+  expect_equal(q2@collectedMatches$lemma$match[[1]], lem_tt)
+
+  morph2 <- q2@collectedMatches$morph$match[[1]]
+  expect_equal(morph2, c('verbform:fin','pos:pron','pos:adp|case:acc'))
+
+  # Corrupt existing POS and ensure overwrite=TRUE repairs it
+  q2@collectedMatches$pos$match[[1]][1] <- 'DAMAGED'
+  q3 <- fetchAnnotations(q2, foundry = 'tt', overwrite = TRUE, verbose = FALSE)
+  expect_equal(q3@collectedMatches$pos$match[[1]][1], 'VVFIN')
+})

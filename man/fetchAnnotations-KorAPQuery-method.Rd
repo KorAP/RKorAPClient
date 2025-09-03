@@ -5,12 +5,22 @@
 \alias{fetchAnnotations}
 \title{Fetch annotations for all collected matches}
 \usage{
-\S4method{fetchAnnotations}{KorAPQuery}(kqo, foundry = "tt", verbose = kqo@korapConnection@verbose)
+\S4method{fetchAnnotations}{KorAPQuery}(
+  kqo,
+  foundry = "tt",
+  overwrite = FALSE,
+  verbose = kqo@korapConnection@verbose
+)
 }
 \arguments{
 \item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}} with collected matches. Note: the original corpus query should have \code{metadataOnly = FALSE} for annotation parsing to work.}
 
 \item{foundry}{string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)}
+
+\item{overwrite}{logical; if TRUE, re-fetch and replace any existing
+annotation columns. If FALSE (default), only add missing annotation layers
+and preserve already fetched ones (e.g., keep POS/lemma from a previous
+foundry while adding morph from another).}
 
 \item{verbose}{print progress information if true}
 }
