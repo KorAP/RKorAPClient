@@ -336,11 +336,16 @@ setMethod(
         if (!is.null(res$meta$cached)) {
           log_info(verbose, " [cached]\n")
         } else if (!is.null(res$meta$benchmark)) {
-          # Round the benchmark time to 2 decimal places for better readability
-          # If it's a string ending with 's', extract the number, round it, and re-add 's'
+          # Round the benchmark time to 2 decimal places for better readability.
+          # Be robust to locales using comma as decimal separator (e.g., "0,12s").
           if (is.character(res$meta$benchmark) && grepl("s$", res$meta$benchmark)) {
-            time_value <- as.numeric(sub("s$", "", res$meta$benchmark))
-            formatted_time <- paste0(round(time_value, 2), "s")
+            bench_str <- sub("s$", "", res$meta$benchmark)
+            bench_num <- suppressWarnings(as.numeric(gsub(",", ".", bench_str)))
+            if (!is.na(bench_num)) {
+              formatted_time <- paste0(round(bench_num, 2), "s")
+            } else {
+              formatted_time <- res$meta$benchmark
+            }
             log_info(verbose, ", took ", formatted_time, "\n", sep = "")
           } else {
             # Fallback if the format is different than expected

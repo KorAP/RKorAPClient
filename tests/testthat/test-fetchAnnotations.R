@@ -385,3 +385,95 @@ test_that("fetchAnnotations adds missing layer without overwriting existing, and
   q3 <- fetchAnnotations(q2, foundry = 'tt', overwrite = TRUE, verbose = FALSE)
   expect_equal(q3@collectedMatches$pos$match[[1]][1], 'VVFIN')
 })
+
+## Additional offline edge-case tests were reverted per request
+
+test_that("annotation_snippet is preserved unless overwrite is TRUE", {
+  # Reuse DummyKCO2 logic (TT vs marmot snippets)
+  if (!isClass("DummyKCO3")) setClass('DummyKCO3', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO3', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    tt_xml <- '<span class="context-left"></span><span class="match"><mark><span title="tt/l:Test tt/p:NN">Test</span></mark></span><span class="context-right"></span>'
+    marmot_xml <- '<span class="context-left"></span><span class="match"><mark><span title="tt/l:Test tt/p:NN marmot/m:pos:n">Test</span></mark></span><span class="context-right"></span>'
+    if (grepl('foundry=marmot', url)) list(snippet = marmot_xml) else list(snippet = tt_xml)
+  })
+  kco <- new('DummyKCO3', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'A/B/C', matchStart = 1, matchEnd = 2, matchID = 'match-A/B/C-p1-2', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  q1 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+  sn1 <- q1@collectedMatches$annotation_snippet[[1]]
+  q2 <- fetchAnnotations(q1, foundry = 'marmot', verbose = FALSE)
+  # snippet should be unchanged because overwrite = FALSE
+  expect_identical(q2@collectedMatches$annotation_snippet[[1]], sn1)
+  # overwrite = TRUE should replace it
+  q3 <- fetchAnnotations(q2, foundry = 'marmot', overwrite = TRUE, verbose = FALSE)
+  expect_false(identical(q3@collectedMatches$annotation_snippet[[1]], sn1))
+})
+
+test_that("initializes empty vectors when no snippet is returned", {
+  # Dummy connection returning a list without 'snippet'
+  if (!isClass("DummyKCO_NoSnip")) setClass('DummyKCO_NoSnip', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO_NoSnip', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    list(status = "ok")
+  })
+
+  kco <- new('DummyKCO_NoSnip', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'A/B/C', matchStart = 1, matchEnd = 2, matchID = 'match-A/B/C-p1-2', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  q2 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+
+  # Expect atokens initialized with empty character vectors
+  expect_true(is.data.frame(q2@collectedMatches$atokens))
+  expect_length(q2@collectedMatches$atokens$left[[1]], 0)
+  expect_length(q2@collectedMatches$atokens$match[[1]], 0)
+  expect_length(q2@collectedMatches$atokens$right[[1]], 0)
+
+  # POS/lemma/morph should also be empty vectors for this row
+  expect_length(q2@collectedMatches$pos$left[[1]], 0)
+  expect_length(q2@collectedMatches$lemma$left[[1]], 0)
+  expect_length(q2@collectedMatches$morph$left[[1]], 0)
+})
+
+test_that("initializes NA vectors when API returns NULL", {
+  # Dummy connection returning NULL (e.g., failed request)
+  if (!isClass("DummyKCO_NullRes")) setClass('DummyKCO_NullRes', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO_NullRes', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    NULL
+  })
+
+  kco <- new('DummyKCO_NullRes', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'A/B/C', matchStart = 1, matchEnd = 2, matchID = 'match-A/B/C-p1-2', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  q2 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+
+  # Expect atokens initialized with NA vectors
+  expect_true(is.data.frame(q2@collectedMatches$atokens))
+  expect_true(length(q2@collectedMatches$atokens$left[[1]]) == 1 && all(is.na(q2@collectedMatches$atokens$left[[1]])))
+  expect_true(length(q2@collectedMatches$atokens$match[[1]]) == 1 && all(is.na(q2@collectedMatches$atokens$match[[1]])))
+  expect_true(length(q2@collectedMatches$atokens$right[[1]]) == 1 && all(is.na(q2@collectedMatches$atokens$right[[1]])))
+
+  # annotation_snippet should also be NA
+  expect_true(is.na(q2@collectedMatches$annotation_snippet[[1]]))
+})
+
+test_that("initializes NA vectors when apiCall errors", {
+  # Dummy connection throwing an error
+  if (!isClass("DummyKCO_Error")) setClass('DummyKCO_Error', slots = c(apiUrl='character', verbose='logical'))
+  setMethod('apiCall', 'DummyKCO_Error', function(kco, url, json = TRUE, getHeaders = FALSE, cache = FALSE, timeout = 10) {
+    stop("boom")
+  })
+
+  kco <- new('DummyKCO_Error', apiUrl = 'http://dummy/', verbose = FALSE)
+  df <- data.frame(textSigle = 'A/B/C', matchStart = 1, matchEnd = 2, matchID = 'match-A/B/C-p1-2', stringsAsFactors = FALSE)
+  q <- KorAPQuery(korapConnection = kco, collectedMatches = df)
+
+  q2 <- fetchAnnotations(q, foundry = 'tt', verbose = FALSE)
+
+  # Expect NA vectors or empty vectors in atokens (implementation may choose either)
+  is_na_or_empty <- function(x) length(x) == 0 || (length(x) == 1 && all(is.na(x)))
+  expect_true(is_na_or_empty(q2@collectedMatches$atokens$left[[1]]))
+  expect_true(is_na_or_empty(q2@collectedMatches$atokens$match[[1]]))
+  expect_true(is_na_or_empty(q2@collectedMatches$atokens$right[[1]]))
+})

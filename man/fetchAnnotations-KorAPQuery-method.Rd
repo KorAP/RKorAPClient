@@ -5,12 +5,7 @@
 \alias{fetchAnnotations}
 \title{Fetch annotations for all collected matches}
 \usage{
-\S4method{fetchAnnotations}{KorAPQuery}(
-  kqo,
-  foundry = "tt",
-  overwrite = FALSE,
-  verbose = kqo@korapConnection@verbose
-)
+\S4method{fetchAnnotations}{KorAPQuery}(kqo, foundry = "tt", overwrite = FALSE, verbose = kqo@korapConnection@verbose)
 }
 \arguments{
 \item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}} with collected matches. Note: the original corpus query should have \code{metadataOnly = FALSE} for annotation parsing to work.}
