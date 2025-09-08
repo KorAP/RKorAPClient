@@ -1147,10 +1147,14 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   fetchAnnotations()
 #'
 #' # Access linguistic annotations for match i:
-#' pos_tags <- q@collectedMatches$pos         # Data frame with left/match/right columns for POS tags
-#' lemmas <- q@collectedMatches$lemma         # Data frame with left/match/right columns for lemmas
-#' morphology <- q@collectedMatches$morph     # Data frame with left/match/right columns for morphological tags
-#' atokens <- q@collectedMatches$atokens      # Data frame with left/match/right columns for annotation token text
+#' pos_tags <- q@collectedMatches$pos
+#' # Data frame with left/match/right columns for POS tags
+#' lemmas <- q@collectedMatches$lemma
+#' # Data frame with left/match/right columns for lemmas
+#' morphology <- q@collectedMatches$morph
+#' # Data frame with left/match/right columns for morphological tags
+#' atokens <- q@collectedMatches$atokens
+#' # Data frame with left/match/right columns for annotation token text
 #' raw_snippet <- q@collectedMatches$annotation_snippet[[i]] # Original XML snippet for match i
 #'
 #' # Access specific components:
@@ -1166,6 +1170,8 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   fetchAnnotations(foundry = "marmot")
 #' q@collectedMatches$pos$left[1] # POS tags for the left context of the first match
 #' }
+#' @usage fetchAnnotations(kqo, foundry = "tt", overwrite = FALSE,
+#'   verbose = kqo@korapConnection@verbose)
 #' @export
 setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", overwrite = FALSE, verbose = kqo@korapConnection@verbose) {
   if (is.null(kqo@collectedMatches) || nrow(kqo@collectedMatches) == 0) {

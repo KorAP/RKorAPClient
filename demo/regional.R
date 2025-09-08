@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 library(RKorAPClient)
 library(ggplot2)
-library(sf)
+## sf is used via sf::; don't attach package in demo to avoid undeclared library() calls
 # library(R.cache)
 
 devAskNewPage(ask = FALSE)

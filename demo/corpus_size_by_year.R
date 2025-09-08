@@ -4,7 +4,6 @@
 #
 library(RKorAPClient)
 library(ggplot2)
-library(scales)  # For comma_format()
 
 # Define years to analyze
 years <- 1990:2024
@@ -26,7 +25,7 @@ corpus_data$year <- years
 g <- ggplot(corpus_data, aes(x = year, y = tokens)) +
   geom_col(fill = "steelblue", alpha = 0.7) +
   scale_x_continuous(breaks = seq(1990, 2024, 5)) +
-  scale_y_continuous(labels = scales::comma_format()) +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",", scientific = FALSE)) +
   labs(
     title = "Corpus Size by Year - Stern Magazine",
     subtitle = "Number of tokens in DeReKo",

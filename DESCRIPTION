@@ -56,7 +56,10 @@ Suggests:
     knitr,
     purrrlyr,
     raster,
-    tidyverse
+    tidyverse,
+    sf,
+    geojsonsf,
+    viridisLite
 Collate: 
     'logging.R'
     'KorAPConnection.R'
