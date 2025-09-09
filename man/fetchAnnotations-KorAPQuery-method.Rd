@@ -2,11 +2,14 @@
 % Please edit documentation in R/KorAPQuery.R
 \name{fetchAnnotations,KorAPQuery-method}
 \alias{fetchAnnotations,KorAPQuery-method}
-\alias{fetchAnnotations}
 \title{Fetch annotations for all collected matches}
 \usage{
-\S4method{fetchAnnotations}{KorAPQuery}(kqo, foundry = "tt", overwrite = FALSE,
-  verbose = kqo@korapConnection@verbose)
+\S4method{fetchAnnotations}{KorAPQuery}(
+  kqo,
+  foundry = "tt",
+  overwrite = FALSE,
+  verbose = kqo@korapConnection@verbose
+)
 }
 \arguments{
 \item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}} with collected matches. Note: the original corpus query should have \code{metadataOnly = FALSE} for annotation parsing to work.}
@@ -70,16 +73,16 @@ morphology <- q@collectedMatches$morph
 # Data frame with left/match/right columns for morphological tags
 atokens <- q@collectedMatches$atokens
 # Data frame with left/match/right columns for annotation token text
-raw_snippet <- q@collectedMatches$annotation_snippet[[i]]
 # Original XML snippet for match i
+raw_snippet <- q@collectedMatches$annotation_snippet[[i]]
 
 # Access specific components:
-match_pos <- q@collectedMatches$pos$match[[i]]
 # POS tags for the matched tokens in match i
-left_lemmas <- q@collectedMatches$lemma$left[[i]]
+match_pos <- q@collectedMatches$pos$match[[i]]
 # Lemmas for the left context in match i
+left_lemmas <- q@collectedMatches$lemma$left[[i]]
+ # Token text for the right context in match i
 right_tokens <- q@collectedMatches$atokens$right[[i]]
-# Token text for the right context in match i
 
 # Use a different foundry (e.g., MarMoT)
 q <- KorAPConnection() |>

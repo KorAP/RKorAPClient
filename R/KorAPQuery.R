@@ -68,7 +68,13 @@ setGeneric("corpusQuery", function(kco, ...) standardGeneric("corpusQuery"))
 setGeneric("fetchAll", function(kqo, ...) standardGeneric("fetchAll"))
 setGeneric("fetchNext", function(kqo, ...) standardGeneric("fetchNext"))
 setGeneric("fetchRest", function(kqo, ...) standardGeneric("fetchRest"))
-setGeneric("fetchAnnotations", function(kqo, ...) standardGeneric("fetchAnnotations"))
+setGeneric(
+  "fetchAnnotations",
+  function(kqo,
+           foundry = "tt",
+           overwrite = FALSE,
+           verbose = kqo@korapConnection@verbose) standardGeneric("fetchAnnotations")
+)
 setGeneric("frequencyQuery", function(kco, ...) standardGeneric("frequencyQuery"))
 
 maxResultsPerPage <- 50
@@ -1119,7 +1125,6 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'
 #' @family corpus search functions
 #' @concept Annotations
-#' @aliases fetchAnnotations
 #'
 #' @param kqo object obtained from [corpusQuery()] with collected matches. Note: the original corpus query should have `metadataOnly = FALSE` for annotation parsing to work.
 #' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
@@ -1128,7 +1133,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   and preserve already fetched ones (e.g., keep POS/lemma from a previous
 #'   foundry while adding morph from another).
 #' @param verbose print progress information if true
-#' @return The updated `kqo` object with annotation columns 
+#' @return The updated `kqo` object with annotation columns
 #' like `pos`, `lemma`, `morph` (and `atokens` and `annotation_snippet`)
 #' in the `@collectedMatches` slot. Each column is a data frame
 #' with `left`, `match`, and `right` columns containing list vectors of annotations
@@ -1155,12 +1160,16 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' # Data frame with left/match/right columns for morphological tags
 #' atokens <- q@collectedMatches$atokens
 #' # Data frame with left/match/right columns for annotation token text
-#' raw_snippet <- q@collectedMatches$annotation_snippet[[i]] # Original XML snippet for match i
+#' # Original XML snippet for match i
+#' raw_snippet <- q@collectedMatches$annotation_snippet[[i]]
 #'
 #' # Access specific components:
-#' match_pos <- q@collectedMatches$pos$match[[i]]     # POS tags for the matched tokens in match i
-#' left_lemmas <- q@collectedMatches$lemma$left[[i]]  # Lemmas for the left context in match i
-#' right_tokens <- q@collectedMatches$atokens$right[[i]] # Token text for the right context in match i
+#' # POS tags for the matched tokens in match i
+#' match_pos <- q@collectedMatches$pos$match[[i]]
+#' # Lemmas for the left context in match i
+#' left_lemmas <- q@collectedMatches$lemma$left[[i]]
+#'  # Token text for the right context in match i
+#' right_tokens <- q@collectedMatches$atokens$right[[i]]
 #'
 #' # Use a different foundry (e.g., MarMoT)
 #' q <- KorAPConnection() |>
@@ -1170,14 +1179,16 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #'   fetchAnnotations(foundry = "marmot")
 #' q@collectedMatches$pos$left[1] # POS tags for the left context of the first match
 #' }
-#' @usage fetchAnnotations(kqo, foundry = "tt", overwrite = FALSE,
-#'   verbose = kqo@korapConnection@verbose)
 #' @export
-setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", overwrite = FALSE, verbose = kqo@korapConnection@verbose) {
-  if (is.null(kqo@collectedMatches) || nrow(kqo@collectedMatches) == 0) {
-    warning("No collected matches found. Please run fetchNext() or fetchAll() first.")
-    return(kqo)
-  }
+setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
+																											 foundry = "tt",
+																											 overwrite = FALSE,
+																											 verbose = kqo@korapConnection@verbose) {
+	if (is.null(kqo@collectedMatches) ||
+			nrow(kqo@collectedMatches) == 0) {
+		warning("No collected matches found. Please run fetchNext() or fetchAll() first.")
+		return(kqo)
+	}
 
   df <- kqo@collectedMatches
   kco <- kqo@korapConnection
@@ -1188,7 +1199,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo, foundry = "tt", overwr
 
   # Pre-compute the empty character vector list to avoid repeated computation
   empty_char_list <- I(replicate(nrows, character(0), simplify = FALSE))
-  
+
   # Helper function to create annotation data frame structure
   create_annotation_df <- function(empty_list) {
     data.frame(
