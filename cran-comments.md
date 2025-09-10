@@ -1,5 +1,27 @@
 ## Notes
 
+* new function to fetch annotations
+* improved test coverage
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+
+## Test environments
+
+* local Fedora 42 with R version 4.5.1
+* github workflow on Windows with R 4.5.1
+* github workflow on macOS 15.5 with R 4.5.1 for macOS (ARM64)
+* github workflow on Ubuntu with R 4.6.0
+* github workflow on Ubuntu with R 4.5.1
+* github workflow on Ubuntu with R 4.4.3
+* win-builder workflow using R Under development (unstable) (2025-09-09 r88803 ucrt)
+
+## Notes on 1.1.0
+
 * bug fixes
 * overhauled, less class centric documentation
 * improved test coverage

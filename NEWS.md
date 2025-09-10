@@ -1,4 +1,4 @@
-# RKorAPClient 1.1.0.9000
+# RKorAPClient 1.2.0
 
 - `fetchAnnotations()` method added to `KorAPQuery` class, to fetch annotations for all collected matches
 - regional demo updated and extended with interactive highcharter plot
