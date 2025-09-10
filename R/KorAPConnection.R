@@ -82,7 +82,9 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @param userAgent user agent string. Defaults to "R-KorAP-Client".
 #' @param timeout timeout in seconds for API requests (this does not influence server internal timeouts). Defaults to 240 seconds.
 #' @param verbose logical that decides whether following operations will default to
-#'   be verbose. Defaults to FALSE.
+#'   be verbose. Defaults to FALSE. If not explicitly provided, this can be overridden
+#'   via environment variable `KORAP_VERBOSE` (accepted true-ish values: 1, true, yes, on)
+#'   or R option `rkorap.verbose` (logical).
 #' @param cache logical that decides if API calls are cached locally. You can clear
 #'   the cache with [clearCache()]. Defaults to TRUE.
 #'
@@ -148,6 +150,16 @@ setMethod("initialize", "KorAPConnection", function(.Object,
   .Object@oauthScope <- oauthScope
   .Object@authorizationSupported <- authorizationSupported
   .Object@timeout <- timeout
+  # Allow environment/option override only if user did not pass `verbose`
+  if (missing(verbose)) {
+    ev <- Sys.getenv("KORAP_VERBOSE", unset = "")
+    if (nzchar(ev)) {
+      verbose <- tolower(ev) %in% c("1", "true", "t", "yes", "y", "on")
+    } else {
+      opt <- getOption("rkorap.verbose", NULL)
+      if (!is.null(opt)) verbose <- isTRUE(opt)
+    }
+  }
   .Object@verbose <- verbose
   .Object@cache <- cache
   .Object@welcome <- apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)

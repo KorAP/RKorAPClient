@@ -62,7 +62,9 @@ to obtain an access token. This can be done with the \code{\link[=auth]{auth()}}
 \item{timeout}{timeout in seconds for API requests (this does not influence server internal timeouts). Defaults to 240 seconds.}
 
 \item{verbose}{logical that decides whether following operations will default to
-be verbose. Defaults to FALSE.}
+be verbose. Defaults to FALSE. If not explicitly provided, this can be overridden
+via environment variable \code{KORAP_VERBOSE} (accepted true-ish values: 1, true, yes, on)
+or R option \code{rkorap.verbose} (logical).}
 
 \item{cache}{logical that decides if API calls are cached locally. You can clear
 the cache with \code{\link[=clearCache]{clearCache()}}. Defaults to TRUE.}

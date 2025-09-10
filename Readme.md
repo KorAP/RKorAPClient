@@ -24,6 +24,21 @@ library(RKorAPClient)
 KorAPConnection(verbose=TRUE) |> corpusQuery("Hello world") |> fetchAll()
 ```
 
+### Verbose output without changing code
+
+You can turn on verbose logging globally without changing calls by setting an environment variable (or an R option):
+
+```r
+# Environment variable (recommended for sessions / ~/.Renviron)
+Sys.setenv(KORAP_VERBOSE = "true")
+KorAPConnection()  # uses verbose = TRUE
+
+# Alternatively, R option
+options(rkorap.verbose = TRUE)
+KorAPConnection()
+```
+Explicit `verbose` arguments still take precedence over these settings.
+
 ### Frequencies over time and domains using ggplot2
 
 ```r

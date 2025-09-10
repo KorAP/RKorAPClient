@@ -3,6 +3,7 @@
 - `fetchAnnotations()` method added to `KorAPQuery` class, to fetch annotations for all collected matches
 - regional demo updated and extended with interactive highcharter plot
 - automatic documentation tests introduced (via copromted Readme.md and different LLMs)
+- allow overriding `KorAPConnection(verbose=)` default via env var `KORAP_VERBOSE` or R option `rkorap.verbose` (explicit argument still wins)
 
 # RKorAPClient 1.1.0
 
@@ -218,4 +219,3 @@ R.cache::getCacheRootPath()
 - Fix reporting cached results in verbose mode.
 - Add demo for comparing frequencies in spoken vs. written virtual corpora. See `demo("writtenVsSpoken")`
 - Don't invalidate cache on patch level increments.
-
