@@ -1228,7 +1228,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
   }
 
   if (overwrite || !existing_types$annotation_snippet) {
-    df$annotation_snippet <- replicate(nrows, NA, simplify = FALSE)
+  	df$annotation_snippet <- rep(NA_character_, nrows)  # Fixed line
   }
 
   # Initialize timing for ETA calculation
