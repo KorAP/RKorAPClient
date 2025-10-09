@@ -338,6 +338,34 @@ test_that("fetchAnnotations handles morphological annotations with pipe separato
   }
 })
 
+test_that("issue #30 regression keeps all morphological features", {
+  skip_if_offline()
+
+  matches <- KorAPConnection(verbose = FALSE, cache = FALSE) %>%
+    corpusQuery("aufgrund einer Ameisenplage", vc = "availability=/CC.*/", metadataOnly = FALSE) %>%
+    fetchNext(maxFetch = 5) %>%
+    fetchAnnotations("marmot", verbose = FALSE) %>%
+    slot("collectedMatches")
+
+  skip_if(is.null(matches) || nrow(matches) == 0, "No matches found for issue #30 query")
+
+  pos_tail <- sapply(matches[["pos"]][["match"]], tail, 1)
+  morph_tail <- sapply(matches[["morph"]][["match"]], tail, 1)
+
+  # Ensure we actually received morphological annotations for this query
+  skip_if(all(is.na(morph_tail)), "No morphological annotations returned for issue #30 query")
+
+  # POS should still be available for the same tokens (original sanity check from issue report)
+  expect_true(all(!is.na(pos_tail)))
+
+  # Regression assertion: MarMoT morph tail must keep all features, not just the last one
+  observed_morph <- morph_tail[!is.na(morph_tail)]
+  expect_true(all(grepl("\\|", observed_morph)))
+  expect_true(all(grepl("case:", observed_morph)))
+  expect_true(all(grepl("gender:", observed_morph)))
+  expect_true(all(grepl("number:", observed_morph)))
+})
+
 test_that("fetchAnnotations adds missing layer without overwriting existing, and can overwrite when requested", {
   # Define a separate dummy connection that serves different snippets by foundry
   if (!isClass("DummyKCO2")) setClass('DummyKCO2', slots = c(apiUrl='character', verbose='logical'))
