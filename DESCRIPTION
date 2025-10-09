@@ -43,7 +43,8 @@ Imports:
     PTXQC,
     purrr,
     stringr,
-    urltools
+    urltools,
+    xml2
 Suggests:
     lifecycle,
     testthat,

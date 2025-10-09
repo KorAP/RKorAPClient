@@ -61,3 +61,29 @@ test_that("parse_xml_annotations handles missing lemma/pos/morph gracefully", {
   expect_length(parsed$morph, n)
 })
 
+test_that("parsers retain all morphological features from nested spans", {
+  xml_snippet <- '<span class="context-left"></span>
+  <span class="match">
+    <mark>
+      <span title="marmot/m:number:sg">
+        <span title="marmot/m:case:* marmot/m:case:fem">
+          <span title="tt/l:Ameisenplage tt/p:NN">Ameisenplage</span>
+        </span>
+      </span>
+    </mark>
+  </span>
+  <span class="context-right"></span>'
+
+  basic <- RKorAPClient:::parse_xml_annotations(xml_snippet)
+  structured <- RKorAPClient:::parse_xml_annotations_structured(xml_snippet)
+
+  expect_equal(basic$token, "Ameisenplage")
+  expect_equal(structured$atokens$match, "Ameisenplage")
+
+  basic_feats <- unlist(strsplit(basic$morph, "\\|"))
+  structured_feats <- unlist(strsplit(structured$morph$match, "\\|"))
+
+  expect_setequal(basic_feats, c("case:*", "case:fem", "number:sg"))
+  expect_setequal(structured_feats, c("case:*", "case:fem", "number:sg"))
+})
+
