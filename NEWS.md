@@ -2,6 +2,7 @@
 
 - warnings are now issued, when queries had to be rewritten (for licensing reasons)
 - fixed `fetchAnnotations()` morphology so MarMoT and other foundries keep all features from nested spans ([#30](https://github.com/KorAP/RKorAPClient/issues/30))
+- reimplemented annotation parsing with `xml2`, retaining multiple lemma/POS values and improving robustness of token alignment
 
 # RKorAPClient 1.2.0
 
