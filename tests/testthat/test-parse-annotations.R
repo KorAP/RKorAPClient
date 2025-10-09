@@ -31,7 +31,7 @@ test_that("parse_xml_annotations extracts tokens/pos/lemma across multiple <mark
   parsed <- RKorAPClient:::parse_xml_annotations(xml_snippet)
 
   expect_equal(parsed$token, c("Wir", "können", "alles", "außer", "Plan"))
-  expect_equal(parsed$pos,   c("PPER", "VVFIN", "PIS", "APPR", "NN"))
+  expect_equal(parsed$pos, c("PPER", "VVFIN", "PIS", "APPR", "NN"))
   expect_equal(parsed$lemma, c("Wir", "können", "alles", "außer", "Plan"))
 
   # morph not present in snippet; should be NA-aligned to tokens
@@ -50,9 +50,9 @@ test_that("parse_xml_annotations handles missing lemma/pos/morph gracefully", {
   parsed <- RKorAPClient:::parse_xml_annotations(xml_snippet)
 
   expect_equal(parsed$token, c("Haus", "können", "gehen"))
-  expect_equal(parsed$pos,   c("NN",   "VVFIN", NA))
-  expect_equal(parsed$lemma, c(NA,      "können", "gehen"))
-  expect_equal(parsed$morph, c(NA,      "verbform:fin", NA))
+  expect_equal(parsed$pos, c("NN", "VVFIN", NA))
+  expect_equal(parsed$lemma, c(NA, "können", "gehen"))
+  expect_equal(parsed$morph, c(NA, "verbform:fin", NA))
 
   # Vectors must be equal length
   n <- length(parsed$token)
@@ -100,4 +100,3 @@ test_that("multiple lemma and POS values are preserved", {
   expect_equal(structured$lemma$match, "gehen|geh")
   expect_equal(structured$pos$match, "VVFIN|VVINF")
 })
-
