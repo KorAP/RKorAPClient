@@ -771,6 +771,79 @@ setMethod("fetchRest", "KorAPQuery", function(kqo, verbose = kqo@korapConnection
   return(fetchNext(kqo, maxFetch = NA, verbose = verbose, ...))
 })
 
+# Helper to collapse multiple annotation values while preserving order
+collapse_features <- function(values) {
+  if (length(values) == 0) {
+    return(NA_character_)
+  }
+  unique_values <- values[!duplicated(values)]
+  paste(unique_values, collapse = "|")
+}
+
+# Extract token-level annotations from a DOM node
+collect_token_annotations <- function(parent_node) {
+  if (inherits(parent_node, "xml_missing")) {
+    return(list(
+      node = list(),
+      token = character(0),
+      lemma = character(0),
+      pos = character(0),
+      morph = character(0)
+    ))
+  }
+
+  leaf_nodes <- xml2::xml_find_all(parent_node, ".//span[not(.//span)]")
+
+  if (length(leaf_nodes) == 0) {
+    return(list(
+      node = list(),
+      token = character(0),
+      lemma = character(0),
+      pos = character(0),
+      morph = character(0)
+    ))
+  }
+
+  tokens <- character(0)
+  lemmas <- character(0)
+  pos_tags <- character(0)
+  morph_tags <- character(0)
+  kept_nodes <- list()
+
+  for (idx in seq_along(leaf_nodes)) {
+    leaf <- leaf_nodes[[idx]]
+    token_text <- trimws(xml2::xml_text(leaf))
+    if (identical(token_text, "")) {
+      next
+    }
+
+    kept_nodes[[length(kept_nodes) + 1]] <- leaf
+    tokens <- c(tokens, token_text)
+
+    ancestors <- xml2::xml_find_all(leaf, "ancestor-or-self::span")
+    titles <- xml2::xml_attr(ancestors, "title")
+    titles <- titles[!is.na(titles)]
+
+    feature_pieces <- if (length(titles) > 0) unlist(strsplit(titles, "[[:space:]]+")) else character(0)
+
+    lemma_values <- sub('.*?/l:(.*)$', '\\1', feature_pieces[grepl('/l:', feature_pieces)], perl = TRUE)
+    pos_values <- sub('.*?/p:(.*)$', '\\1', feature_pieces[grepl('/p:', feature_pieces)], perl = TRUE)
+    morph_values <- sub('.*?/m:(.*)$', '\\1', feature_pieces[grepl('/m:', feature_pieces)], perl = TRUE)
+
+    lemmas <- c(lemmas, collapse_features(lemma_values))
+    pos_tags <- c(pos_tags, collapse_features(pos_values))
+    morph_tags <- c(morph_tags, collapse_features(morph_values))
+  }
+
+  list(
+    node = kept_nodes,
+    token = tokens,
+    lemma = lemmas,
+    pos = pos_tags,
+    morph = morph_tags
+  )
+}
+
 #'
 #' Parse XML annotations into linguistic layers
 #'
@@ -785,198 +858,27 @@ parse_xml_annotations <- function(xml_snippet) {
     return(list(token = character(0), lemma = character(0), pos = character(0), morph = character(0)))
   }
 
-  extract_morph_via_xml <- function(fragment) {
-    snippet <- paste0("<root>", fragment, "</root>")
-    doc <- tryCatch(xml2::read_html(snippet), error = function(e) NULL)
-    if (is.null(doc)) return(NULL)
-
-    nodes <- xml2::xml_find_all(doc, ".//span[not(.//span)]")
-    if (length(nodes) == 0) return(list(tokens = character(0), morph = character(0)))
-
-    tokens_xml <- character(0)
-    morph_vals <- character(0)
-
-    for (node in nodes) {
-      token_text <- trimws(xml2::xml_text(node))
-      if (identical(token_text, "")) next
-
-      tokens_xml <- c(tokens_xml, token_text)
-
-      ancestors <- xml2::xml_find_all(node, "ancestor-or-self::span")
-      titles <- xml2::xml_attr(ancestors, "title")
-      titles <- titles[!is.na(titles)]
-
-      feature_tokens <- character(0)
-      if (length(titles) > 0) {
-        bits <- unlist(strsplit(titles, "[[:space:]]+"))
-        bits <- bits[grepl('/m:', bits)]
-        if (length(bits) > 0) {
-          feature_tokens <- sub('.*?/m:(.*)$', '\\1', bits, perl = TRUE)
-          feature_tokens <- feature_tokens[!duplicated(feature_tokens)]
-        }
-      }
-
-      if (length(feature_tokens) == 0) {
-        morph_vals <- c(morph_vals, NA_character_)
-      } else {
-        morph_vals <- c(morph_vals, paste(feature_tokens, collapse = "|"))
-      }
-    }
-
-    list(tokens = tokens_xml, morph = morph_vals)
+  doc <- tryCatch(xml2::read_html(paste0("<root>", xml_snippet, "</root>")), error = function(e) NULL)
+  if (is.null(doc)) {
+    return(list(token = character(0), lemma = character(0), pos = character(0), morph = character(0)))
   }
 
-  # Extract content within <span class="match">...</span> using a more robust approach
-  if (grepl('<span class="match">', xml_snippet)) {
-    # Find the start of match span
-    start_pos <- regexpr('<span class="match">', xml_snippet)
-    if (start_pos > 0) {
-      # Find the end by counting nested spans
-      content_start <- start_pos + attr(start_pos, "match.length")
-      remaining <- substr(xml_snippet, content_start, nchar(xml_snippet))
-
-      # Simple approach: extract everything until we hit context-right or end
-      if (grepl('<span class="context-right">', remaining)) {
-        content_to_parse <- gsub('(.*?)<span class="context-right">.*', '\\1', remaining)
-      } else {
-        # Find the closing </span> that matches our opening span
-        # For now, use a simpler approach - take everything until the last </span> sequence
-        content_to_parse <- gsub('(.*)</span>\\s*$', '\\1', remaining)
-      }
-    } else {
-      content_to_parse <- xml_snippet
-    }
-  } else {
-    content_to_parse <- xml_snippet
-  }
-
-  # Initialize result vectors
-  tokens <- character(0)
-  lemmas <- character(0)
-  pos_tags <- character(0)
-  morph_tags <- character(0)
-
-  # Split the content by </span> and process each meaningful part
-  parts <- unlist(strsplit(content_to_parse, '</span>'))
-
-  for (part in parts) {
-    part <- trimws(part)
-    if (nchar(part) == 0) next
-
-    # Look for parts that have title attributes and end with text
-    if (grepl('<span[^>]*title=', part)) {
-      # Extract the text content (everything after the last >)
-      text_content <- gsub('.*>([^<]*)$', '\\1', part)
-      text_content <- trimws(text_content)
-
-      if (nchar(text_content) > 0 && !grepl('^<', text_content)) {
-        tokens <- c(tokens, text_content)
-
-        # Extract all title attributes from this part
-        title_pattern <- 'title="([^"]*)"'
-        title_matches <- gregexpr(title_pattern, part)
-
-        lemma <- NA
-        pos_tag <- NA
-        morph_features <- character(0)
-
-        if (title_matches[[1]][1] != -1) {
-          all_titles <- regmatches(part, title_matches)[[1]]
-          for (title_match in all_titles) {
-            title_content <- gsub(title_pattern, '\\1', title_match)
-
-            # Split by spaces and process each annotation
-            annotations <- unlist(strsplit(title_content, "\\s+"))
-            for (annotation in annotations) {
-              if (grepl('^[^/]+/l:', annotation)) {
-                lemma <- gsub('^[^/]+/l:(.*)$', '\\1', annotation)
-              } else if (grepl('^[^/]+/p:', annotation)) {
-                pos_tag <- gsub('^[^/]+/p:(.*)$', '\\1', annotation)
-              } else if (grepl('^[^/]+/m:', annotation)) {
-                morph_features <- c(morph_features, gsub('^[^/]+/m:(.*)$', '\\1', annotation))
-              }
-            }
-          }
-        }
-
-        lemmas <- c(lemmas, lemma)
-        pos_tags <- c(pos_tags, pos_tag)
-        morph_tag <- if (length(morph_features) > 0) {
-          paste(unique(morph_features), collapse = "|")
-        } else {
-          NA
-        }
-        morph_tags <- c(morph_tags, morph_tag)
-      }
+  match_node <- xml2::xml_find_first(doc, ".//span[contains(@class, 'match')]")
+  if (inherits(match_node, "xml_missing")) {
+    match_node <- xml2::xml_find_first(doc, ".//span")
+    if (inherits(match_node, "xml_missing")) {
+      return(list(token = character(0), lemma = character(0), pos = character(0), morph = character(0)))
     }
   }
 
-  # If no tokens found with the splitting approach, try a different method
-  if (length(tokens) == 0) {
-    # Look for the innermost spans that contain actual text
-    innermost_pattern <- '<span[^>]*title="([^"]*)"[^>]*>([^<]+)</span>'
-    innermost_matches <- gregexpr(innermost_pattern, content_to_parse, perl = TRUE)
+  token_info <- collect_token_annotations(match_node)
 
-    if (innermost_matches[[1]][1] != -1) {
-      matches <- regmatches(content_to_parse, innermost_matches)[[1]]
-
-      for (match in matches) {
-        title <- gsub(innermost_pattern, '\\1', match, perl = TRUE)
-        text <- gsub(innermost_pattern, '\\2', match, perl = TRUE)
-        text <- trimws(text)
-
-        if (nchar(text) > 0) {
-          tokens <- c(tokens, text)
-
-          # Parse space-separated annotations in title
-          lemma <- NA
-          pos_tag <- NA
-          morph_features <- character(0)
-
-          annotations <- unlist(strsplit(title, "\\s+"))
-          for (annotation in annotations) {
-            if (grepl('^[^/]+/l:', annotation)) {
-              lemma <- gsub('^[^/]+/l:(.*)$', '\\1', annotation)
-            } else if (grepl('^[^/]+/p:', annotation)) {
-              pos_tag <- gsub('^[^/]+/p:(.*)$', '\\1', annotation)
-            } else if (grepl('^[^/]+/m:', annotation)) {
-              morph_features <- c(morph_features, gsub('^[^/]+/m:(.*)$', '\\1', annotation))
-            }
-          }
-
-          lemmas <- c(lemmas, lemma)
-          pos_tags <- c(pos_tags, pos_tag)
-          morph_tag <- if (length(morph_features) > 0) {
-            paste(unique(morph_features), collapse = "|")
-          } else {
-            NA
-          }
-          morph_tags <- c(morph_tags, morph_tag)
-        }
-      }
-    }
-  }
-
-  xml_morph <- extract_morph_via_xml(xml_snippet)
-  if (!is.null(xml_morph) && length(xml_morph$morph) > 0) {
-    morph_tags <- xml_morph$morph
-  }
-
-  # Ensure all vectors have the same length
-  max_length <- max(length(tokens), length(lemmas), length(pos_tags), length(morph_tags))
-  if (max_length > 0) {
-    tokens <- c(tokens, rep(NA, max_length - length(tokens)))
-    lemmas <- c(lemmas, rep(NA, max_length - length(lemmas)))
-    pos_tags <- c(pos_tags, rep(NA, max_length - length(pos_tags)))
-    morph_tags <- c(morph_tags, rep(NA, max_length - length(morph_tags)))
-  }
-
-  return(list(
-    token = tokens,
-    lemma = lemmas,
-    pos = pos_tags,
-    morph = morph_tags
-  ))
+  list(
+    token = token_info$token,
+    lemma = token_info$lemma,
+    pos = token_info$pos,
+    morph = token_info$morph
+  )
 }
 
 #'
@@ -1000,239 +902,103 @@ parse_xml_annotations_structured <- function(xml_snippet) {
     ))
   }
 
-  extract_morphological_features_via_xml <- function(section_content) {
-    snippet <- paste0("<root>", section_content, "</root>")
-    doc <- tryCatch(xml2::read_html(snippet), error = function(e) NULL)
-    if (is.null(doc)) return(NULL)
-
-    nodes <- xml2::xml_find_all(doc, ".//span[not(.//span)]")
-    if (length(nodes) == 0) {
-      return(list(tokens = character(0), morph = character(0)))
-    }
-
-    tokens_xml <- character(0)
-    morph_vals <- character(0)
-
-    for (node in nodes) {
-      token_text <- trimws(xml2::xml_text(node))
-      if (identical(token_text, "")) next
-
-      tokens_xml <- c(tokens_xml, token_text)
-
-      ancestors <- xml2::xml_find_all(node, "ancestor-or-self::span")
-      titles <- xml2::xml_attr(ancestors, "title")
-      titles <- titles[!is.na(titles)]
-
-      feature_tokens <- character(0)
-      if (length(titles) > 0) {
-        bits <- unlist(strsplit(titles, "[[:space:]]+"))
-        bits <- bits[grepl('/m:', bits)]
-        if (length(bits) > 0) {
-          feature_tokens <- sub('.*?/m:(.*)$', '\\1', bits, perl = TRUE)
-          feature_tokens <- feature_tokens[!duplicated(feature_tokens)]
-        }
-      }
-
-      if (length(feature_tokens) == 0) {
-        morph_vals <- c(morph_vals, NA_character_)
-      } else {
-        morph_vals <- c(morph_vals, paste(feature_tokens, collapse = "|"))
-      }
-    }
-
-    list(tokens = tokens_xml, morph = morph_vals)
-  }
-
-  # Helper function to extract annotations from a span section
-  extract_annotations_from_section <- function(section_content) {
-    # Remove any <mark>...</mark> tags that may interrupt token boundaries
-    section_no_marks <- gsub('</?mark[^>]*>', '', section_content, perl = TRUE)
-    # Normalize separators between adjacent top-level spans so splitting is robust.
-    # Replace any punctuation/entity/space run between one-or-more closing spans and the next opening span
-    # with a single space, preserving all closing spans.
-    section_norm <- gsub('((?:</span>)+)[[:space:]]*(?:&[^;]+;|[[:punct:]]|[[:space:]])*[[:space:]]*(<span)', '\\1 \\2', section_no_marks, perl = TRUE)
-    # Handle both spaced tokens and nested single tokens by scanning innermost spans with direct text
-    tokens <- character(0)
-    lemmas <- character(0)
-    pos_tags <- character(0)
-    morph_tags <- character(0)
-
-    pat_token <- '<span[^>]*title="([^"]*)"[^>]*>([^<]+)</span>'
-    mm <- gregexpr(pat_token, section_norm, perl = TRUE)
-    if (mm[[1]][1] != -1) {
-      starts <- mm[[1]]
-      lens <- attr(mm[[1]], 'match.length')
-      for (k in seq_along(starts)) {
-        s <- starts[k]
-        e <- s + lens[k] - 1
-        fragment <- substr(section_norm, s, e)
-        text_content <- sub(pat_token, '\\2', fragment, perl = TRUE)
-        text_content <- trimws(text_content)
-        title_content <- sub(pat_token, '\\1', fragment, perl = TRUE)
-
-        if (nchar(text_content) == 0) next
-
-        lemma <- NA
-        pos_tag <- NA
-        morph_features <- character(0)
-
-        # parse inner title
-        ann <- unlist(strsplit(title_content, "[[:space:]]+"))
-        for (a in ann) {
-          if (grepl('/l:', a)) {
-            lemma <- sub('.*?/l:(.*)$', '\\1', a, perl = TRUE)
-          } else if (grepl('/p:', a)) {
-            pos_tag <- sub('.*?/p:(.*)$', '\\1', a, perl = TRUE)
-          } else if (grepl('/m:', a)) {
-            morph_features <- c(morph_features, sub('.*?/m:(.*)$', '\\1', a, perl = TRUE))
-          }
-        }
-
-        # If lemma missing, look back in nearby context for the nearest title containing l:
-        if (is.na(lemma) || nchar(lemma) == 0) {
-          ctx_start <- max(1, s - 500)
-          context <- substr(section_norm, ctx_start, s - 1)
-          tmm <- gregexpr('title="([^"]*)"', context, perl = TRUE)
-          if (tmm[[1]][1] != -1) {
-            ctx_titles <- regmatches(context, tmm)[[1]]
-            for (ti in rev(ctx_titles)) {
-              cont <- sub('title="([^"]*)"', '\\1', ti, perl = TRUE)
-              if (grepl('/l:', cont)) {
-                lemma <- sub('.*?/l:([^ ]+).*', '\\1', cont, perl = TRUE)
-                break
-              }
-            }
-          }
-        }
-
-        # If POS missing, keep NA; morphological features may also appear in outer titles
-        ctx_start <- max(1, s - 500)
-        context <- substr(section_norm, ctx_start, s - 1)
-        tmm <- gregexpr('title="([^"]*)"', context, perl = TRUE)
-        if (tmm[[1]][1] != -1) {
-          ctx_titles <- regmatches(context, tmm)[[1]]
-          collecting <- FALSE
-          for (ti in rev(ctx_titles)) {
-            cont <- sub('title="([^"]*)"', '\\1', ti, perl = TRUE)
-            if (grepl('/m:', cont)) {
-              collecting <- TRUE
-              mparts <- unlist(strsplit(cont, "[[:space:]]+"))
-              features <- sub('.*?/m:(.*)$', '\\1', mparts[grepl('/m:', mparts)], perl = TRUE)
-              if (length(features) > 0) {
-                new_features <- features[!features %in% morph_features]
-                morph_features <- c(morph_features, new_features)
-              }
-            } else if (collecting) {
-              break
-            }
-          }
-        }
-
-        tokens <- c(tokens, text_content)
-        lemmas <- c(lemmas, if (!is.null(lemma)) lemma else NA)
-        pos_tags <- c(pos_tags, if (!is.null(pos_tag)) pos_tag else NA)
-        morph_tags <- c(morph_tags, if (length(morph_features) > 0) paste(unique(morph_features), collapse = "|") else NA)
-      }
-    }
-
-    # Optionally replace morphological tags using XML-based extraction if it aligns with tokens
-    xml_morph <- extract_morphological_features_via_xml(section_content)
-    if (!is.null(xml_morph) && length(xml_morph$morph) > 0) {
-      morph_tags <- xml_morph$morph
-    }
-
-    # Ensure all vectors have the same length
-    max_length <- max(length(tokens), length(lemmas), length(pos_tags), length(morph_tags))
-    if (max_length > 0) {
-      tokens <- c(tokens, rep(NA, max_length - length(tokens)))
-      lemmas <- c(lemmas, rep(NA, max_length - length(lemmas)))
-      pos_tags <- c(pos_tags, rep(NA, max_length - length(pos_tags)))
-      morph_tags <- c(morph_tags, rep(NA, max_length - length(morph_tags)))
-    }
-
+  doc <- tryCatch(xml2::read_html(paste0("<root>", xml_snippet, "</root>")), error = function(e) NULL)
+  if (is.null(doc)) {
+    empty_result <- list(left = character(0), match = character(0), right = character(0))
     return(list(
-      tokens = tokens,
-      lemmas = lemmas,
-      pos_tags = pos_tags,
-      morph_tags = morph_tags
+      atokens = empty_result,
+      lemma = empty_result,
+      pos = empty_result,
+      morph = empty_result
     ))
   }
 
-  # Split the XML into three parts: left context, match content, and right context
-  # The structure is: <span class="match">...left...<mark>...match...</mark>...right...</span>
-
-  # First extract the content within the match span using DOTALL modifier
-  match_span_pattern <- '(?s)<span class="match">(.*?)</span>\\s*<span class="context-right">'
-  match_span_match <- regexpr(match_span_pattern, xml_snippet, perl = TRUE)
-
-  if (match_span_match == -1) {
-    # Try alternative pattern if no context-right
-    match_span_pattern <- '(?s)<span class="match">(.*?)</span>\\s*$'
-    match_span_match <- regexpr(match_span_pattern, xml_snippet, perl = TRUE)
+  match_node <- xml2::xml_find_first(doc, ".//span[contains(@class, 'match')]")
+  if (inherits(match_node, "xml_missing")) {
+    empty_result <- list(left = character(0), match = character(0), right = character(0))
+    return(list(
+      atokens = empty_result,
+      lemma = empty_result,
+      pos = empty_result,
+      morph = empty_result
+    ))
   }
 
-  if (match_span_match > 0) {
-    match_span_content <- gsub(match_span_pattern, '\\1', xml_snippet, perl = TRUE)
+  token_info <- collect_token_annotations(match_node)
+  tokens <- token_info$token
+  lemmas <- token_info$lemma
+  pos_tags <- token_info$pos
+  morph_tags <- token_info$morph
+  nodes <- token_info$node
 
-    # Now find the <mark> and </mark> positions within this content
-    mark_start <- regexpr('<mark[^>]*>', match_span_content, perl = TRUE)
-    # Use the LAST closing </mark> to cover multi-part matches
-    mark_end_gre <- gregexpr('</mark>', match_span_content, perl = TRUE)
-    mark_end_positions <- mark_end_gre[[1]]
-    mark_end <- if (!is.null(mark_end_positions) && length(mark_end_positions) > 0 && mark_end_positions[1] != -1)
-      mark_end_positions[length(mark_end_positions)] else -1
-    mark_end_len <- if (mark_end != -1) attr(mark_end_gre[[1]], "match.length")[length(mark_end_positions)] else 0
+  if (length(tokens) == 0) {
+    empty_result <- list(left = character(0), match = character(0), right = character(0))
+    return(list(
+      atokens = empty_result,
+      lemma = empty_result,
+      pos = empty_result,
+      morph = empty_result
+    ))
+  }
 
-    if (mark_start > 0 && mark_end > 0) {
-      # Left context: everything before first <mark>
-      left_content <- substr(match_span_content, 1, mark_start - 1)
+  mark_flags <- vapply(nodes, function(n) {
+    !inherits(xml2::xml_find_first(n, "ancestor::mark"), "xml_missing")
+  }, logical(1))
 
-      # Match content: everything between first <mark> and last </mark>
-      match_content <- substr(match_span_content, mark_start, mark_end + mark_end_len - 1)
-
-      # Right context: everything after last </mark>
-      right_content_start <- mark_end + mark_end_len
-      right_content <- substr(match_span_content, right_content_start, nchar(match_span_content))
-    } else {
-      # No mark tags found, treat entire match span as match content
-      left_content <- ""
-      match_content <- match_span_content
-      right_content <- ""
-    }
+  if (any(mark_flags)) {
+    first_idx <- which(mark_flags)[1]
+    last_idx <- tail(which(mark_flags), 1)
   } else {
-    # No match span found, treat entire content as match
-    left_content <- ""
-    match_content <- xml_snippet
-    right_content <- ""
+    first_idx <- 1
+    last_idx <- length(tokens)
   }
 
-  # Process each section
-  left_annotations <- extract_annotations_from_section(left_content)
-  match_annotations <- extract_annotations_from_section(match_content)
-  right_annotations <- extract_annotations_from_section(right_content)
+  sections <- rep("match", length(tokens))
+  if (first_idx > 1) {
+    sections[seq_len(first_idx - 1)] <- "left"
+  }
+  if (last_idx < length(tokens)) {
+    sections[seq(from = last_idx + 1, to = length(tokens))] <- "right"
+  }
 
-  return(list(
-    atokens = list(
-      left = left_annotations$tokens,
-      match = match_annotations$tokens,
-      right = right_annotations$tokens
-    ),
-    lemma = list(
-      left = left_annotations$lemmas,
-      match = match_annotations$lemmas,
-      right = right_annotations$lemmas
-    ),
-    pos = list(
-      left = left_annotations$pos_tags,
-      match = match_annotations$pos_tags,
-      right = right_annotations$pos_tags
-    ),
-    morph = list(
-      left = left_annotations$morph_tags,
-      match = match_annotations$morph_tags,
-      right = right_annotations$morph_tags
-    )
-  ))
+  subset_by_section <- function(values, section) {
+    idx <- sections == section
+    if (!any(idx)) {
+      return(character(0))
+    }
+    values[idx]
+  }
+
+  atokens <- list(
+    left = subset_by_section(tokens, "left"),
+    match = subset_by_section(tokens, "match"),
+    right = subset_by_section(tokens, "right")
+  )
+
+  lemma <- list(
+    left = subset_by_section(lemmas, "left"),
+    match = subset_by_section(lemmas, "match"),
+    right = subset_by_section(lemmas, "right")
+  )
+
+  pos <- list(
+    left = subset_by_section(pos_tags, "left"),
+    match = subset_by_section(pos_tags, "match"),
+    right = subset_by_section(pos_tags, "right")
+  )
+
+  morph <- list(
+    left = subset_by_section(morph_tags, "left"),
+    match = subset_by_section(morph_tags, "match"),
+    right = subset_by_section(morph_tags, "right")
+  )
+
+  list(
+    atokens = atokens,
+    lemma = lemma,
+    pos = pos,
+    morph = morph
+  )
 }
 
 #' Fetch annotations for all collected matches

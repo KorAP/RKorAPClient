@@ -87,3 +87,17 @@ test_that("parsers retain all morphological features from nested spans", {
   expect_setequal(structured_feats, c("case:*", "case:fem", "number:sg"))
 })
 
+test_that("multiple lemma and POS values are preserved", {
+  xml_snippet <- '<span class="match">
+    <mark><span title="tt/l:gehen tt/l:geh tt/p:VVFIN tt/p:VVINF">gehen</span></mark>
+  </span>'
+
+  basic <- RKorAPClient:::parse_xml_annotations(xml_snippet)
+  structured <- RKorAPClient:::parse_xml_annotations_structured(xml_snippet)
+
+  expect_equal(basic$lemma, "gehen|geh")
+  expect_equal(basic$pos, "VVFIN|VVINF")
+  expect_equal(structured$lemma$match, "gehen|geh")
+  expect_equal(structured$pos$match, "VVFIN|VVINF")
+})
+
