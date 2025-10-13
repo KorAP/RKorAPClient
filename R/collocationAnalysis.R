@@ -132,7 +132,8 @@ setMethod(
           ...
         )
       }) |>
-        bind_rows()
+        bind_rows() |>
+        mutate(label = queryStringToLabel(vc))
     } else {
       set.seed(seed)
       candidates <- collocatesQuery(
