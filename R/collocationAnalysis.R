@@ -259,7 +259,7 @@ matches2FreqTable <- function(matches,
       ))
     }
     log_info(verbose, paste("Joining", nrow(matches), "kwics\n"))
-    for (i in 1:nrow(matches)) {
+    for (i in seq_len(nrow(matches))) {
       oldTable <- matches2FreqTable(
         matches,
         i,
