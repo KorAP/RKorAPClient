@@ -102,6 +102,39 @@ test_that("mergeDuplicateCollocatesWorksAsExpected", {
   expect_equal(merged$query, "Anspruch focus(in [tt/p=NN] {[tt/l=nehmen]}) | focus({[tt/l=nehmen] in} [tt/p=NN]) Anspruch")
 })
 
+test_that("add_multi_vc_comparisons adds favorite columns", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n"),
+    collocate = c("c", "c"),
+    vc = c("vc1", "vc2"),
+    label = c("A", "B"),
+    N = c(100, 100),
+    O = c(10, 20),
+    O1 = c(50, 50),
+    O2 = c(30, 30),
+    E = c(5, 5),
+    w = c(2, 2),
+    leftContextSize = c(1, 1),
+    rightContextSize = c(1, 1),
+    frequency = c(10, 20),
+    logDice = c(5, 7),
+    pmi = c(2, 3)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+
+  expect_true(all(c(
+    "winner_logDice",
+    "winner_logDice_value",
+    "runner_up_logDice",
+    "runner_up_logDice_value"
+  ) %in% colnames(enriched)))
+
+  expect_true(all(enriched$winner_logDice == "B"))
+  expect_true(all(enriched$runner_up_logDice == "A"))
+  expect_true(all(enriched$winner_logDice_value >= enriched$runner_up_logDice_value))
+})
+
 # New tests for improved coverage of collocationAnalysis.R helper functions
 
 test_that("synsemanticStopwords returns German stopwords", {

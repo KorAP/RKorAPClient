@@ -306,6 +306,8 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
   non_score_cols <- c("N", "O", "O1", "O2", "E", "w", "leftContextSize", "rightContextSize", "frequency")
   score_cols <- setdiff(numeric_cols, non_score_cols)
 
+  score_cols <- setdiff(score_cols, "rankWithinLabel")
+
   if (length(score_cols) == 0) {
     return(result)
   }
@@ -331,7 +333,9 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
       values_fn = dplyr::first
     )
 
-  labels <- make.names(unique(result$label))
+  raw_labels <- unique(result$label)
+  labels <- make.names(raw_labels)
+  label_map <- stats::setNames(raw_labels, labels)
 
   if (length(labels) == 2) {
     fill_scores <- function(x, y) {
@@ -364,6 +368,8 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
         next
       }
       filled <- fill_scores(comparison[[left_col]], comparison[[right_col]])
+      comparison[[left_col]] <- filled$x
+      comparison[[right_col]] <- filled$y
       comparison[[paste0("delta_", col)]] <- filled$x - filled$y
     }
 
@@ -371,8 +377,84 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
     right_rank <- paste0("rankWithinLabel_", right_label)
     if (all(c(left_rank, right_rank) %in% names(comparison))) {
       filled_rank <- fill_ranks(comparison[[left_rank]], comparison[[right_rank]])
+      comparison[[left_rank]] <- filled_rank$x
+      comparison[[right_rank]] <- filled_rank$y
       comparison[["delta_rankWithinLabel"]] <- filled_rank$x - filled_rank$y
     }
+  }
+
+  for (col in score_cols) {
+    value_cols <- paste0(col, "_", labels)
+    existing <- value_cols %in% names(comparison)
+    if (!any(existing)) {
+      next
+    }
+    value_cols <- value_cols[existing]
+    safe_labels <- labels[existing]
+
+    score_values <- comparison[, value_cols, drop = FALSE]
+
+    winner_label_col <- paste0("winner_", col)
+    winner_value_col <- paste0("winner_", col, "_value")
+    runner_label_col <- paste0("runner_up_", col)
+    runner_value_col <- paste0("runner_up_", col, "_value")
+
+    if (nrow(score_values) == 0) {
+      comparison[[winner_label_col]] <- character(0)
+      comparison[[winner_value_col]] <- numeric(0)
+      comparison[[runner_label_col]] <- character(0)
+      comparison[[runner_value_col]] <- numeric(0)
+      next
+    }
+
+    score_matrix <- as.matrix(score_values)
+
+    winner_labels <- apply(score_matrix, 1, function(row) {
+      row <- as.numeric(row)
+      valid <- which(!is.na(row))
+      if (length(valid) == 0) {
+        return(NA_character_)
+      }
+      ord <- valid[order(row[valid], decreasing = TRUE)]
+      unname(label_map[safe_labels[ord[1]]])
+    })
+    winner_labels <- unname(as.character(winner_labels))
+
+    winner_values <- apply(score_matrix, 1, function(row) {
+      row <- as.numeric(row)
+      if (all(is.na(row))) {
+        return(NA_real_)
+      }
+      max(row, na.rm = TRUE)
+    })
+    winner_values <- unname(as.numeric(winner_values))
+
+    runner_labels <- apply(score_matrix, 1, function(row) {
+      row <- as.numeric(row)
+      valid <- which(!is.na(row))
+      if (length(valid) < 2) {
+        return(NA_character_)
+      }
+      ord <- valid[order(row[valid], decreasing = TRUE)]
+      unname(label_map[safe_labels[ord[2]]])
+    })
+    runner_labels <- unname(as.character(runner_labels))
+
+    runner_values <- apply(score_matrix, 1, function(row) {
+      row <- as.numeric(row)
+      valid <- which(!is.na(row))
+      if (length(valid) < 2) {
+        return(NA_real_)
+      }
+      ord <- valid[order(row[valid], decreasing = TRUE)]
+      row[ord[2]]
+    })
+    runner_values <- unname(as.numeric(runner_values))
+
+    comparison[[winner_label_col]] <- winner_labels
+    comparison[[winner_value_col]] <- winner_values
+    comparison[[runner_label_col]] <- runner_labels
+    comparison[[runner_value_col]] <- runner_values
   }
 
   dplyr::left_join(result, comparison, by = c("node", "collocate"))
