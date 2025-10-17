@@ -115,7 +115,7 @@ setMethod(
 
     result <- if (length(node) > 1 || length(vc) > 1) {
       grid <- if (expand) expand_grid(node = node, vc = vc) else tibble(node = node, vc = vc)
-      purrr::pmap(grid, function(node, vc, ...) {
+      multi_result <- purrr::pmap(grid, function(node, vc, ...) {
         collocationAnalysis(kco,
           node = node,
           vc = vc,
@@ -136,9 +136,15 @@ setMethod(
           ...
         )
       }) |>
-        bind_rows() |>
-        mutate(label = queryStringToLabel(vc)) |>
-        add_multi_vc_comparisons(thresholdScore = thresholdScore, missingScoreFactor = multiVcMissingScoreFactor)
+        bind_rows()
+
+      if (!"vc" %in% names(multi_result) || nrow(multi_result) == 0) {
+        multi_result
+      } else {
+        multi_result |>
+          mutate(label = queryStringToLabel(.data$vc)) |>
+          add_multi_vc_comparisons(thresholdScore = thresholdScore, missingScoreFactor = multiVcMissingScoreFactor)
+      }
     } else {
       set.seed(seed)
       candidates <- collocatesQuery(
