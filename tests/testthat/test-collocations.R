@@ -245,6 +245,33 @@ test_that("collocationAnalysis handles expand parameter", {
   expect_true(is.data.frame(result))
 })
 
+test_that("collocationAnalysis honors named vc labels", {
+  skip_if_offline()
+  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+
+  named_vc <- c(
+    Western = "textType=/.*Western.*/ & pubDate in 2012",
+    Erotic = "textType=/.*(Erotik|Gay).*/ & pubDate in 2012",
+    Historic = "textType=/.*Historisch.*/ & pubDate in 2012"
+  )
+
+  expect_warning(
+    result <- collocationAnalysis(
+      kco,
+      "[tt/l=treffen]",
+      vc = named_vc,
+      searchHitsSampleLimit = 2,
+      topCollocatesLimit = 2
+    ),
+    "access token"
+  )
+
+  if (nrow(result) > 0) {
+    expect_true("label" %in% colnames(result))
+    expect_setequal(unique(result$label), names(named_vc))
+  }
+})
+
 test_that("collocationAnalysis handles stopwords parameter", {
   skip_if_offline()
   kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)

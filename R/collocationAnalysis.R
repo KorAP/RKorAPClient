@@ -43,6 +43,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
 #' @param multiVcMissingScoreFactor factor that is multiplied with the minimum observed score when imputing missing scores for delta computations between virtual corpora
+#' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
@@ -99,9 +100,10 @@ setMethod(
            localStopwords = c(),
            collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
            multiVcMissingScoreFactor = 0.9,
+           vcLabel = NA_character_,
            ...) {
     # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-    word <- frequency <- O <- NULL
+  word <- frequency <- O <- NULL
 
     if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nchar(withinSpan) > 0)) {
       stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
@@ -113,9 +115,35 @@ setMethod(
       node <- lemmatizeWordQuery(node)
     }
 
+    vcNames <- names(vc)
+    vc <- unname(unlist(vc, use.names = FALSE))
+    if (is.null(vcNames)) {
+      vcNames <- rep(NA_character_, length(vc))
+    } else {
+      vcNames[vcNames == ""] <- NA_character_
+      if (length(vcNames) < length(vc)) {
+        vcNames <- rep(vcNames, length.out = length(vc))
+      }
+    }
+
+    label_lookup <- NULL
+    if (length(vc) > 0 && any(!is.na(vcNames))) {
+      valid_lookup <- !is.na(vcNames)
+      label_lookup <- vcNames[valid_lookup]
+      names(label_lookup) <- vc[valid_lookup]
+    }
+
     result <- if (length(node) > 1 || length(vc) > 1) {
-      grid <- if (expand) expand_grid(node = node, vc = vc) else tibble(node = node, vc = vc)
-      multi_result <- purrr::pmap(grid, function(node, vc, ...) {
+      grid <- if (expand) {
+  tmp_grid <- expand_grid(node = node, idx = seq_along(vc))
+  tmp_grid$vc <- vc[tmp_grid$idx]
+  tmp_grid$vcLabel <- vcNames[tmp_grid$idx]
+  tmp_grid[, setdiff(names(tmp_grid), "idx"), drop = FALSE]
+      } else {
+        tibble(node = node, vc = vc, vcLabel = vcNames)
+      }
+
+      multi_result <- purrr::pmap(grid, function(node, vc, vcLabel, ...) {
         collocationAnalysis(kco,
           node = node,
           vc = vc,
@@ -133,6 +161,7 @@ setMethod(
           seed = seed,
           expand = expand,
           multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+          vcLabel = vcLabel,
           ...
         )
       }) |>
@@ -141,11 +170,30 @@ setMethod(
       if (!"vc" %in% names(multi_result) || nrow(multi_result) == 0) {
         multi_result
       } else {
+        if (!"label" %in% names(multi_result)) {
+          multi_result$label <- NA_character_
+        }
+
+        if (!is.null(label_lookup)) {
+          override <- unname(label_lookup[multi_result$vc])
+          missing_idx <- is.na(multi_result$label) | multi_result$label == ""
+          if (any(missing_idx)) {
+            multi_result$label[missing_idx] <- override[missing_idx]
+          }
+        }
+
+        missing_idx <- is.na(multi_result$label) | multi_result$label == ""
+        if (any(missing_idx)) {
+          multi_result$label[missing_idx] <- queryStringToLabel(multi_result$vc[missing_idx])
+        }
+
         multi_result |>
-          mutate(label = queryStringToLabel(.data$vc)) |>
           add_multi_vc_comparisons(thresholdScore = thresholdScore, missingScoreFactor = multiVcMissingScoreFactor)
       }
     } else {
+      if ((is.na(vcLabel) || vcLabel == "") && length(vcNames) >= 1) {
+        vcLabel <- vcNames[1]
+      }
       set.seed(seed)
       candidates <- collocatesQuery(
         kco,
@@ -182,6 +230,9 @@ setMethod(
         tibble()
       }
     }
+      if (!is.na(vcLabel) && vcLabel != "" && "label" %in% names(result)) {
+        result$label <- rep(vcLabel, nrow(result))
+      }
     if (maxRecurse > 0 & length(result) > 0 && any(!!thresholdScore >= threshold)) {
       recurseWith <- result |>
         filter(!!as.name(thresholdScore) >= threshold)
@@ -206,7 +257,8 @@ setMethod(
         searchHitsSampleLimit = searchHitsSampleLimit,
         topCollocatesLimit = topCollocatesLimit,
         addExamples = FALSE,
-        multiVcMissingScoreFactor = multiVcMissingScoreFactor
+        multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+        vcLabel = vcLabel
       ) |>
         bind_rows(result) |>
         filter(logDice >= 2) |>
