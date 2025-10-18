@@ -121,7 +121,7 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     pmi = c(2, 3)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
 
   expect_true(all(c(
     "winner_logDice",
@@ -175,7 +175,7 @@ test_that("add_multi_vc_comparisons handles more than two labels", {
     pmi = c(2, 3, 1)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
   expect_equal(enriched$winner_logDice[1], "B")
   expect_equal(enriched$winner_logDice_value[1], 8)
   expect_equal(enriched$runner_up_logDice[1], "A")
@@ -216,7 +216,7 @@ test_that("add_multi_vc_comparisons computes rank deltas", {
       )
     )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(base_tbl, "logDice", 0.9)
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(base_tbl, "logDice")
   target_row <- enriched |>
     dplyr::filter(collocate == "c1") |>
     dplyr::slice_head(n = 1)
@@ -251,7 +251,7 @@ test_that("add_multi_vc_comparisons imputes missing ranks for max delta", {
     logDice = c(5, NA)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
 
   expect_equal(enriched$rank_A_logDice[1], 1)
   expect_true(is.na(enriched$rank_B_logDice[1]))
@@ -259,6 +259,46 @@ test_that("add_multi_vc_comparisons imputes missing ranks for max delta", {
   expect_equal(enriched$loser_rank_logDice[1], "B")
   expect_equal(enriched$loser_rank_logDice_value[1], 2)
   expect_equal(enriched$max_delta_rank_logDice[1], 1)
+})
+
+test_that("adaptive missing score imputation respects measure-specific scales", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n", "n"),
+    collocate = c("c", "c", "c"),
+    vc = c("vc1", "vc2", "vc3"),
+    label = c("A", "B", "C"),
+    N = c(100, 100, 100),
+    O = c(12, 9, 7),
+    O1 = c(60, 40, 30),
+    O2 = c(33, 22, 18),
+    E = c(6, 6, 6),
+    w = c(2, 2, 2),
+    leftContextSize = c(1, 1, 1),
+    rightContextSize = c(1, 1, 1),
+    frequency = c(15, 11, 9),
+    logDice = c(-0.31, NA, -0.12),
+    pmi = c(-1.65, NA, -0.48),
+    ll = c(12.4, NA, 7.9)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(
+    sample_result,
+    "logDice",
+    missingScoreQuantile = 0.05
+  )
+
+  row_a <- dplyr::filter(enriched, label == "A") |> dplyr::slice_head(n = 1)
+
+  expect_false(is.na(row_a$logDice_B))
+  expect_false(is.na(row_a$pmi_B))
+  expect_false(is.na(row_a$ll_B))
+
+  expect_lt(row_a$logDice_B, min(sample_result$logDice, na.rm = TRUE))
+  expect_lt(row_a$pmi_B, min(sample_result$pmi, na.rm = TRUE))
+  expect_lte(row_a$ll_B, min(sample_result$ll, na.rm = TRUE))
+
+  expect_gt(row_a$max_delta_logDice, 0)
+  expect_gt(row_a$winner_logDice_value - row_a$loser_logDice_value, 0)
 })
 
 # New tests for improved coverage of collocationAnalysis.R helper functions

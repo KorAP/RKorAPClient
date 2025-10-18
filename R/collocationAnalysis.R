@@ -42,7 +42,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
-#' @param multiVcMissingScoreFactor factor that is multiplied with the minimum observed score when imputing missing scores for delta computations between virtual corpora
+#' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
@@ -99,7 +99,7 @@ setMethod(
            threshold = 2.0,
            localStopwords = c(),
            collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
-           multiVcMissingScoreFactor = 0.9,
+           missingScoreQuantile = 0.05,
            vcLabel = NA_character_,
            ...) {
     word <- frequency <- O <- NULL
@@ -154,7 +154,7 @@ setMethod(
           localStopwords = localStopwords,
           seed = seed,
           expand = expand,
-          multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+          missingScoreQuantile = missingScoreQuantile,
           collocateFilterRegex = collocateFilterRegex,
           vcLabel = vcLabel,
           ...
@@ -183,7 +183,10 @@ setMethod(
         }
 
         multi_result |>
-          add_multi_vc_comparisons(thresholdScore = thresholdScore, missingScoreFactor = multiVcMissingScoreFactor)
+          add_multi_vc_comparisons(
+            thresholdScore = thresholdScore,
+            missingScoreQuantile = missingScoreQuantile
+          )
       }
     } else {
       if ((is.na(vcLabel) || vcLabel == "") && length(vcNames) >= 1) {
@@ -259,7 +262,7 @@ setMethod(
           searchHitsSampleLimit = searchHitsSampleLimit,
           topCollocatesLimit = topCollocatesLimit,
           addExamples = FALSE,
-          multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+          missingScoreQuantile = missingScoreQuantile,
           collocateFilterRegex = collocateFilterRegex,
           vcLabel = vcLabel
         ) |>
@@ -301,7 +304,7 @@ removeWithinSpan <- function(query, withinSpan) {
   return(res)
 }
 
-add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor) {
+add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantile = 0.05) {
   label <- node <- collocate <- NULL
 
   if (!"label" %in% names(result) || dplyr::n_distinct(result$label) < 2) {
@@ -315,6 +318,67 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
   if (length(score_cols) == 0) {
     return(result)
   }
+
+  compute_score_floor <- function(values) {
+    finite_values <- values[is.finite(values)]
+    if (length(finite_values) == 0) {
+      return(0)
+    }
+
+    prob <- min(max(missingScoreQuantile, 0), 0.5)
+    q_val <- suppressWarnings(stats::quantile(finite_values,
+      probs = prob,
+      names = FALSE,
+      type = 7
+    ))
+
+    if (!is.finite(q_val)) {
+      q_val <- suppressWarnings(min(finite_values, na.rm = TRUE))
+    }
+
+    min_val <- suppressWarnings(min(finite_values, na.rm = TRUE))
+    if (!is.finite(min_val)) {
+      min_val <- 0
+    }
+
+    spread_candidates <- c(
+      suppressWarnings(stats::IQR(finite_values, na.rm = TRUE, type = 7)),
+      stats::sd(finite_values, na.rm = TRUE),
+      abs(q_val) * 0.1,
+      abs(min_val - q_val)
+    )
+    spread_candidates <- spread_candidates[is.finite(spread_candidates)]
+
+    spread <- 0
+    if (length(spread_candidates) > 0) {
+      spread <- max(spread_candidates)
+    }
+    if (!is.finite(spread) || spread == 0) {
+      spread <- max(abs(q_val), abs(min_val), 1e-06)
+    }
+
+    candidate <- q_val - spread
+    if (!is.finite(candidate)) {
+      candidate <- min_val
+    }
+
+    floor_value <- suppressWarnings(min(c(candidate, min_val), na.rm = TRUE))
+    if (!is.finite(floor_value)) {
+      floor_value <- min_val
+    }
+    if (!is.finite(floor_value)) {
+      floor_value <- 0
+    }
+
+    floor_value
+  }
+
+  score_replacements <- stats::setNames(
+    vapply(score_cols, function(col) {
+      compute_score_floor(result[[col]])
+    }, numeric(1)),
+    score_cols
+  )
 
   comparison <- result |>
     dplyr::select(node, collocate, label, dplyr::all_of(score_cols)) |>
@@ -388,13 +452,26 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
   }
 
   if (length(labels) == 2) {
-    fill_scores <- function(x, y) {
-      min_val <- suppressWarnings(min(c(x, y), na.rm = TRUE))
-      if (!is.finite(min_val)) {
-        min_val <- 0
+    fill_scores <- function(x, y, measure_col) {
+      replacement <- score_replacements[[measure_col]]
+      fallback_min <- suppressWarnings(min(c(x, y), na.rm = TRUE))
+      if (!is.finite(fallback_min)) {
+        fallback_min <- 0
       }
-      x[is.na(x)] <- missingScoreFactor * min_val
-      y[is.na(y)] <- missingScoreFactor * min_val
+      if (!is.null(replacement) && is.finite(replacement)) {
+        replacement <- min(replacement, fallback_min)
+      } else {
+        replacement <- fallback_min
+      }
+      if (!is.finite(replacement)) {
+        replacement <- 0
+      }
+      if (any(is.na(x))) {
+        x[is.na(x)] <- replacement
+      }
+      if (any(is.na(y))) {
+        y[is.na(y)] <- replacement
+      }
       list(x = x, y = y)
     }
 
@@ -426,7 +503,7 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
       if (!all(c(left_col, right_col) %in% names(comparison))) {
         next
       }
-      filled <- fill_scores(comparison[[left_col]], comparison[[right_col]])
+  filled <- fill_scores(comparison[[left_col]], comparison[[right_col]], col)
       comparison[[left_col]] <- filled$x
       comparison[[right_col]] <- filled$y
       comparison[[paste0("delta_", col)]] <- filled$x - filled$y
@@ -493,11 +570,22 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
           next
         }
 
-        min_val <- suppressWarnings(min(numeric_row, na.rm = TRUE))
-        if (!is.finite(min_val)) {
-          min_val <- 0
+        replacement <- score_replacements[[col]]
+        fallback_min <- suppressWarnings(min(numeric_row, na.rm = TRUE))
+        if (!is.finite(fallback_min)) {
+          fallback_min <- 0
         }
-        numeric_row[is.na(numeric_row)] <- missingScoreFactor * min_val
+        if (!is.null(replacement) && is.finite(replacement)) {
+          replacement <- min(replacement, fallback_min)
+        } else {
+          replacement <- fallback_min
+        }
+        if (!is.finite(replacement)) {
+          replacement <- 0
+        }
+        if (any(is.na(numeric_row))) {
+          numeric_row[is.na(numeric_row)] <- replacement
+        }
         score_matrix[i, ] <- numeric_row
 
         max_val <- suppressWarnings(max(numeric_row, na.rm = TRUE))
