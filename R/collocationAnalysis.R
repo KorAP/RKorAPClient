@@ -46,8 +46,20 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
-#' @return Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
-#'
+#' @return
+#' A tibble where each row represents a candidate collocate for the requested node.
+#' Columns include (depending on the selected association measures):
+#' 
+#' \itemize{
+#'   \item \code{node}, \code{collocate}, \code{vc}, \code{label}: identifiers for the query node, collocate, virtual corpus, and optional label.
+#'   \item Frequency and contingency information such as \code{frequency}, \code{O}, \code{O1}, \code{O2}, \code{E}, \code{leftContextSize}, \code{rightContextSize}, and \code{w}.
+#'   \item Association measures (e.g. \code{logDice}, \code{ll}, \code{mi}, ...), one column per requested scorer.
+#'   \item Per-labelled association scores produced by multi-VC comparisons using the pattern \code{<measure>_<label>}.
+#'   \item Ranks per label/measure with the pattern \code{rank_<label>_<measure>} (1 is best) and the corresponding percentile ranks \code{percentile_rank_<label>_<measure>}.
+#'   \item Pairwise contrasts for two-label comparisons, e.g. \code{delta_<measure>}, \code{delta_rank_<measure>}, and \code{delta_percentile_rank_<measure>}.
+#'   \item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}).
+#'   \item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
+#' }
 #' @importFrom dplyr arrange desc slice_head bind_rows group_by mutate ungroup left_join select row_number all_of first
 #' @importFrom purrr pmap
 #' @importFrom tidyr expand_grid pivot_wider
@@ -407,13 +419,18 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantil
     rank_tbl <- label_df[, c("node", "collocate"), drop = FALSE]
     for (col in score_cols) {
       rank_col_name <- paste0("rank_", safe_lab, "_", col)
+      percentile_col_name <- paste0("percentile_rank_", safe_lab, "_", col)
       values <- label_df[[col]]
       ranks <- rep(NA_real_, length(values))
+      percentiles <- rep(NA_real_, length(values))
       valid_idx <- which(!is.na(values))
       if (length(valid_idx) > 0) {
         ranks[valid_idx] <- rank(-values[valid_idx], ties.method = "first")
+        total <- length(valid_idx)
+        percentiles[valid_idx] <- 1 - (ranks[valid_idx] - 1) / total
       }
       rank_tbl[[rank_col_name]] <- ranks
+      rank_tbl[[percentile_col_name]] <- percentiles
     }
     rank_data <- dplyr::left_join(rank_data, rank_tbl, by = c("node", "collocate"))
   }
@@ -434,6 +451,15 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantil
         }
       }, numeric(1)),
       rank_column_names
+    )
+  }
+
+  percentile_replacements <- numeric(0)
+  percentile_column_names <- grep("^percentile_rank_", names(comparison), value = TRUE)
+  if (length(percentile_column_names) > 0) {
+    percentile_replacements <- stats::setNames(
+      rep(0, length(percentile_column_names)),
+      percentile_column_names
     )
   }
 
@@ -471,6 +497,24 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantil
       }
       if (any(is.na(y))) {
         y[is.na(y)] <- replacement
+      }
+      list(x = x, y = y)
+    }
+
+    fill_percentiles <- function(x, y, left_pct_col, right_pct_col) {
+      replacement_left <- percentile_replacements[[left_pct_col]]
+      if (is.null(replacement_left) || !is.finite(replacement_left)) {
+        replacement_left <- 0
+      }
+      replacement_right <- percentile_replacements[[right_pct_col]]
+      if (is.null(replacement_right) || !is.finite(replacement_right)) {
+        replacement_right <- 0
+      }
+      if (any(is.na(x))) {
+        x[is.na(x)] <- replacement_left
+      }
+      if (any(is.na(y))) {
+        y[is.na(y)] <- replacement_right
       }
       list(x = x, y = y)
     }
@@ -517,6 +561,17 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantil
           rank_right
         )
         comparison[[paste0("delta_rank_", col)]] <- filled_rank$x - filled_rank$y
+      }
+      pct_left <- paste0("percentile_rank_", left_label, "_", col)
+      pct_right <- paste0("percentile_rank_", right_label, "_", col)
+      if (all(c(pct_left, pct_right) %in% names(comparison))) {
+        filled_pct <- fill_percentiles(
+          comparison[[pct_left]],
+          comparison[[pct_right]],
+          pct_left,
+          pct_right
+        )
+        comparison[[paste0("delta_percentile_rank_", col)]] <- filled_pct$x - filled_pct$y
       }
     }
   }
@@ -710,6 +765,93 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantil
     comparison[[loser_rank_label_col]] <- loser_labels
     comparison[[loser_rank_value_col]] <- loser_values
     comparison[[max_delta_rank_col]] <- max_deltas
+  }
+
+  for (col in score_cols) {
+    pct_cols <- paste0("percentile_rank_", labels, "_", col)
+    existing <- pct_cols %in% names(comparison)
+    if (!any(existing)) {
+      next
+    }
+    pct_cols <- pct_cols[existing]
+    safe_labels <- labels[existing]
+    pct_values <- comparison[, pct_cols, drop = FALSE]
+
+    winner_pct_label_col <- paste0("winner_percentile_rank_", col)
+    winner_pct_value_col <- paste0("winner_percentile_rank_", col, "_value")
+    runner_pct_label_col <- paste0("runner_up_percentile_rank_", col)
+    runner_pct_value_col <- paste0("runner_up_percentile_rank_", col, "_value")
+    loser_pct_label_col <- paste0("loser_percentile_rank_", col)
+    loser_pct_value_col <- paste0("loser_percentile_rank_", col, "_value")
+    max_delta_pct_col <- paste0("max_delta_percentile_rank_", col)
+
+    if (nrow(pct_values) == 0) {
+      comparison[[winner_pct_label_col]] <- character(0)
+      comparison[[winner_pct_value_col]] <- numeric(0)
+      comparison[[runner_pct_label_col]] <- character(0)
+      comparison[[runner_pct_value_col]] <- numeric(0)
+      comparison[[loser_pct_label_col]] <- character(0)
+      comparison[[loser_pct_value_col]] <- numeric(0)
+      comparison[[max_delta_pct_col]] <- numeric(0)
+      next
+    }
+
+    pct_matrix <- as.matrix(pct_values)
+    storage.mode(pct_matrix) <- "numeric"
+
+    n_rows <- nrow(pct_matrix)
+    winner_labels <- rep(NA_character_, n_rows)
+    winner_values <- rep(NA_real_, n_rows)
+    runner_labels <- rep(NA_character_, n_rows)
+    runner_values <- rep(NA_real_, n_rows)
+    loser_labels <- rep(NA_character_, n_rows)
+    loser_values <- rep(NA_real_, n_rows)
+    max_deltas <- rep(NA_real_, n_rows)
+
+    if (n_rows > 0) {
+      for (i in seq_len(n_rows)) {
+        numeric_row <- as.numeric(pct_matrix[i, ])
+        if (all(is.na(numeric_row))) {
+          next
+        }
+
+        if (any(is.na(numeric_row))) {
+          numeric_row[is.na(numeric_row)] <- 0
+        }
+        pct_matrix[i, ] <- numeric_row
+
+        max_val <- suppressWarnings(max(numeric_row, na.rm = TRUE))
+        max_idx <- which(numeric_row == max_val)
+        winner_labels[i] <- collapse_label_values(max_idx, safe_labels)
+        winner_values[i] <- max_val
+
+        unique_vals <- sort(unique(numeric_row), decreasing = TRUE)
+        if (length(unique_vals) >= 2) {
+          runner_val <- unique_vals[2]
+          runner_idx <- which(numeric_row == runner_val)
+          runner_labels[i] <- collapse_label_values(runner_idx, safe_labels)
+          runner_values[i] <- runner_val
+        }
+
+        min_val <- suppressWarnings(min(numeric_row, na.rm = TRUE))
+        min_idx <- which(numeric_row == min_val)
+        loser_labels[i] <- collapse_label_values(min_idx, safe_labels)
+        loser_values[i] <- min_val
+
+        if (is.finite(max_val) && is.finite(min_val)) {
+          max_deltas[i] <- max_val - min_val
+        }
+      }
+    }
+
+    comparison[, pct_cols] <- pct_matrix
+    comparison[[winner_pct_label_col]] <- winner_labels
+    comparison[[winner_pct_value_col]] <- winner_values
+    comparison[[runner_pct_label_col]] <- runner_labels
+    comparison[[runner_pct_value_col]] <- runner_values
+    comparison[[loser_pct_label_col]] <- loser_labels
+    comparison[[loser_pct_value_col]] <- loser_values
+    comparison[[max_delta_pct_col]] <- max_deltas
   }
 
   dplyr::left_join(result, comparison, by = c("node", "collocate"))
@@ -923,7 +1065,9 @@ synsemanticStopwords <- function(...) {
     "Eine",
     "diese",
     "Diese",
-    "oder"
+    "oder",
+    "Es",
+    "Und"
   )
   return(res)
 }

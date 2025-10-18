@@ -136,6 +136,13 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     "loser_rank_logDice",
     "loser_rank_logDice_value",
     "max_delta_rank_logDice",
+    "winner_percentile_rank_logDice",
+    "winner_percentile_rank_logDice_value",
+    "runner_up_percentile_rank_logDice",
+    "runner_up_percentile_rank_logDice_value",
+    "loser_percentile_rank_logDice",
+    "loser_percentile_rank_logDice_value",
+    "max_delta_percentile_rank_logDice",
     "winner_rank_pmi",
     "winner_rank_pmi_value",
     "runner_up_rank_pmi",
@@ -143,17 +150,33 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     "loser_rank_pmi",
     "loser_rank_pmi_value",
     "max_delta_rank_pmi",
+    "winner_percentile_rank_pmi",
+    "winner_percentile_rank_pmi_value",
+    "runner_up_percentile_rank_pmi",
+    "runner_up_percentile_rank_pmi_value",
+    "loser_percentile_rank_pmi",
+    "loser_percentile_rank_pmi_value",
+    "max_delta_percentile_rank_pmi",
     "rank_A_logDice",
     "rank_B_logDice",
     "rank_A_pmi",
     "rank_B_pmi",
+    "percentile_rank_A_logDice",
+    "percentile_rank_B_logDice",
+    "percentile_rank_A_pmi",
+    "percentile_rank_B_pmi",
     "delta_rank_logDice",
-    "delta_rank_pmi"
+    "delta_rank_pmi",
+    "delta_percentile_rank_logDice",
+    "delta_percentile_rank_pmi"
   ) %in% colnames(enriched)))
 
   expect_true(all(enriched$winner_logDice == "B"))
   expect_true(all(enriched$runner_up_logDice == "A"))
   expect_true(all(enriched$winner_logDice_value >= enriched$runner_up_logDice_value))
+  expect_true(all(enriched$percentile_rank_A_logDice == 1))
+  expect_true(all(enriched$percentile_rank_B_logDice == 1))
+  expect_true(all(enriched$delta_percentile_rank_logDice == 0))
 })
 
 test_that("add_multi_vc_comparisons handles more than two labels", {

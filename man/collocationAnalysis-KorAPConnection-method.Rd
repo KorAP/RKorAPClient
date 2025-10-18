@@ -27,6 +27,8 @@
   threshold = 2,
   localStopwords = c(),
   collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
+  missingScoreQuantile = 0.05,
+  vcLabel = NA_character_,
   ...
 )
 }
@@ -73,10 +75,26 @@
 
 \item{collocateFilterRegex}{allow only collocates matching the regular expression}
 
+\item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora}
+
+\item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
+
 \item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}
 }
 \value{
-Tibble with top collocates, association scores, corresponding URLs for web user interface queries, etc.
+A tibble where each row represents a candidate collocate for the requested node.
+Columns include (depending on the selected association measures):
+
+\itemize{
+\item \code{node}, \code{collocate}, \code{vc}, \code{label}: identifiers for the query node, collocate, virtual corpus, and optional label.
+\item Frequency and contingency information such as \code{frequency}, \code{O}, \code{O1}, \code{O2}, \code{E}, \code{leftContextSize}, \code{rightContextSize}, and \code{w}.
+\item Association measures (e.g. \code{logDice}, \code{ll}, \code{mi}, ...), one column per requested scorer.
+\item Per-labelled association scores produced by multi-VC comparisons using the pattern \code{<measure>_<label>}.
+\item Ranks per label/measure with the pattern \code{rank_<label>_<measure>} (1 is best) and the corresponding percentile ranks \code{percentile_rank_<label>_<measure>}.
+\item Pairwise contrasts for two-label comparisons, e.g. \code{delta_<measure>}, \code{delta_rank_<measure>}, and \code{delta_percentile_rank_<measure>}.
+\item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}).
+\item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
+}
 }
 \description{
 Performs a collocation analysis for the given node (or query)
