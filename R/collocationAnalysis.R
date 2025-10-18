@@ -302,7 +302,7 @@ removeWithinSpan <- function(query, withinSpan) {
 }
 
 add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor) {
-  label <- node <- collocate <- rankWithinLabel <- NULL
+  label <- node <- collocate <- NULL
 
   if (!"label" %in% names(result) || dplyr::n_distinct(result$label) < 2) {
     return(result)
@@ -312,29 +312,15 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
   non_score_cols <- c("N", "O", "O1", "O2", "E", "w", "leftContextSize", "rightContextSize", "frequency")
   score_cols <- setdiff(numeric_cols, non_score_cols)
 
-  score_cols <- setdiff(score_cols, "rankWithinLabel")
-
   if (length(score_cols) == 0) {
     return(result)
   }
 
-  ranking_col <- thresholdScore
-  if (is.null(ranking_col) || is.na(ranking_col) || !ranking_col %in% score_cols) {
-    ranking_col <- if ("logDice" %in% score_cols) "logDice" else score_cols[1]
-  }
-
-  ranking_sym <- rlang::sym(ranking_col)
-
-  result <- result |>
-    dplyr::group_by(label) |>
-    dplyr::mutate(rankWithinLabel = dplyr::row_number(dplyr::desc(!!ranking_sym))) |>
-    dplyr::ungroup()
-
   comparison <- result |>
-    dplyr::select(node, collocate, label, rankWithinLabel, dplyr::all_of(score_cols)) |>
-    pivot_wider(
+    dplyr::select(node, collocate, label, dplyr::all_of(score_cols)) |>
+    tidyr::pivot_wider(
       names_from = label,
-      values_from = c(rankWithinLabel, dplyr::all_of(score_cols)),
+      values_from = dplyr::all_of(score_cols),
       names_glue = "{.value}_{make.names(label)}",
       values_fn = dplyr::first
     )
@@ -342,6 +328,64 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
   raw_labels <- unique(result$label)
   labels <- make.names(raw_labels)
   label_map <- stats::setNames(raw_labels, labels)
+
+  rank_data <- result |>
+    dplyr::distinct(node, collocate)
+
+  for (i in seq_along(raw_labels)) {
+    raw_lab <- raw_labels[i]
+    safe_lab <- labels[i]
+    label_df <- result[result$label == raw_lab, c("node", "collocate", score_cols), drop = FALSE]
+    if (nrow(label_df) == 0) {
+      next
+    }
+    label_df <- dplyr::distinct(label_df)
+    rank_tbl <- label_df[, c("node", "collocate"), drop = FALSE]
+    for (col in score_cols) {
+      rank_col_name <- paste0("rank_", safe_lab, "_", col)
+      values <- label_df[[col]]
+      ranks <- rep(NA_real_, length(values))
+      valid_idx <- which(!is.na(values))
+      if (length(valid_idx) > 0) {
+        ranks[valid_idx] <- rank(-values[valid_idx], ties.method = "first")
+      }
+      rank_tbl[[rank_col_name]] <- ranks
+    }
+    rank_data <- dplyr::left_join(rank_data, rank_tbl, by = c("node", "collocate"))
+  }
+
+  comparison <- dplyr::left_join(comparison, rank_data, by = c("node", "collocate"))
+
+  rank_replacements <- numeric(0)
+  rank_column_names <- grep("^rank_", names(comparison), value = TRUE)
+  if (length(rank_column_names) > 0) {
+    rank_replacements <- stats::setNames(
+      vapply(rank_column_names, function(col) {
+        col_values <- comparison[[col]]
+        valid_values <- col_values[!is.na(col_values)]
+        if (length(valid_values) == 0) {
+          nrow(comparison) + 1
+        } else {
+          suppressWarnings(max(valid_values, na.rm = TRUE)) + 1
+        }
+      }, numeric(1)),
+      rank_column_names
+    )
+  }
+
+  collapse_label_values <- function(indices, safe_labels_vec) {
+    if (length(indices) == 0) {
+      return(NA_character_)
+    }
+    labs <- label_map[safe_labels_vec[indices]]
+    fallback <- safe_labels_vec[indices]
+    labs[is.na(labs) | labs == ""] <- fallback[is.na(labs) | labs == ""]
+    labs <- labs[!is.na(labs) & labs != ""]
+    if (length(labs) == 0) {
+      return(NA_character_)
+    }
+    paste(unique(labs), collapse = ", ")
+  }
 
   if (length(labels) == 2) {
     fill_scores <- function(x, y) {
@@ -354,13 +398,22 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
       list(x = x, y = y)
     }
 
-    fill_ranks <- function(x, y) {
-      max_val <- suppressWarnings(max(c(x, y), na.rm = TRUE))
-      if (!is.finite(max_val)) {
-        max_val <- 0
+    fill_ranks <- function(x, y, left_rank_col, right_rank_col) {
+      fallback <- nrow(comparison) + 1
+      replacement_left <- rank_replacements[[left_rank_col]]
+      if (is.null(replacement_left) || !is.finite(replacement_left)) {
+        replacement_left <- fallback
       }
-      x[is.na(x)] <- max_val + 1
-      y[is.na(y)] <- max_val + 1
+      replacement_right <- rank_replacements[[right_rank_col]]
+      if (is.null(replacement_right) || !is.finite(replacement_right)) {
+        replacement_right <- fallback
+      }
+      if (any(is.na(x))) {
+        x[is.na(x)] <- replacement_left
+      }
+      if (any(is.na(y))) {
+        y[is.na(y)] <- replacement_right
+      }
       list(x = x, y = y)
     }
 
@@ -377,15 +430,17 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
       comparison[[left_col]] <- filled$x
       comparison[[right_col]] <- filled$y
       comparison[[paste0("delta_", col)]] <- filled$x - filled$y
-    }
-
-    left_rank <- paste0("rankWithinLabel_", left_label)
-    right_rank <- paste0("rankWithinLabel_", right_label)
-    if (all(c(left_rank, right_rank) %in% names(comparison))) {
-      filled_rank <- fill_ranks(comparison[[left_rank]], comparison[[right_rank]])
-      comparison[[left_rank]] <- filled_rank$x
-      comparison[[right_rank]] <- filled_rank$y
-      comparison[["delta_rankWithinLabel"]] <- filled_rank$x - filled_rank$y
+      rank_left <- paste0("rank_", left_label, "_", col)
+      rank_right <- paste0("rank_", right_label, "_", col)
+      if (all(c(rank_left, rank_right) %in% names(comparison))) {
+        filled_rank <- fill_ranks(
+          comparison[[rank_left]],
+          comparison[[rank_right]],
+          rank_left,
+          rank_right
+        )
+        comparison[[paste0("delta_rank_", col)]] <- filled_rank$x - filled_rank$y
+      }
     }
   }
 
@@ -431,20 +486,6 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
     loser_values <- rep(NA_real_, n_rows)
     max_deltas <- rep(NA_real_, n_rows)
 
-    collapse_labels <- function(indices) {
-      if (length(indices) == 0) {
-        return(NA_character_)
-      }
-      labs <- label_map[safe_labels[indices]]
-      fallback <- safe_labels[indices]
-      labs[is.na(labs) | labs == ""] <- fallback[is.na(labs) | labs == ""]
-      labs <- labs[!is.na(labs) & labs != ""]
-      if (length(labs) == 0) {
-        return(NA_character_)
-      }
-      paste(unique(labs), collapse = ", ")
-    }
-
     if (n_rows > 0) {
       for (i in seq_len(n_rows)) {
         numeric_row <- as.numeric(score_matrix[i, ])
@@ -461,20 +502,20 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
 
         max_val <- suppressWarnings(max(numeric_row, na.rm = TRUE))
         max_idx <- which(numeric_row == max_val)
-        winner_labels[i] <- collapse_labels(max_idx)
+        winner_labels[i] <- collapse_label_values(max_idx, safe_labels)
         winner_values[i] <- max_val
 
         unique_vals <- sort(unique(numeric_row), decreasing = TRUE)
         if (length(unique_vals) >= 2) {
           runner_val <- unique_vals[2]
           runner_idx <- which(numeric_row == runner_val)
-          runner_labels[i] <- collapse_labels(runner_idx)
+          runner_labels[i] <- collapse_label_values(runner_idx, safe_labels)
           runner_values[i] <- runner_val
         }
 
         min_val <- suppressWarnings(min(numeric_row, na.rm = TRUE))
         min_idx <- which(numeric_row == min_val)
-        loser_labels[i] <- collapse_labels(min_idx)
+        loser_labels[i] <- collapse_label_values(min_idx, safe_labels)
         loser_values[i] <- min_val
 
         if (is.finite(max_val) && is.finite(min_val)) {
@@ -491,6 +532,96 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
     comparison[[loser_label_col]] <- loser_labels
     comparison[[loser_value_col]] <- loser_values
     comparison[[max_delta_col]] <- max_deltas
+  }
+
+  for (col in score_cols) {
+    rank_cols <- paste0("rank_", labels, "_", col)
+    existing <- rank_cols %in% names(comparison)
+    if (!any(existing)) {
+      next
+    }
+    rank_cols <- rank_cols[existing]
+    safe_labels <- labels[existing]
+    rank_values <- comparison[, rank_cols, drop = FALSE]
+
+    winner_rank_label_col <- paste0("winner_rank_", col)
+    winner_rank_value_col <- paste0("winner_rank_", col, "_value")
+    runner_rank_label_col <- paste0("runner_up_rank_", col)
+    runner_rank_value_col <- paste0("runner_up_rank_", col, "_value")
+    loser_rank_label_col <- paste0("loser_rank_", col)
+    loser_rank_value_col <- paste0("loser_rank_", col, "_value")
+    max_delta_rank_col <- paste0("max_delta_rank_", col)
+
+    if (nrow(rank_values) == 0) {
+      comparison[[winner_rank_label_col]] <- character(0)
+      comparison[[winner_rank_value_col]] <- numeric(0)
+      comparison[[runner_rank_label_col]] <- character(0)
+      comparison[[runner_rank_value_col]] <- numeric(0)
+      comparison[[loser_rank_label_col]] <- character(0)
+      comparison[[loser_rank_value_col]] <- numeric(0)
+      comparison[[max_delta_rank_col]] <- numeric(0)
+      next
+    }
+
+  rank_matrix <- as.matrix(rank_values)
+  storage.mode(rank_matrix) <- "numeric"
+
+    n_rows <- nrow(rank_matrix)
+    winner_labels <- rep(NA_character_, n_rows)
+    winner_values <- rep(NA_real_, n_rows)
+    runner_labels <- rep(NA_character_, n_rows)
+    runner_values <- rep(NA_real_, n_rows)
+    loser_labels <- rep(NA_character_, n_rows)
+    loser_values <- rep(NA_real_, n_rows)
+    max_deltas <- rep(NA_real_, n_rows)
+
+    for (i in seq_len(n_rows)) {
+      numeric_row <- as.numeric(rank_matrix[i, ])
+      if (all(is.na(numeric_row))) {
+        next
+      }
+
+      if (length(rank_cols) > 0) {
+        replacement_vec <- rank_replacements[rank_cols]
+        replacement_vec[is.na(replacement_vec)] <- nrow(comparison) + 1
+        missing_idx <- which(is.na(numeric_row))
+        if (length(missing_idx) > 0) {
+          numeric_row[missing_idx] <- replacement_vec[missing_idx]
+        }
+      }
+
+      valid_idx <- seq_along(numeric_row)
+      valid_values <- numeric_row[valid_idx]
+      min_val <- suppressWarnings(min(valid_values, na.rm = TRUE))
+      min_positions <- valid_idx[which(valid_values == min_val)]
+      winner_labels[i] <- collapse_label_values(min_positions, safe_labels)
+      winner_values[i] <- min_val
+
+      ordered_vals <- sort(unique(valid_values), decreasing = FALSE)
+      if (length(ordered_vals) >= 2) {
+        runner_val <- ordered_vals[2]
+        runner_positions <- valid_idx[which(valid_values == runner_val)]
+        runner_labels[i] <- collapse_label_values(runner_positions, safe_labels)
+        runner_values[i] <- runner_val
+      }
+
+      max_val <- suppressWarnings(max(valid_values, na.rm = TRUE))
+      max_positions <- valid_idx[which(valid_values == max_val)]
+      loser_labels[i] <- collapse_label_values(max_positions, safe_labels)
+      loser_values[i] <- max_val
+
+      if (is.finite(max_val) && is.finite(min_val)) {
+        max_deltas[i] <- max_val - min_val
+      }
+    }
+
+    comparison[[winner_rank_label_col]] <- winner_labels
+    comparison[[winner_rank_value_col]] <- winner_values
+    comparison[[runner_rank_label_col]] <- runner_labels
+    comparison[[runner_rank_value_col]] <- runner_values
+    comparison[[loser_rank_label_col]] <- loser_labels
+    comparison[[loser_rank_value_col]] <- loser_values
+    comparison[[max_delta_rank_col]] <- max_deltas
   }
 
   dplyr::left_join(result, comparison, by = c("node", "collocate"))

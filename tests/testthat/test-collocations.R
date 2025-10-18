@@ -127,7 +127,28 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     "winner_logDice",
     "winner_logDice_value",
     "runner_up_logDice",
-    "runner_up_logDice_value"
+    "runner_up_logDice_value",
+    "max_delta_logDice",
+    "winner_rank_logDice",
+    "winner_rank_logDice_value",
+    "runner_up_rank_logDice",
+    "runner_up_rank_logDice_value",
+    "loser_rank_logDice",
+    "loser_rank_logDice_value",
+    "max_delta_rank_logDice",
+    "winner_rank_pmi",
+    "winner_rank_pmi_value",
+    "runner_up_rank_pmi",
+    "runner_up_rank_pmi_value",
+    "loser_rank_pmi",
+    "loser_rank_pmi_value",
+    "max_delta_rank_pmi",
+    "rank_A_logDice",
+    "rank_B_logDice",
+    "rank_A_pmi",
+    "rank_B_pmi",
+    "delta_rank_logDice",
+    "delta_rank_pmi"
   ) %in% colnames(enriched)))
 
   expect_true(all(enriched$winner_logDice == "B"))
@@ -162,6 +183,82 @@ test_that("add_multi_vc_comparisons handles more than two labels", {
   expect_equal(enriched$loser_logDice[1], "C")
   expect_equal(enriched$loser_logDice_value[1], 4)
   expect_equal(enriched$max_delta_logDice[1], 4)
+})
+
+test_that("add_multi_vc_comparisons computes rank deltas", {
+  base_tbl <- tidyr::expand_grid(
+    label = c("A", "B", "C"),
+    collocate = c("c1", "c2", "c3")
+  ) |>
+    dplyr::mutate(
+      node = "n",
+      vc = paste0("vc", label),
+      N = 100,
+      O = 10,
+      O1 = 50,
+      O2 = 40,
+      E = 5,
+      w = 2,
+      leftContextSize = 1,
+      rightContextSize = 1,
+      frequency = 10,
+      logDice = dplyr::case_when(
+        label == "A" & collocate == "c1" ~ 9,
+        label == "A" & collocate == "c2" ~ 6,
+        label == "A" & collocate == "c3" ~ 3,
+        label == "B" & collocate == "c1" ~ 7,
+        label == "B" & collocate == "c2" ~ 9,
+        label == "B" & collocate == "c3" ~ 5,
+        label == "C" & collocate == "c1" ~ 4,
+        label == "C" & collocate == "c2" ~ 6,
+        label == "C" & collocate == "c3" ~ 8,
+        TRUE ~ 0
+      )
+    )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(base_tbl, "logDice", 0.9)
+  target_row <- enriched |>
+    dplyr::filter(collocate == "c1") |>
+    dplyr::slice_head(n = 1)
+
+  expect_equal(target_row$rank_A_logDice, 1)
+  expect_equal(target_row$rank_B_logDice, 2)
+  expect_equal(target_row$rank_C_logDice, 3)
+  expect_equal(target_row$winner_rank_logDice, "A")
+  expect_equal(target_row$winner_rank_logDice_value, 1)
+  expect_equal(target_row$runner_up_rank_logDice, "B")
+  expect_equal(target_row$runner_up_rank_logDice_value, 2)
+  expect_equal(target_row$loser_rank_logDice, "C")
+  expect_equal(target_row$loser_rank_logDice_value, 3)
+  expect_equal(target_row$max_delta_rank_logDice, 2)
+})
+
+test_that("add_multi_vc_comparisons imputes missing ranks for max delta", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n"),
+    collocate = c("c", "c"),
+    vc = c("vc1", "vc2"),
+    label = c("A", "B"),
+    N = c(100, 100),
+    O = c(10, 10),
+    O1 = c(50, 50),
+    O2 = c(30, 30),
+    E = c(5, 5),
+    w = c(2, 2),
+    leftContextSize = c(1, 1),
+    rightContextSize = c(1, 1),
+    frequency = c(10, 10),
+    logDice = c(5, NA)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+
+  expect_equal(enriched$rank_A_logDice[1], 1)
+  expect_true(is.na(enriched$rank_B_logDice[1]))
+  expect_equal(enriched$winner_rank_logDice[1], "A")
+  expect_equal(enriched$loser_rank_logDice[1], "B")
+  expect_equal(enriched$loser_rank_logDice_value[1], 2)
+  expect_equal(enriched$max_delta_rank_logDice[1], 1)
 })
 
 # New tests for improved coverage of collocationAnalysis.R helper functions
