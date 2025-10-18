@@ -135,6 +135,35 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
   expect_true(all(enriched$winner_logDice_value >= enriched$runner_up_logDice_value))
 })
 
+test_that("add_multi_vc_comparisons handles more than two labels", {
+  sample_result <- tibble::tibble(
+    node = rep("n", 3),
+    collocate = rep("c", 3),
+    vc = c("vc1", "vc2", "vc3"),
+    label = c("A", "B", "C"),
+    N = rep(100, 3),
+    O = c(10, 30, 5),
+    O1 = rep(50, 3),
+    O2 = rep(30, 3),
+    E = rep(5, 3),
+    w = rep(2, 3),
+    leftContextSize = rep(1, 3),
+    rightContextSize = rep(1, 3),
+    frequency = c(10, 30, 5),
+    logDice = c(5, 8, 4),
+    pmi = c(2, 3, 1)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice", 0.9)
+  expect_equal(enriched$winner_logDice[1], "B")
+  expect_equal(enriched$winner_logDice_value[1], 8)
+  expect_equal(enriched$runner_up_logDice[1], "A")
+  expect_equal(enriched$runner_up_logDice_value[1], 5)
+  expect_equal(enriched$loser_logDice[1], "C")
+  expect_equal(enriched$loser_logDice_value[1], 4)
+  expect_equal(enriched$max_delta_logDice[1], 4)
+})
+
 # New tests for improved coverage of collocationAnalysis.R helper functions
 
 test_that("synsemanticStopwords returns German stopwords", {

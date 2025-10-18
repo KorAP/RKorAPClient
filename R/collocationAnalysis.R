@@ -102,10 +102,9 @@ setMethod(
            multiVcMissingScoreFactor = 0.9,
            vcLabel = NA_character_,
            ...) {
-    # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
-  word <- frequency <- O <- NULL
+    word <- frequency <- O <- NULL
 
-    if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nchar(withinSpan) > 0)) {
+    if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nzchar(withinSpan))) {
       stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
     }
 
@@ -116,29 +115,24 @@ setMethod(
     }
 
     vcNames <- names(vc)
-    vc <- unname(unlist(vc, use.names = FALSE))
     if (is.null(vcNames)) {
       vcNames <- rep(NA_character_, length(vc))
-    } else {
-      vcNames[vcNames == ""] <- NA_character_
-      if (length(vcNames) < length(vc)) {
-        vcNames <- rep(vcNames, length.out = length(vc))
-      }
     }
 
     label_lookup <- NULL
-    if (length(vc) > 0 && any(!is.na(vcNames))) {
-      valid_lookup <- !is.na(vcNames)
-      label_lookup <- vcNames[valid_lookup]
-      names(label_lookup) <- vc[valid_lookup]
+    if (!is.null(names(vc)) && length(vc) > 0) {
+      raw_names <- names(vc)
+      if (any(!is.na(raw_names) & raw_names != "")) {
+        label_lookup <- stats::setNames(raw_names, vc)
+      }
     }
 
     result <- if (length(node) > 1 || length(vc) > 1) {
       grid <- if (expand) {
-  tmp_grid <- expand_grid(node = node, idx = seq_along(vc))
-  tmp_grid$vc <- vc[tmp_grid$idx]
-  tmp_grid$vcLabel <- vcNames[tmp_grid$idx]
-  tmp_grid[, setdiff(names(tmp_grid), "idx"), drop = FALSE]
+        tmp_grid <- tidyr::expand_grid(node = node, idx = seq_along(vc))
+        tmp_grid$vc <- vc[tmp_grid$idx]
+        tmp_grid$vcLabel <- vcNames[tmp_grid$idx]
+        tmp_grid[, c("node", "vc", "vcLabel"), drop = FALSE]
       } else {
         tibble(node = node, vc = vc, vcLabel = vcNames)
       }
@@ -161,6 +155,7 @@ setMethod(
           seed = seed,
           expand = expand,
           multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+          collocateFilterRegex = collocateFilterRegex,
           vcLabel = vcLabel,
           ...
         )
@@ -194,6 +189,7 @@ setMethod(
       if ((is.na(vcLabel) || vcLabel == "") && length(vcNames) >= 1) {
         vcLabel <- vcNames[1]
       }
+
       set.seed(seed)
       candidates <- collocatesQuery(
         kco,
@@ -205,6 +201,7 @@ setMethod(
         searchHitsSampleLimit = searchHitsSampleLimit,
         ignoreCollocateCase = ignoreCollocateCase,
         stopwords = append(stopwords, localStopwords),
+        collocateFilterRegex = collocateFilterRegex,
         ...
       )
 
@@ -230,42 +227,50 @@ setMethod(
         tibble()
       }
     }
-      if (!is.na(vcLabel) && vcLabel != "" && "label" %in% names(result)) {
-        result$label <- rep(vcLabel, nrow(result))
-      }
-    if (maxRecurse > 0 & length(result) > 0 && any(!!thresholdScore >= threshold)) {
-      recurseWith <- result |>
-        filter(!!as.name(thresholdScore) >= threshold)
-      result <- collocationAnalysis(
-        kco,
-        node = paste0("(", buildCollocationQuery(
-          removeWithinSpan(recurseWith$node, withinSpan),
-          recurseWith$collocate,
+
+    if (!is.na(vcLabel) && vcLabel != "" && "label" %in% names(result)) {
+      result$label <- rep(vcLabel, nrow(result))
+    }
+
+    threshold_col <- thresholdScore
+    if (maxRecurse > 0 && nrow(result) > 0 && threshold_col %in% names(result)) {
+      threshold_values <- result[[threshold_col]]
+      eligible_idx <- which(!is.na(threshold_values) & threshold_values >= threshold)
+      if (length(eligible_idx) > 0) {
+        recurseWith <- result[eligible_idx, , drop = FALSE]
+        result <- collocationAnalysis(
+          kco,
+          node = paste0("(", buildCollocationQuery(
+            removeWithinSpan(recurseWith$node, withinSpan),
+            recurseWith$collocate,
+            leftContextSize = leftContextSize,
+            rightContextSize = rightContextSize,
+            withinSpan = ""
+          ), ")"),
+          vc = vc,
+          minOccur = minOccur,
           leftContextSize = leftContextSize,
           rightContextSize = rightContextSize,
-          withinSpan = ""
-        ), ")"),
-        vc = vc,
-        minOccur = minOccur,
-        leftContextSize = leftContextSize,
-        rightContextSize = rightContextSize,
-        withinSpan = withinSpan,
-        maxRecurse = maxRecurse - 1,
-        stopwords = stopwords,
-        localStopwords = recurseWith$collocate,
-        exactFrequencies = exactFrequencies,
-        searchHitsSampleLimit = searchHitsSampleLimit,
-        topCollocatesLimit = topCollocatesLimit,
-        addExamples = FALSE,
-        multiVcMissingScoreFactor = multiVcMissingScoreFactor,
-        vcLabel = vcLabel
-      ) |>
-        bind_rows(result) |>
-        filter(logDice >= 2) |>
-        filter(O >= minOccur) |>
-        dplyr::arrange(dplyr::desc(logDice))
+          withinSpan = withinSpan,
+          maxRecurse = maxRecurse - 1,
+          stopwords = stopwords,
+          localStopwords = recurseWith$collocate,
+          exactFrequencies = exactFrequencies,
+          searchHitsSampleLimit = searchHitsSampleLimit,
+          topCollocatesLimit = topCollocatesLimit,
+          addExamples = FALSE,
+          multiVcMissingScoreFactor = multiVcMissingScoreFactor,
+          collocateFilterRegex = collocateFilterRegex,
+          vcLabel = vcLabel
+        ) |>
+          bind_rows(result) |>
+          filter(logDice >= 2) |>
+          filter(O >= minOccur) |>
+          dplyr::arrange(dplyr::desc(logDice))
+      }
     }
-    if (addExamples && length(result) > 0) {
+
+    if (addExamples && nrow(result) > 0) {
       result$query <- buildCollocationQuery(
         result$node,
         result$collocate,
@@ -279,6 +284,7 @@ setMethod(
         vc = result$vc
       )
     }
+
     result
   }
 )
@@ -398,63 +404,93 @@ add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreFactor)
     winner_value_col <- paste0("winner_", col, "_value")
     runner_label_col <- paste0("runner_up_", col)
     runner_value_col <- paste0("runner_up_", col, "_value")
+    loser_label_col <- paste0("loser_", col)
+    loser_value_col <- paste0("loser_", col, "_value")
+    max_delta_col <- paste0("max_delta_", col)
 
     if (nrow(score_values) == 0) {
       comparison[[winner_label_col]] <- character(0)
       comparison[[winner_value_col]] <- numeric(0)
       comparison[[runner_label_col]] <- character(0)
       comparison[[runner_value_col]] <- numeric(0)
+      comparison[[loser_label_col]] <- character(0)
+      comparison[[loser_value_col]] <- numeric(0)
+      comparison[[max_delta_col]] <- numeric(0)
       next
     }
 
     score_matrix <- as.matrix(score_values)
+    storage.mode(score_matrix) <- "numeric"
 
-    winner_labels <- apply(score_matrix, 1, function(row) {
-      row <- as.numeric(row)
-      valid <- which(!is.na(row))
-      if (length(valid) == 0) {
+    n_rows <- nrow(score_matrix)
+    winner_labels <- rep(NA_character_, n_rows)
+    winner_values <- rep(NA_real_, n_rows)
+    runner_labels <- rep(NA_character_, n_rows)
+    runner_values <- rep(NA_real_, n_rows)
+    loser_labels <- rep(NA_character_, n_rows)
+    loser_values <- rep(NA_real_, n_rows)
+    max_deltas <- rep(NA_real_, n_rows)
+
+    collapse_labels <- function(indices) {
+      if (length(indices) == 0) {
         return(NA_character_)
       }
-      ord <- valid[order(row[valid], decreasing = TRUE)]
-      unname(label_map[safe_labels[ord[1]]])
-    })
-    winner_labels <- unname(as.character(winner_labels))
-
-    winner_values <- apply(score_matrix, 1, function(row) {
-      row <- as.numeric(row)
-      if (all(is.na(row))) {
-        return(NA_real_)
-      }
-      max(row, na.rm = TRUE)
-    })
-    winner_values <- unname(as.numeric(winner_values))
-
-    runner_labels <- apply(score_matrix, 1, function(row) {
-      row <- as.numeric(row)
-      valid <- which(!is.na(row))
-      if (length(valid) < 2) {
+      labs <- label_map[safe_labels[indices]]
+      fallback <- safe_labels[indices]
+      labs[is.na(labs) | labs == ""] <- fallback[is.na(labs) | labs == ""]
+      labs <- labs[!is.na(labs) & labs != ""]
+      if (length(labs) == 0) {
         return(NA_character_)
       }
-      ord <- valid[order(row[valid], decreasing = TRUE)]
-      unname(label_map[safe_labels[ord[2]]])
-    })
-    runner_labels <- unname(as.character(runner_labels))
+      paste(unique(labs), collapse = ", ")
+    }
 
-    runner_values <- apply(score_matrix, 1, function(row) {
-      row <- as.numeric(row)
-      valid <- which(!is.na(row))
-      if (length(valid) < 2) {
-        return(NA_real_)
+    if (n_rows > 0) {
+      for (i in seq_len(n_rows)) {
+        numeric_row <- as.numeric(score_matrix[i, ])
+        if (all(is.na(numeric_row))) {
+          next
+        }
+
+        min_val <- suppressWarnings(min(numeric_row, na.rm = TRUE))
+        if (!is.finite(min_val)) {
+          min_val <- 0
+        }
+        numeric_row[is.na(numeric_row)] <- missingScoreFactor * min_val
+        score_matrix[i, ] <- numeric_row
+
+        max_val <- suppressWarnings(max(numeric_row, na.rm = TRUE))
+        max_idx <- which(numeric_row == max_val)
+        winner_labels[i] <- collapse_labels(max_idx)
+        winner_values[i] <- max_val
+
+        unique_vals <- sort(unique(numeric_row), decreasing = TRUE)
+        if (length(unique_vals) >= 2) {
+          runner_val <- unique_vals[2]
+          runner_idx <- which(numeric_row == runner_val)
+          runner_labels[i] <- collapse_labels(runner_idx)
+          runner_values[i] <- runner_val
+        }
+
+        min_val <- suppressWarnings(min(numeric_row, na.rm = TRUE))
+        min_idx <- which(numeric_row == min_val)
+        loser_labels[i] <- collapse_labels(min_idx)
+        loser_values[i] <- min_val
+
+        if (is.finite(max_val) && is.finite(min_val)) {
+          max_deltas[i] <- max_val - min_val
+        }
       }
-      ord <- valid[order(row[valid], decreasing = TRUE)]
-      row[ord[2]]
-    })
-    runner_values <- unname(as.numeric(runner_values))
+    }
 
+    comparison[, value_cols] <- score_matrix
     comparison[[winner_label_col]] <- winner_labels
     comparison[[winner_value_col]] <- winner_values
     comparison[[runner_label_col]] <- runner_labels
     comparison[[runner_value_col]] <- runner_values
+    comparison[[loser_label_col]] <- loser_labels
+    comparison[[loser_value_col]] <- loser_values
+    comparison[[max_delta_col]] <- max_deltas
   }
 
   dplyr::left_join(result, comparison, by = c("node", "collocate"))
@@ -713,6 +749,7 @@ collocatesQuery <-
            searchHitsSampleLimit = 20000,
            ignoreCollocateCase = FALSE,
            stopwords = c(),
+           collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
            ...) {
     frequency <- NULL
     q <- corpusQuery(kco, query, vc, metadataOnly = F, ...)
@@ -727,6 +764,7 @@ collocatesQuery <-
         rightContextSize = rightContextSize,
         ignoreCollocateCase = ignoreCollocateCase,
         stopwords = stopwords,
+        collocateFilterRegex = collocateFilterRegex,
         ...,
         verbose = kco@verbose
       ) |>
