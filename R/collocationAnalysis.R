@@ -42,7 +42,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
-#' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora
+#' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
@@ -331,12 +331,14 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
   }
 
   compute_score_floor <- function(values) {
+    # Estimate a conservative floor so missing scores can be imputed without favoring any label
     finite_values <- values[is.finite(values)]
     if (length(finite_values) == 0) {
       return(0)
     }
 
     prob <- min(max(missingScoreQuantile, 0), 0.5)
+    # Use a lower quantile as the anchor to stay near the weakest attested scores
     q_val <- suppressWarnings(stats::quantile(finite_values,
       probs = prob,
       names = FALSE,
@@ -368,6 +370,7 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       spread <- max(abs(q_val), abs(min_val), 1e-06)
     }
 
+    # Step away from the anchor by a robust spread estimate to avoid ties with real scores
     candidate <- q_val - spread
     if (!is.finite(candidate)) {
       candidate <- min_val

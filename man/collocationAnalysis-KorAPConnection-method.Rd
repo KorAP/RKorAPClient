@@ -75,7 +75,7 @@
 
 \item{collocateFilterRegex}{allow only collocates matching the regular expression}
 
-\item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora}
+\item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores}
 
 \item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
 
