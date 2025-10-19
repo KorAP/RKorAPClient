@@ -196,7 +196,6 @@ setMethod(
 
         multi_result |>
           add_multi_vc_comparisons(
-            thresholdScore = thresholdScore,
             missingScoreQuantile = missingScoreQuantile
           )
       }
@@ -316,7 +315,7 @@ removeWithinSpan <- function(query, withinSpan) {
   return(res)
 }
 
-add_multi_vc_comparisons <- function(result, thresholdScore, missingScoreQuantile = 0.05) {
+add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
   label <- node <- collocate <- NULL
 
   if (!"label" %in% names(result) || dplyr::n_distinct(result$label) < 2) {

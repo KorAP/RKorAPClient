@@ -121,7 +121,7 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     pmi = c(2, 3)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
 
   expect_true(all(c(
     "winner_logDice",
@@ -198,7 +198,7 @@ test_that("add_multi_vc_comparisons handles more than two labels", {
     pmi = c(2, 3, 1)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
   expect_equal(enriched$winner_logDice[1], "B")
   expect_equal(enriched$winner_logDice_value[1], 8)
   expect_equal(enriched$runner_up_logDice[1], "A")
@@ -239,7 +239,7 @@ test_that("add_multi_vc_comparisons computes rank deltas", {
       )
     )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(base_tbl, "logDice")
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(base_tbl)
   target_row <- enriched |>
     dplyr::filter(collocate == "c1") |>
     dplyr::slice_head(n = 1)
@@ -274,7 +274,7 @@ test_that("add_multi_vc_comparisons imputes missing ranks for max delta", {
     logDice = c(5, NA)
   )
 
-  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result, "logDice")
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
 
   expect_equal(enriched$rank_A_logDice[1], 1)
   expect_true(is.na(enriched$rank_B_logDice[1]))
@@ -306,7 +306,6 @@ test_that("adaptive missing score imputation respects measure-specific scales", 
 
   enriched <- RKorAPClient:::add_multi_vc_comparisons(
     sample_result,
-    "logDice",
     missingScoreQuantile = 0.05
   )
 
