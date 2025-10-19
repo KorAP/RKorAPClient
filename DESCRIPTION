@@ -42,6 +42,7 @@ Imports:
     methods,
     PTXQC,
     purrr,
+    rlang,
     stringr,
     urltools,
     xml2
