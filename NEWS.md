@@ -1,3 +1,10 @@
+# unpublished dev version 1.2.1.9000
+
+- fixed score threshold in recursive CA
+- focus is now injected into webUIRequestUrls in collocationAnalysis results, when possible
+- added support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.)
+- added support for passing condition labels when comparing multiple vcs by allowing for named vc lists
+
 # RKorAPClient 1.2.1
 
 - fixed `fetchAnnotations()` morphology so MarMoT and other foundries keep all features from nested spans ([#30](https://github.com/KorAP/RKorAPClient/issues/30))
