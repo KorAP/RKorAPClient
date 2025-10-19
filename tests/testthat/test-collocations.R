@@ -408,6 +408,24 @@ test_that("snippet2FreqTable processes single snippet correctly", {
   expect_true(is.data.frame(result))
 })
 
+test_that("inject_focus_into_query adds focus wrappers when span queries lack them", {
+  unfocused <- "contains(<base/s=s>, (Anspruch [tt/l=nehmen] | [tt/l=nehmen] Anspruch))"
+  focused <- RKorAPClient:::inject_focus_into_query(unfocused)
+
+  expect_equal(
+    focused,
+    "contains(<base/s=s>, (focus({Anspruch [tt/l=nehmen]}) | focus({[tt/l=nehmen] Anspruch})))"
+  )
+})
+
+test_that("inject_focus_into_query leaves existing focus segments unchanged", {
+  already_focused <- "contains(<base/s=s>, (focus({Anspruch [tt/l=nehmen]})))"
+  expect_identical(
+    RKorAPClient:::inject_focus_into_query(already_focused),
+    already_focused
+  )
+})
+
 # Removed hanging findExample tests as they cause infinite wait
 # These tests make API calls that don't complete properly
 

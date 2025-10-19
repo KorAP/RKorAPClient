@@ -313,6 +313,44 @@ setMethod(
       )
     }
 
+    if (!is.null(withinSpan) && !is.na(withinSpan) && nzchar(withinSpan) &&
+      nrow(result) > 0 &&
+      "webUIRequestUrl" %in% names(result) &&
+      "query" %in% names(result)) {
+      candidate_rows <- which(!is.na(result$node) &
+        !grepl("focus\\(", result$node, perl = TRUE) &
+        !is.na(result$query) & nzchar(result$query))
+
+      if (length(candidate_rows) > 0) {
+        focused_queries <- vapply(
+          result$query[candidate_rows],
+          inject_focus_into_query,
+          character(1)
+        )
+
+        changed <- focused_queries != result$query[candidate_rows]
+        if (any(changed)) {
+          indices <- candidate_rows[changed]
+          vc_values <- as.character(result$vc)
+          vc_values[is.na(vc_values)] <- ""
+
+          result$webUIRequestUrl[indices] <- mapply(
+            function(new_query, vc_value) {
+              buildWebUIRequestUrlFromString(
+                kco@KorAPUrl,
+                new_query,
+                vc = vc_value,
+                ql = "poliqarp"
+              )
+            },
+            focused_queries[changed],
+            vc_values[indices],
+            USE.NAMES = FALSE
+          )
+        }
+      }
+    }
+
     result
   }
 )
@@ -428,6 +466,47 @@ backfill_missing_scores <- function(result,
   }
 
   result
+}
+
+inject_focus_into_query <- function(query) {
+  if (is.null(query) || is.na(query)) {
+    return(query)
+  }
+
+  trimmed <- trimws(query)
+  if (!nzchar(trimmed)) {
+    return(query)
+  }
+
+  if (!grepl("^contains\\(<[^>]+>", trimmed, perl = TRUE)) {
+    return(query)
+  }
+
+  if (grepl("focus\\(", trimmed, perl = TRUE)) {
+    return(query)
+  }
+
+  pattern <- "^contains\\(<([^>]+)>\\s*,\\s*\\((.*)\\)\\)\\s*$"
+  matches <- regexec(pattern, trimmed, perl = TRUE)
+  components <- regmatches(trimmed, matches)
+  if (length(components) == 0 || length(components[[1]]) < 3) {
+    return(query)
+  }
+
+  span <- components[[1]][2]
+  inner <- components[[1]][3]
+  parts <- strsplit(inner, "\\|", perl = TRUE)[[1]]
+  parts <- trimws(parts)
+  parts <- parts[nzchar(parts)]
+
+  if (length(parts) == 0) {
+    return(query)
+  }
+
+  focused <- paste0("focus({", parts, "})")
+  combined <- paste(focused, collapse = " | ")
+
+  sprintf("contains(<%s>, (%s))", span, combined)
 }
 
 add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
