@@ -1131,7 +1131,7 @@ snippet2FreqTable <- function(snippet,
 #' @return Vector of synsemantic stopwords.
 #' @export
 synsemanticStopwords <- function(...) {
-  res <- c(
+  base <- c(
     "der",
     "die",
     "und",
@@ -1145,28 +1145,23 @@ synsemanticStopwords <- function(...) {
     "ist",
     "auf",
     "sich",
-    "Die",
     "des",
     "dem",
     "nicht",
     "ein",
-    "Ein",
     "eine",
-    "Eine",
     "es",
     "auch",
     "an",
     "als",
     "am",
     "aus",
-    "Der",
     "bei",
     "er",
     "dass",
     "sie",
     "nach",
     "um",
-    "Das",
     "zum",
     "noch",
     "war",
@@ -1179,14 +1174,14 @@ synsemanticStopwords <- function(...) {
     "\u00fcber",
     "so",
     "aber",
-    "Eine",
     "diese",
-    "Diese",
-    "oder",
-    "Es",
-    "Und"
+    "oder"
   )
-  return(res)
+
+  lower <- unique(tolower(base))
+  capitalized <- paste0(toupper(substr(lower, 1, 1)), substring(lower, 2))
+
+  unique(c(lower, capitalized))
 }
 
 
