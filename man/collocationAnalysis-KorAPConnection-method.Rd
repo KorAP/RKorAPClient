@@ -27,6 +27,7 @@
   threshold = 2,
   localStopwords = c(),
   collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
+  queryMissingScores = FALSE,
   missingScoreQuantile = 0.05,
   vcLabel = NA_character_,
   ...
@@ -74,6 +75,8 @@
 \item{localStopwords}{vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls}
 
 \item{collocateFilterRegex}{allow only collocates matching the regular expression}
+
+\item{queryMissingScores}{if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold}
 
 \item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores}
 

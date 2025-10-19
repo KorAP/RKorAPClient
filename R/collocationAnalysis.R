@@ -42,6 +42,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
+#' @param queryMissingScores     if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold
 #' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
@@ -111,6 +112,7 @@ setMethod(
            threshold = 2.0,
            localStopwords = c(),
            collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
+           queryMissingScores = FALSE,
            missingScoreQuantile = 0.05,
            vcLabel = NA_character_,
            ...) {
@@ -167,6 +169,7 @@ setMethod(
           seed = seed,
           expand = expand,
           missingScoreQuantile = missingScoreQuantile,
+          queryMissingScores = queryMissingScores,
           collocateFilterRegex = collocateFilterRegex,
           vcLabel = vcLabel,
           ...
@@ -177,6 +180,16 @@ setMethod(
       if (!"vc" %in% names(multi_result) || nrow(multi_result) == 0) {
         multi_result
       } else {
+        if (queryMissingScores) {
+          multi_result <- backfill_missing_scores(
+            multi_result,
+            grid = grid,
+            kco = kco,
+            ignoreCollocateCase = ignoreCollocateCase,
+            ...
+          )
+        }
+
         if (!"label" %in% names(multi_result)) {
           multi_result$label <- NA_character_
         }
@@ -275,6 +288,7 @@ setMethod(
           addExamples = FALSE,
           missingScoreQuantile = missingScoreQuantile,
           collocateFilterRegex = collocateFilterRegex,
+          queryMissingScores = queryMissingScores,
           vcLabel = vcLabel
         ) |>
           bind_rows(result) |>
@@ -313,6 +327,107 @@ removeWithinSpan <- function(query, withinSpan) {
   needle <- sprintf("^contains\\(<%s>, ?(.*)\\)$", withinSpan)
   res <- gsub(needle, "\\1", res)
   return(res)
+}
+
+backfill_missing_scores <- function(result,
+                                    grid,
+                                    kco,
+                                    ignoreCollocateCase,
+                                    ...) {
+  if (!"vc" %in% names(result) || !"node" %in% names(result) || !"collocate" %in% names(result)) {
+    return(result)
+  }
+
+  if (nrow(result) == 0) {
+    return(result)
+  }
+
+  distinct_pairs <- dplyr::distinct(result, node, collocate)
+  if (nrow(distinct_pairs) == 0) {
+    return(result)
+  }
+
+  collocates_by_node <- split(as.character(distinct_pairs$collocate), distinct_pairs$node)
+  if (length(collocates_by_node) == 0) {
+    return(result)
+  }
+
+  required_combinations <- unique(as.data.frame(grid[, c("node", "vc", "vcLabel")], drop = FALSE))
+  for (i in seq_len(nrow(required_combinations))) {
+    node_value <- required_combinations$node[i]
+    vc_value <- required_combinations$vc[i]
+
+    collocate_pool <- collocates_by_node[[node_value]]
+    if (is.null(collocate_pool) || length(collocate_pool) == 0) {
+      next
+    }
+
+    existing_idx <- result$node == node_value & result$vc == vc_value
+    existing_collocates <- unique(as.character(result$collocate[existing_idx]))
+    missing_collocates <- setdiff(unique(collocate_pool), existing_collocates)
+    missing_collocates <- missing_collocates[!is.na(missing_collocates) & nzchar(missing_collocates)]
+
+    if (length(missing_collocates) == 0) {
+      next
+    }
+
+    context_rows <- result[result$node == node_value & result$vc == vc_value, , drop = FALSE]
+    if (nrow(context_rows) == 0) {
+      context_rows <- result[result$node == node_value, , drop = FALSE]
+    }
+
+    left_size <- context_rows$leftContextSize[!is.na(context_rows$leftContextSize)][1]
+    if (is.na(left_size) || length(left_size) == 0) {
+      left_size <- result$leftContextSize[!is.na(result$leftContextSize)][1]
+    }
+    if (is.na(left_size) || length(left_size) == 0) {
+      left_size <- 5
+    }
+
+    right_size <- context_rows$rightContextSize[!is.na(context_rows$rightContextSize)][1]
+    if (is.na(right_size) || length(right_size) == 0) {
+      right_size <- result$rightContextSize[!is.na(result$rightContextSize)][1]
+    }
+    if (is.na(right_size) || length(right_size) == 0) {
+      right_size <- 5
+    }
+
+    within_span_value <- ""
+    if ("query" %in% names(context_rows)) {
+      query_candidate <- context_rows$query[!is.na(context_rows$query) & nzchar(context_rows$query)][1]
+      if (!is.na(query_candidate) && nzchar(query_candidate)) {
+        match_one <- regexec("^\\(*contains\\(<([^>]+)>,", query_candidate)
+        matches <- regmatches(query_candidate, match_one)
+        if (length(matches) >= 1 && length(matches[[1]]) >= 2) {
+          within_span_value <- matches[[1]][2]
+        }
+      }
+    }
+
+    new_rows <- collocationScoreQuery(
+      kco,
+      node = node_value,
+      collocate = missing_collocates,
+      vc = vc_value,
+      leftContextSize = left_size,
+      rightContextSize = right_size,
+      ignoreCollocateCase = ignoreCollocateCase,
+      withinSpan = within_span_value,
+      ...
+    )
+
+    if (nrow(new_rows) == 0) {
+      next
+    }
+
+    if (!is.null(required_combinations$vcLabel[i]) && !is.na(required_combinations$vcLabel[i]) && required_combinations$vcLabel[i] != "" && "label" %in% names(new_rows)) {
+      new_rows$label <- required_combinations$vcLabel[i]
+    }
+
+    result <- dplyr::bind_rows(result, new_rows)
+  }
+
+  result
 }
 
 add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
