@@ -30,6 +30,7 @@
   queryMissingScores = FALSE,
   missingScoreQuantile = 0.05,
   vcLabel = NA_character_,
+  cacheAs = NULL,
   ...
 )
 }
@@ -68,9 +69,9 @@
 
 \item{addExamples}{If TRUE, examples for instances of collocations will be added in a column \code{example}. This makes a difference in particular if \code{node} is given as a lemma query.}
 
-\item{thresholdScore}{association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls}
+\item{thresholdScore}{association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls (only applied when \code{maxRecurse > 0})}
 
-\item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively}
+\item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0})}
 
 \item{localStopwords}{vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls}
 
@@ -81,6 +82,8 @@
 \item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores}
 
 \item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
+
+\item{cacheAs}{path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).}
 
 \item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}
 }

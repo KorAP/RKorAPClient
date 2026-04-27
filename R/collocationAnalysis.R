@@ -45,12 +45,13 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param queryMissingScores     if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold
 #' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
+#' @param cacheAs                path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return
 #' A tibble where each row represents a candidate collocate for the requested node.
 #' Columns include (depending on the selected association measures):
-#' 
+#'
 #' \itemize{
 #'   \item \code{node}, \code{collocate}, \code{vc}, \code{label}: identifiers for the query node, collocate, virtual corpus, and optional label.
 #'   \item Frequency and contingency information such as \code{frequency}, \code{O}, \code{O1}, \code{O2}, \code{E}, \code{leftContextSize}, \code{rightContextSize}, and \code{w}.
@@ -115,8 +116,18 @@ setMethod(
            queryMissingScores = FALSE,
            missingScoreQuantile = 0.05,
            vcLabel = NA_character_,
+           cacheAs = NULL,
            ...) {
     word <- frequency <- O <- NULL
+
+    if (!is.null(cacheAs) && !grepl("\\.rds$", cacheAs, ignore.case = TRUE)) {
+      cacheAs <- paste0(cacheAs, ".rds")
+    }
+
+    if (!is.null(cacheAs) && file.exists(cacheAs)) {
+      log_info(kco@verbose, sprintf("Loading collocation analysis from cache: %s\n", cacheAs))
+      return(readRDS(cacheAs))
+    }
 
     if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nzchar(withinSpan))) {
       stop(sprintf("Not empty withinSpan (='%s') requires exactFrequencies=TRUE", withinSpan), call. = FALSE)
@@ -358,6 +369,11 @@ setMethod(
           )
         }
       }
+    }
+
+    if (!is.null(cacheAs)) {
+      log_info(kco@verbose, sprintf("Saving collocation analysis to cache: %s\n", cacheAs))
+      saveRDS(result, cacheAs)
     }
 
     result
@@ -752,7 +768,7 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       if (!all(c(left_col, right_col) %in% names(comparison))) {
         next
       }
-  filled <- fill_scores(comparison[[left_col]], comparison[[right_col]], col)
+      filled <- fill_scores(comparison[[left_col]], comparison[[right_col]], col)
       comparison[[left_col]] <- filled$x
       comparison[[right_col]] <- filled$y
       comparison[[paste0("delta_", col)]] <- filled$x - filled$y
@@ -911,8 +927,8 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       next
     }
 
-  rank_matrix <- as.matrix(rank_values)
-  storage.mode(rank_matrix) <- "numeric"
+    rank_matrix <- as.matrix(rank_values)
+    storage.mode(rank_matrix) <- "numeric"
 
     n_rows <- nrow(rank_matrix)
     winner_labels <- rep(NA_character_, n_rows)

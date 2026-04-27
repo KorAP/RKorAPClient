@@ -1,5 +1,6 @@
 # unpublished dev version 1.2.1.9000
 
+- added `cacheAs` parameter to `collocationAnalysis()` for transparent result caching: if the specified RDS file exists, the cached result is returned immediately; otherwise the analysis runs and the result is saved to the file (`.rds` extension is added automatically if omitted)
 - fixed score threshold in recursive CA
 - focus is now injected into webUIRequestUrls in collocationAnalysis results, when possible
 - added support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.)
