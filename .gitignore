@@ -7,3 +7,9 @@ docs
 *.log
 *_files/
 *.bak
+.positai
+.claude
+.codex
+.gitlab-ci-local
+
+

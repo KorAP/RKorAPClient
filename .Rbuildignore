@@ -15,3 +15,10 @@
 ^CLAUDE.md
 ^.claude
 ^codecov\.yml$
+^\.positai$
+^\.claude$
+^\.codex$
+\.gitlab-ci\.yml$
+^\.github$
+^\ .gitlab-ci-local
+
