@@ -117,6 +117,7 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
     leftContextSize = c(1, 1),
     rightContextSize = c(1, 1),
     frequency = c(10, 20),
+    webUIRequestUrl = c("https://korap.example/A", "https://korap.example/B"),
     logDice = c(5, 7),
     pmi = c(2, 3)
   )
@@ -126,22 +127,30 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
   expect_true(all(c(
     "winner_logDice",
     "winner_logDice_value",
+    "winner_logDice_webUIRequestUrl",
+    "winner_webUIRequestUrl",
     "runner_up_logDice",
     "runner_up_logDice_value",
+    "loser_logDice_webUIRequestUrl",
+    "loser_webUIRequestUrl",
     "max_delta_logDice",
     "winner_rank_logDice",
     "winner_rank_logDice_value",
+    "winner_rank_logDice_webUIRequestUrl",
     "runner_up_rank_logDice",
     "runner_up_rank_logDice_value",
     "loser_rank_logDice",
     "loser_rank_logDice_value",
+    "loser_rank_logDice_webUIRequestUrl",
     "max_delta_rank_logDice",
     "winner_percentile_rank_logDice",
     "winner_percentile_rank_logDice_value",
+    "winner_percentile_rank_logDice_webUIRequestUrl",
     "runner_up_percentile_rank_logDice",
     "runner_up_percentile_rank_logDice_value",
     "loser_percentile_rank_logDice",
     "loser_percentile_rank_logDice_value",
+    "loser_percentile_rank_logDice_webUIRequestUrl",
     "max_delta_percentile_rank_logDice",
     "winner_rank_pmi",
     "winner_rank_pmi_value",
@@ -174,9 +183,55 @@ test_that("add_multi_vc_comparisons adds favorite columns", {
   expect_true(all(enriched$winner_logDice == "B"))
   expect_true(all(enriched$runner_up_logDice == "A"))
   expect_true(all(enriched$winner_logDice_value >= enriched$runner_up_logDice_value))
+  expect_true(all(enriched$winner_logDice_webUIRequestUrl == "https://korap.example/B"))
+  expect_true(all(enriched$loser_logDice_webUIRequestUrl == "https://korap.example/A"))
+  expect_true(all(enriched$winner_webUIRequestUrl == "https://korap.example/B"))
+  expect_true(all(enriched$loser_webUIRequestUrl == "https://korap.example/A"))
   expect_true(all(enriched$percentile_rank_A_logDice == 1))
   expect_true(all(enriched$percentile_rank_B_logDice == 1))
   expect_true(all(enriched$delta_percentile_rank_logDice == 0))
+})
+
+test_that("add_multi_vc_comparisons fills missing label URLs from vc", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n", "n"),
+    collocate = c("c1", "c2", "c2"),
+    vc = c("corpusSigle=/A/", "corpusSigle=/A/", "corpusSigle=/B/"),
+    label = c("A", "A", "B"),
+    N = c(100, 100, 100),
+    O = c(10, 10, 20),
+    O1 = c(50, 50, 50),
+    O2 = c(30, 30, 30),
+    E = c(5, 5, 5),
+    w = c(2, 2, 2),
+    leftContextSize = c(1, 1, 1),
+    rightContextSize = c(1, 1, 1),
+    frequency = c(10, 10, 20),
+    webUIRequestUrl = c(
+      "https://korap.example/?q=q1&cq=corpusSigle%3D%2FA%2F&ql=poliqarp",
+      "https://korap.example/?q=q2&cq=corpusSigle%3D%2FA%2F&ql=poliqarp",
+      "https://korap.example/?q=q2&cq=corpusSigle%3D%2FB%2F&ql=poliqarp"
+    ),
+    logDice = c(6, 5, 7),
+    pmi = c(3, 2, 4)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
+  c1 <- enriched[enriched$collocate == "c1", ]
+  expected_b_url <- paste0(
+    "https://korap.example/?q=q1&cq=",
+    urltools::url_encode("corpusSigle=/B/"),
+    "&ql=poliqarp"
+  )
+
+  expect_equal(
+    unique(c1$loser_logDice_webUIRequestUrl),
+    expected_b_url
+  )
+  expect_equal(
+    unique(c1$loser_webUIRequestUrl),
+    expected_b_url
+  )
 })
 
 test_that("add_multi_vc_comparisons handles more than two labels", {
@@ -194,6 +249,7 @@ test_that("add_multi_vc_comparisons handles more than two labels", {
     leftContextSize = rep(1, 3),
     rightContextSize = rep(1, 3),
     frequency = c(10, 30, 5),
+    webUIRequestUrl = c("https://korap.example/A", "https://korap.example/B", "https://korap.example/C"),
     logDice = c(5, 8, 4),
     pmi = c(2, 3, 1)
   )
@@ -201,11 +257,41 @@ test_that("add_multi_vc_comparisons handles more than two labels", {
   enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
   expect_equal(enriched$winner_logDice[1], "B")
   expect_equal(enriched$winner_logDice_value[1], 8)
+  expect_equal(enriched$winner_logDice_webUIRequestUrl[1], "https://korap.example/B")
   expect_equal(enriched$runner_up_logDice[1], "A")
   expect_equal(enriched$runner_up_logDice_value[1], 5)
   expect_equal(enriched$loser_logDice[1], "C")
   expect_equal(enriched$loser_logDice_value[1], 4)
+  expect_equal(enriched$loser_logDice_webUIRequestUrl[1], "https://korap.example/C")
   expect_equal(enriched$max_delta_logDice[1], 4)
+})
+
+test_that("add_multi_vc_comparisons leaves unsuffixed URLs ambiguous when scores disagree", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n"),
+    collocate = c("c", "c"),
+    vc = c("vc1", "vc2"),
+    label = c("A", "B"),
+    N = c(100, 100),
+    O = c(10, 20),
+    O1 = c(50, 50),
+    O2 = c(30, 30),
+    E = c(5, 5),
+    w = c(2, 2),
+    leftContextSize = c(1, 1),
+    rightContextSize = c(1, 1),
+    frequency = c(10, 20),
+    webUIRequestUrl = c("https://korap.example/A", "https://korap.example/B"),
+    logDice = c(5, 7),
+    pmi = c(4, 3)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
+
+  expect_equal(enriched$winner_logDice_webUIRequestUrl[1], "https://korap.example/B")
+  expect_equal(enriched$winner_pmi_webUIRequestUrl[1], "https://korap.example/A")
+  expect_true(is.na(enriched$winner_webUIRequestUrl[1]))
+  expect_true(is.na(enriched$loser_webUIRequestUrl[1]))
 })
 
 test_that("add_multi_vc_comparisons computes rank deltas", {

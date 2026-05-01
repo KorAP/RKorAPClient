@@ -3,7 +3,7 @@
 - added `cacheAs` parameter to `collocationAnalysis()` for transparent result caching: if the specified RDS file exists, the cached result is returned immediately; otherwise the analysis runs and the result is saved to the file (`.rds` extension is added automatically if omitted)
 - fixed score threshold in recursive CA
 - focus is now injected into webUIRequestUrls in collocationAnalysis results, when possible
-- added support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.)
+- added support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.), including explicit winner/loser `webUIRequestUrl` columns for association scores, ranks, and percentile ranks. Missing per-label concordance URLs are now derived by replacing the `cq` parameter of an available row URL with the target label's vc, and unsuffixed consensus `winner_webUIRequestUrl` / `loser_webUIRequestUrl` columns are populated when score-based URL choices agree
 - added support for passing condition labels when comparing multiple vcs by allowing for named vc lists
 
 # RKorAPClient 1.2.1

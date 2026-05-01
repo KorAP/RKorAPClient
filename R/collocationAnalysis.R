@@ -59,7 +59,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #'   \item Per-labelled association scores produced by multi-VC comparisons using the pattern \code{<measure>_<label>}.
 #'   \item Ranks per label/measure with the pattern \code{rank_<label>_<measure>} (1 is best) and the corresponding percentile ranks \code{percentile_rank_<label>_<measure>}.
 #'   \item Pairwise contrasts for two-label comparisons, e.g. \code{delta_<measure>}, \code{delta_rank_<measure>}, and \code{delta_percentile_rank_<measure>}.
-#'   \item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}).
+#'   \item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}), including winner/loser \code{webUIRequestUrl} columns. In multi-VC comparisons, missing per-label concordance URLs are derived from another available row URL for the same \code{node}/\code{collocate} by replacing the \code{cq} parameter with the target label's virtual corpus. Unsuffixed \code{winner_webUIRequestUrl} and \code{loser_webUIRequestUrl} columns are populated only when the score-based URL choices agree.
 #'   \item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
 #' }
 #' @importFrom dplyr arrange desc slice_head bind_rows group_by mutate ungroup left_join select row_number all_of first
@@ -535,7 +535,7 @@ inject_focus_into_query <- function(query) {
 }
 
 add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
-  label <- node <- collocate <- NULL
+  label <- node <- collocate <- vc <- webUIRequestUrl <- NULL
 
   if (!"label" %in% names(result) || dplyr::n_distinct(result$label) < 2) {
     return(result)
@@ -625,6 +625,70 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
   raw_labels <- unique(result$label)
   labels <- make.names(raw_labels)
   label_map <- stats::setNames(raw_labels, labels)
+  vc_map <- result |>
+    dplyr::select(label, vc) |>
+    dplyr::filter(!is.na(label), label != "") |>
+    dplyr::distinct(label, .keep_all = TRUE)
+  vc_map <- stats::setNames(vc_map$vc, make.names(vc_map$label))
+
+  replace_web_ui_cq <- function(url, vc_value) {
+    if (length(url) == 0 || is.na(url) || url == "") {
+      return(NA_character_)
+    }
+    if (length(vc_value) == 0 || is.na(vc_value)) {
+      vc_value <- ""
+    }
+    encoded_vc <- urltools::url_encode(enc2utf8(as.character(vc_value)))
+    if (grepl("([?&]cq=)[^&]*", url, perl = TRUE)) {
+      return(sub("([?&]cq=)[^&]*", paste0("\\1", encoded_vc), url, perl = TRUE))
+    }
+    if (encoded_vc == "") {
+      return(url)
+    }
+    paste0(url, ifelse(grepl("\\?", url), "&", "?"), "cq=", encoded_vc)
+  }
+
+  if ("webUIRequestUrl" %in% names(result)) {
+    url_data <- result |>
+      dplyr::select(node, collocate, label, webUIRequestUrl) |>
+      tidyr::pivot_wider(
+        names_from = label,
+        values_from = webUIRequestUrl,
+        names_glue = "webUIRequestUrl_{make.names(label)}",
+        values_fn = dplyr::first
+      )
+
+    comparison <- dplyr::left_join(comparison, url_data, by = c("node", "collocate"))
+
+    url_cols <- paste0("webUIRequestUrl_", labels)
+    present_url_cols <- intersect(url_cols, names(comparison))
+    fallback_urls <- vapply(seq_len(nrow(comparison)), function(i) {
+      urls <- unlist(comparison[i, present_url_cols, drop = FALSE], use.names = FALSE)
+      urls <- as.character(urls)
+      urls <- urls[!is.na(urls) & urls != ""]
+      if (length(urls) == 0) {
+        NA_character_
+      } else {
+        urls[1]
+      }
+    }, character(1))
+
+    for (safe_label in labels) {
+      url_col <- paste0("webUIRequestUrl_", safe_label)
+      if (!url_col %in% names(comparison)) {
+        comparison[[url_col]] <- NA_character_
+      }
+      missing_urls <- is.na(comparison[[url_col]]) | comparison[[url_col]] == ""
+      if (any(missing_urls)) {
+        comparison[[url_col]][missing_urls] <- vapply(
+          fallback_urls[missing_urls],
+          replace_web_ui_cq,
+          character(1),
+          vc_value = vc_map[[safe_label]]
+        )
+      }
+    }
+  }
 
   rank_data <- result |>
     dplyr::distinct(node, collocate)
@@ -696,6 +760,18 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       return(NA_character_)
     }
     paste(unique(labs), collapse = ", ")
+  }
+
+  collapse_url_values <- function(indices, url_values) {
+    if (length(indices) == 0 || is.null(url_values)) {
+      return(NA_character_)
+    }
+    urls <- as.character(url_values[indices])
+    urls <- urls[!is.na(urls) & urls != ""]
+    if (length(urls) == 0) {
+      return(NA_character_)
+    }
+    paste(unique(urls), collapse = ", ")
   }
 
   if (length(labels) == 2) {
@@ -810,19 +886,30 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
 
     winner_label_col <- paste0("winner_", col)
     winner_value_col <- paste0("winner_", col, "_value")
+    winner_url_col <- paste0("winner_", col, "_webUIRequestUrl")
     runner_label_col <- paste0("runner_up_", col)
     runner_value_col <- paste0("runner_up_", col, "_value")
     loser_label_col <- paste0("loser_", col)
     loser_value_col <- paste0("loser_", col, "_value")
+    loser_url_col <- paste0("loser_", col, "_webUIRequestUrl")
     max_delta_col <- paste0("max_delta_", col)
+    url_cols <- paste0("webUIRequestUrl_", safe_labels)
+    has_urls <- all(url_cols %in% names(comparison))
+    url_values <- if (has_urls) comparison[, url_cols, drop = FALSE] else NULL
 
     if (nrow(score_values) == 0) {
       comparison[[winner_label_col]] <- character(0)
       comparison[[winner_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[winner_url_col]] <- character(0)
+      }
       comparison[[runner_label_col]] <- character(0)
       comparison[[runner_value_col]] <- numeric(0)
       comparison[[loser_label_col]] <- character(0)
       comparison[[loser_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[loser_url_col]] <- character(0)
+      }
       comparison[[max_delta_col]] <- numeric(0)
       next
     }
@@ -833,10 +920,12 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     n_rows <- nrow(score_matrix)
     winner_labels <- rep(NA_character_, n_rows)
     winner_values <- rep(NA_real_, n_rows)
+    winner_urls <- rep(NA_character_, n_rows)
     runner_labels <- rep(NA_character_, n_rows)
     runner_values <- rep(NA_real_, n_rows)
     loser_labels <- rep(NA_character_, n_rows)
     loser_values <- rep(NA_real_, n_rows)
+    loser_urls <- rep(NA_character_, n_rows)
     max_deltas <- rep(NA_real_, n_rows)
 
     if (n_rows > 0) {
@@ -868,6 +957,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
         max_idx <- which(numeric_row == max_val)
         winner_labels[i] <- collapse_label_values(max_idx, safe_labels)
         winner_values[i] <- max_val
+        if (has_urls) {
+          winner_urls[i] <- collapse_url_values(max_idx, url_values[i, ])
+        }
 
         unique_vals <- sort(unique(numeric_row), decreasing = TRUE)
         if (length(unique_vals) >= 2) {
@@ -881,6 +973,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
         min_idx <- which(numeric_row == min_val)
         loser_labels[i] <- collapse_label_values(min_idx, safe_labels)
         loser_values[i] <- min_val
+        if (has_urls) {
+          loser_urls[i] <- collapse_url_values(min_idx, url_values[i, ])
+        }
 
         if (is.finite(max_val) && is.finite(min_val)) {
           max_deltas[i] <- max_val - min_val
@@ -891,10 +986,16 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     comparison[, value_cols] <- score_matrix
     comparison[[winner_label_col]] <- winner_labels
     comparison[[winner_value_col]] <- winner_values
+    if (has_urls) {
+      comparison[[winner_url_col]] <- winner_urls
+    }
     comparison[[runner_label_col]] <- runner_labels
     comparison[[runner_value_col]] <- runner_values
     comparison[[loser_label_col]] <- loser_labels
     comparison[[loser_value_col]] <- loser_values
+    if (has_urls) {
+      comparison[[loser_url_col]] <- loser_urls
+    }
     comparison[[max_delta_col]] <- max_deltas
   }
 
@@ -910,19 +1011,30 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
 
     winner_rank_label_col <- paste0("winner_rank_", col)
     winner_rank_value_col <- paste0("winner_rank_", col, "_value")
+    winner_rank_url_col <- paste0("winner_rank_", col, "_webUIRequestUrl")
     runner_rank_label_col <- paste0("runner_up_rank_", col)
     runner_rank_value_col <- paste0("runner_up_rank_", col, "_value")
     loser_rank_label_col <- paste0("loser_rank_", col)
     loser_rank_value_col <- paste0("loser_rank_", col, "_value")
+    loser_rank_url_col <- paste0("loser_rank_", col, "_webUIRequestUrl")
     max_delta_rank_col <- paste0("max_delta_rank_", col)
+    url_cols <- paste0("webUIRequestUrl_", safe_labels)
+    has_urls <- all(url_cols %in% names(comparison))
+    url_values <- if (has_urls) comparison[, url_cols, drop = FALSE] else NULL
 
     if (nrow(rank_values) == 0) {
       comparison[[winner_rank_label_col]] <- character(0)
       comparison[[winner_rank_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[winner_rank_url_col]] <- character(0)
+      }
       comparison[[runner_rank_label_col]] <- character(0)
       comparison[[runner_rank_value_col]] <- numeric(0)
       comparison[[loser_rank_label_col]] <- character(0)
       comparison[[loser_rank_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[loser_rank_url_col]] <- character(0)
+      }
       comparison[[max_delta_rank_col]] <- numeric(0)
       next
     }
@@ -933,10 +1045,12 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     n_rows <- nrow(rank_matrix)
     winner_labels <- rep(NA_character_, n_rows)
     winner_values <- rep(NA_real_, n_rows)
+    winner_urls <- rep(NA_character_, n_rows)
     runner_labels <- rep(NA_character_, n_rows)
     runner_values <- rep(NA_real_, n_rows)
     loser_labels <- rep(NA_character_, n_rows)
     loser_values <- rep(NA_real_, n_rows)
+    loser_urls <- rep(NA_character_, n_rows)
     max_deltas <- rep(NA_real_, n_rows)
 
     for (i in seq_len(n_rows)) {
@@ -960,6 +1074,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       min_positions <- valid_idx[which(valid_values == min_val)]
       winner_labels[i] <- collapse_label_values(min_positions, safe_labels)
       winner_values[i] <- min_val
+      if (has_urls) {
+        winner_urls[i] <- collapse_url_values(min_positions, url_values[i, ])
+      }
 
       ordered_vals <- sort(unique(valid_values), decreasing = FALSE)
       if (length(ordered_vals) >= 2) {
@@ -973,6 +1090,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
       max_positions <- valid_idx[which(valid_values == max_val)]
       loser_labels[i] <- collapse_label_values(max_positions, safe_labels)
       loser_values[i] <- max_val
+      if (has_urls) {
+        loser_urls[i] <- collapse_url_values(max_positions, url_values[i, ])
+      }
 
       if (is.finite(max_val) && is.finite(min_val)) {
         max_deltas[i] <- max_val - min_val
@@ -981,10 +1101,16 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
 
     comparison[[winner_rank_label_col]] <- winner_labels
     comparison[[winner_rank_value_col]] <- winner_values
+    if (has_urls) {
+      comparison[[winner_rank_url_col]] <- winner_urls
+    }
     comparison[[runner_rank_label_col]] <- runner_labels
     comparison[[runner_rank_value_col]] <- runner_values
     comparison[[loser_rank_label_col]] <- loser_labels
     comparison[[loser_rank_value_col]] <- loser_values
+    if (has_urls) {
+      comparison[[loser_rank_url_col]] <- loser_urls
+    }
     comparison[[max_delta_rank_col]] <- max_deltas
   }
 
@@ -1000,19 +1126,30 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
 
     winner_pct_label_col <- paste0("winner_percentile_rank_", col)
     winner_pct_value_col <- paste0("winner_percentile_rank_", col, "_value")
+    winner_pct_url_col <- paste0("winner_percentile_rank_", col, "_webUIRequestUrl")
     runner_pct_label_col <- paste0("runner_up_percentile_rank_", col)
     runner_pct_value_col <- paste0("runner_up_percentile_rank_", col, "_value")
     loser_pct_label_col <- paste0("loser_percentile_rank_", col)
     loser_pct_value_col <- paste0("loser_percentile_rank_", col, "_value")
+    loser_pct_url_col <- paste0("loser_percentile_rank_", col, "_webUIRequestUrl")
     max_delta_pct_col <- paste0("max_delta_percentile_rank_", col)
+    url_cols <- paste0("webUIRequestUrl_", safe_labels)
+    has_urls <- all(url_cols %in% names(comparison))
+    url_values <- if (has_urls) comparison[, url_cols, drop = FALSE] else NULL
 
     if (nrow(pct_values) == 0) {
       comparison[[winner_pct_label_col]] <- character(0)
       comparison[[winner_pct_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[winner_pct_url_col]] <- character(0)
+      }
       comparison[[runner_pct_label_col]] <- character(0)
       comparison[[runner_pct_value_col]] <- numeric(0)
       comparison[[loser_pct_label_col]] <- character(0)
       comparison[[loser_pct_value_col]] <- numeric(0)
+      if (has_urls) {
+        comparison[[loser_pct_url_col]] <- character(0)
+      }
       comparison[[max_delta_pct_col]] <- numeric(0)
       next
     }
@@ -1023,10 +1160,12 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     n_rows <- nrow(pct_matrix)
     winner_labels <- rep(NA_character_, n_rows)
     winner_values <- rep(NA_real_, n_rows)
+    winner_urls <- rep(NA_character_, n_rows)
     runner_labels <- rep(NA_character_, n_rows)
     runner_values <- rep(NA_real_, n_rows)
     loser_labels <- rep(NA_character_, n_rows)
     loser_values <- rep(NA_real_, n_rows)
+    loser_urls <- rep(NA_character_, n_rows)
     max_deltas <- rep(NA_real_, n_rows)
 
     if (n_rows > 0) {
@@ -1045,6 +1184,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
         max_idx <- which(numeric_row == max_val)
         winner_labels[i] <- collapse_label_values(max_idx, safe_labels)
         winner_values[i] <- max_val
+        if (has_urls) {
+          winner_urls[i] <- collapse_url_values(max_idx, url_values[i, ])
+        }
 
         unique_vals <- sort(unique(numeric_row), decreasing = TRUE)
         if (length(unique_vals) >= 2) {
@@ -1058,6 +1200,9 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
         min_idx <- which(numeric_row == min_val)
         loser_labels[i] <- collapse_label_values(min_idx, safe_labels)
         loser_values[i] <- min_val
+        if (has_urls) {
+          loser_urls[i] <- collapse_url_values(min_idx, url_values[i, ])
+        }
 
         if (is.finite(max_val) && is.finite(min_val)) {
           max_deltas[i] <- max_val - min_val
@@ -1068,11 +1213,48 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     comparison[, pct_cols] <- pct_matrix
     comparison[[winner_pct_label_col]] <- winner_labels
     comparison[[winner_pct_value_col]] <- winner_values
+    if (has_urls) {
+      comparison[[winner_pct_url_col]] <- winner_urls
+    }
     comparison[[runner_pct_label_col]] <- runner_labels
     comparison[[runner_pct_value_col]] <- runner_values
     comparison[[loser_pct_label_col]] <- loser_labels
     comparison[[loser_pct_value_col]] <- loser_values
+    if (has_urls) {
+      comparison[[loser_pct_url_col]] <- loser_urls
+    }
     comparison[[max_delta_pct_col]] <- max_deltas
+  }
+
+  collapse_consensus_url_columns <- function(url_cols) {
+    if (length(url_cols) == 0) {
+      return(rep(NA_character_, nrow(comparison)))
+    }
+    vapply(seq_len(nrow(comparison)), function(i) {
+      urls <- unlist(comparison[i, url_cols, drop = FALSE], use.names = FALSE)
+      urls <- as.character(urls)
+      urls <- urls[!is.na(urls) & urls != ""]
+      urls <- unique(urls)
+      if (length(urls) == 1) {
+        urls
+      } else {
+        NA_character_
+      }
+    }, character(1))
+  }
+
+  winner_score_url_cols <- intersect(paste0("winner_", score_cols, "_webUIRequestUrl"), names(comparison))
+  loser_score_url_cols <- intersect(paste0("loser_", score_cols, "_webUIRequestUrl"), names(comparison))
+  if (length(winner_score_url_cols) > 0) {
+    comparison$winner_webUIRequestUrl <- collapse_consensus_url_columns(winner_score_url_cols)
+  }
+  if (length(loser_score_url_cols) > 0) {
+    comparison$loser_webUIRequestUrl <- collapse_consensus_url_columns(loser_score_url_cols)
+  }
+
+  url_helper_cols <- intersect(paste0("webUIRequestUrl_", labels), names(comparison))
+  if (length(url_helper_cols) > 0) {
+    comparison <- dplyr::select(comparison, -dplyr::all_of(url_helper_cols))
   }
 
   dplyr::left_join(result, comparison, by = c("node", "collocate"))
