@@ -139,7 +139,7 @@ KorAPConnection(verbose = TRUE) |>
 \seealso{
 \code{\link[=KorAPConnection]{KorAPConnection()}}, \code{\link[=fetchNext]{fetchNext()}}, \code{\link[=fetchRest]{fetchRest()}}, \code{\link[=fetchAll]{fetchAll()}}, \code{\link[=corpusStats]{corpusStats()}}
 
-Other corpus search functions: 
+Other corpus search functions:
 \code{\link{fetchAll,KorAPQuery-method}},
 \code{\link{fetchAnnotations,KorAPQuery-method}},
 \code{\link{fetchNext,KorAPQuery-method}}

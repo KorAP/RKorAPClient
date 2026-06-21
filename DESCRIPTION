@@ -23,7 +23,6 @@ URL: https://github.com/KorAP/RKorAPClient/,
 BugReports: https://github.com/KorAP/RKorAPClient/issues
 Encoding: UTF-8
 LazyData: false
-RoxygenNote: 7.3.3
 Imports:
     R.cache,
     broom,
@@ -78,3 +77,4 @@ Collate:
     'reexports.R'
     'textMetadata.R'
 Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

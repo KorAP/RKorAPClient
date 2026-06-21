@@ -37,9 +37,9 @@
 \arguments{
 \item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
 
-\item{node}{target word}
+\item{node}{target word or query as a single character string}
 
-\item{vc}{string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
+\item{vc}{character vector describing the virtual corpus or corpora in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.}
 
 \item{lemmatizeNodeQuery}{if TRUE, node query will be lemmatized, i.e. \verb{x -> [tt/l=x]}}
 
@@ -145,9 +145,9 @@ KorAPConnection(verbose = TRUE) |>
 
 }
 \seealso{
-Other collocation analysis functions: 
+Other collocation analysis functions:
 \code{\link{association-score-functions}},
 \code{\link{collocationScoreQuery,KorAPConnection-method}},
-\code{\link{synsemanticStopwords}()}
+\code{\link[=synsemanticStopwords]{synsemanticStopwords()}}
 }
 \concept{collocation analysis functions}

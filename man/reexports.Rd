@@ -22,16 +22,16 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{broom}{\code{\link[broom:reexports]{tidy}}}
+  \item{broom}{\code{\link[broom:tidy]{tidy}}}
 
-  \item{dplyr}{\code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
+  \item{dplyr}{\code{\link[dplyr:bind_cols]{bind_cols()}}, \code{\link[dplyr:group_by]{group_by()}}, \code{\link[dplyr:mutate]{mutate()}}, \code{\link[dplyr:n]{n()}}, \code{\link[dplyr:select]{select()}}, \code{\link[dplyr:summarise]{summarise()}}}
 
-  \item{lubridate}{\code{\link[lubridate]{year}}}
+  \item{lubridate}{\code{\link[lubridate:year]{year()}}}
 
-  \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
+  \item{magrittr}{\code{\link[magrittr:\%>\%]{\%>\%}}}
 
-  \item{tibble}{\code{\link[tibble]{as_tibble}}}
+  \item{tibble}{\code{\link[tibble:as_tibble]{as_tibble()}}}
 
-  \item{tidyr}{\code{\link[tidyr]{complete}}, \code{\link[tidyr]{expand_grid}}}
+  \item{tidyr}{\code{\link[tidyr:complete]{complete()}}, \code{\link[tidyr:expand_grid]{expand_grid()}}}
 }}
 

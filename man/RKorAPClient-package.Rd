@@ -77,6 +77,11 @@ Useful links:
 \author{
 \strong{Maintainer}: Marc Kupietz \email{kupietz@ids-mannheim.de}
 
+Authors:
+\itemize{
+  \item Marc Kupietz \email{kupietz@ids-mannheim.de}
+}
+
 Other contributors:
 \itemize{
   \item Nils Diewald \email{diewald@ids-mannheim.de} [contributor]

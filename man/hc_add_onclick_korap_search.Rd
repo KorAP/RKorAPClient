@@ -36,7 +36,7 @@ KorAPConnection(verbose = TRUE) \%>\%
 
 }
 \seealso{
-Other highcharter-helpers: 
-\code{\link{hc_freq_by_year_ci}()}
+Other highcharter-helpers:
+\code{\link[=hc_freq_by_year_ci]{hc_freq_by_year_ci()}}
 }
 \concept{highcharter-helpers}

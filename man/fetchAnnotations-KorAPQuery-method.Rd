@@ -94,7 +94,7 @@ q@collectedMatches$pos$left[1] # POS tags for the left context of the first matc
 }
 }
 \seealso{
-Other corpus search functions: 
+Other corpus search functions:
 \code{\link{corpusQuery,KorAPConnection-method}},
 \code{\link{fetchAll,KorAPQuery-method}},
 \code{\link{fetchNext,KorAPQuery-method}}

@@ -21,7 +21,7 @@ Preliminary synsemantic stopwords function to be used in collocation analysis.
 Currently only suitable for German. See stopwords package for other languages.
 }
 \seealso{
-Other collocation analysis functions: 
+Other collocation analysis functions:
 \code{\link{association-score-functions}},
 \code{\link{collocationAnalysis,KorAPConnection-method}},
 \code{\link{collocationScoreQuery,KorAPConnection-method}}

@@ -39,7 +39,7 @@ df <- collocationAnalysis(kco, "focus([marmot/p=ADJA] {Ameisenplage})",
 \seealso{
 \code{\link[=persistAccessToken]{persistAccessToken()}}, \code{\link[=clearAccessToken]{clearAccessToken()}}
 
-Other initialization functions: 
+Other initialization functions:
 \code{\link{KorAPConnection-class}},
 \code{\link{clearAccessToken,KorAPConnection-method}},
 \code{\link{persistAccessToken,KorAPConnection-method}}

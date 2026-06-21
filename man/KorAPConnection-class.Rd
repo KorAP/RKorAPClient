@@ -109,7 +109,7 @@ For access to restricted corpora, authorize your connection:
 }
 
 \seealso{
-Other initialization functions: 
+Other initialization functions:
 \code{\link{auth,KorAPConnection-method}},
 \code{\link{clearAccessToken,KorAPConnection-method}},
 \code{\link{persistAccessToken,KorAPConnection-method}}

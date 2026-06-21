@@ -44,7 +44,7 @@ q@collectedMatches
 \url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
 }
 \seealso{
-Other corpus search functions: 
+Other corpus search functions:
 \code{\link{corpusQuery,KorAPConnection-method}},
 \code{\link{fetchAll,KorAPQuery-method}},
 \code{\link{fetchAnnotations,KorAPQuery-method}}

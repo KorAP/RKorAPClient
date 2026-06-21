@@ -81,10 +81,10 @@ Evert, Stefan (2004): The Statistics of Word Cooccurrences: Word Pairs and Collo
 Free PDF available from \url{https://purl.org/stefan.evert/PUB/Evert2004phd.pdf}
 }
 \seealso{
-Other collocation analysis functions: 
+Other collocation analysis functions:
 \code{\link{collocationAnalysis,KorAPConnection-method}},
 \code{\link{collocationScoreQuery,KorAPConnection-method}},
-\code{\link{synsemanticStopwords}()}
+\code{\link[=synsemanticStopwords]{synsemanticStopwords()}}
 }
 \concept{association-score-functions}
 \concept{collocation analysis functions}

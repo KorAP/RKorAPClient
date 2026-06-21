@@ -58,7 +58,7 @@ expand_grid(
 
 }
 \seealso{
-Other highcharter-helpers: 
-\code{\link{hc_add_onclick_korap_search}()}
+Other highcharter-helpers:
+\code{\link[=hc_add_onclick_korap_search]{hc_add_onclick_korap_search()}}
 }
 \concept{highcharter-helpers}
