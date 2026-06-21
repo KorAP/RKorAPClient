@@ -405,7 +405,11 @@ backfill_missing_scores <- function(result,
     return(result)
   }
 
-  distinct_pairs <- dplyr::distinct(result, node, collocate)
+  distinct_pairs <- dplyr::distinct(
+    result,
+    .data$node,
+    .data$collocate
+  )
   if (nrow(distinct_pairs) == 0) {
     return(result)
   }

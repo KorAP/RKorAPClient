@@ -13,9 +13,9 @@ utils::globalVariables(c("."))
 #' based on [frequencyQuery()]s for a target word and a collocate.
 #'
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
-#' @param node               target word
-#' @param collocate          collocate of target word
-#' @param vc                 string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
+#' @param node               target word or query as a single character string
+#' @param collocate          character vector of one or more collocates of the target word
+#' @param vc                 character vector describing the virtual corpus or corpora in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param lemmatizeNodeQuery      logical, set to TRUE if node query should be lemmatized, i.e. `x -> [tt/l=x]`
 #' @param lemmatizeCollocateQuery logical, set to TRUE if collocate query should be lemmatized, i.e. `x -> [tt/l=x]`
 #' @param leftContextSize    size of the left context window
@@ -76,8 +76,27 @@ setMethod("collocationScoreQuery", "KorAPConnection",
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             O1 <- O2 <- O <- N <- E <- w <- 0
 
+            combinations <- tidyr::expand_grid(
+              collocate_index = seq_along(collocate),
+              vc_index = seq_along(vc)
+            )
+            combinations$collocate <- collocate[combinations$collocate_index]
+            combinations$vc <- vc[combinations$vc_index]
+
+            if (length(observed) == length(collocate)) {
+              observed <- observed[combinations$collocate_index]
+            } else if (length(observed) == length(vc)) {
+              observed <- observed[combinations$vc_index]
+            } else if (!length(observed) %in% c(1, nrow(combinations))) {
+              stop(
+                "`observed` must have length 1, length(collocate), ",
+                "length(vc), or length(collocate) * length(vc).",
+                call. = FALSE
+              )
+            }
+
             query <- buildCollocationQuery(node,
-                                           collocate,
+                                           combinations$collocate,
                                            lemmatizeNodeQuery,
                                            lemmatizeCollocateQuery,
                                            leftContextSize,
@@ -85,20 +104,38 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                                            ignoreCollocateCase,
                                            withinSpan)
 
+            nodeFrequency <- frequencyQuery(
+              kco,
+              lemmatizeWordQuery(node, lemmatizeNodeQuery),
+              vc,
+              expand = FALSE
+            )
+            collocateFrequency <- frequencyQuery(
+              kco,
+              lemmatizeWordQuery(combinations$collocate, lemmatizeCollocateQuery),
+              combinations$vc,
+              expand = FALSE
+            )
+            collocationFrequency <- if (is.na(observed[1])) {
+              frequencyQuery(kco, query, combinations$vc, expand = FALSE)
+            } else {
+              NULL
+            }
+
             tibble(
               node = node,
-              collocate = collocate,
-              label = queryStringToLabel(vc),
-              vc = vc,
+              collocate = combinations$collocate,
+              label = queryStringToLabel(vc)[combinations$vc_index],
+              vc = combinations$vc,
               query = query,
               webUIRequestUrl = if (is.na(observed[1]))
-                frequencyQuery(kco, query, vc)$webUIRequestUrl
+                collocationFrequency$webUIRequestUrl
               else
                 buildWebUIRequestUrl(
                   kco,
                   buildCollocationQuery(
                     removeWithinSpan(node, withinSpan),
-                    collocate,
+                    combinations$collocate,
                     lemmatizeNodeQuery,
                     lemmatizeCollocateQuery,
                     leftContextSize,
@@ -106,15 +143,15 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                     ignoreCollocateCase,
                     withinSpan
                   ),
-                  vc
+                  combinations$vc
                 ),
               w = leftContextSize + rightContextSize,
               leftContextSize,
               rightContextSize,
-              N  = frequencyQuery(kco, lemmatizeWordQuery(node, lemmatizeNodeQuery), vc)$total + smoothingConstant,
-              O = as.double( if(is.na(observed[1])) frequencyQuery(kco, query, vc)$totalResults else observed) + smoothingConstant,
-              O1 = frequencyQuery(kco, lemmatizeWordQuery(node, lemmatizeNodeQuery), vc)$totalResults + smoothingConstant,
-              O2 = frequencyQuery(kco, lemmatizeWordQuery(collocate, lemmatizeCollocateQuery), vc)$totalResults + smoothingConstant,
+              N = nodeFrequency$total[combinations$vc_index] + smoothingConstant,
+              O = as.double(if (is.na(observed[1])) collocationFrequency$totalResults else observed) + smoothingConstant,
+              O1 = nodeFrequency$totalResults[combinations$vc_index] + smoothingConstant,
+              O2 = collocateFrequency$totalResults + smoothingConstant,
               E = w * as.double(O1) * O2 / N
             ) %>%
               mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
@@ -222,4 +259,3 @@ mergeDuplicateCollocates <- function(..., smoothingConstant = .5) {
     ) |>
     ungroup()
 }
-

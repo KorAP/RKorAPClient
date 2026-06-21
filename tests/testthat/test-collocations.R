@@ -10,6 +10,94 @@ test_that("collocationScoreQuery works", {
   expect_equal(df$logDice, logDice(df$O1, df$O2, df$O, df$N, df$E, df$w))
 })
 
+test_that("collocationScoreQuery expands collocates and virtual corpora", {
+  kco <- methods::new(
+    "KorAPConnection",
+    apiUrl = "https://example.test/",
+    KorAPUrl = "https://example.test/"
+  )
+
+  fake_frequency_query <- function(kco, query, vc = "", ...) {
+    expand <- length(query) != length(vc)
+    combinations <- if (expand) {
+      tidyr::expand_grid(query = query, vc = vc)
+    } else {
+      tibble::tibble(query = query, vc = vc)
+    }
+
+    combinations |>
+      dplyr::mutate(
+        totalResults = 10,
+        webUIRequestUrl = paste0("https://example.test/", seq_len(dplyr::n())),
+        total = 1000
+      )
+  }
+
+  testthat::local_mocked_bindings(
+    frequencyQuery = fake_frequency_query,
+    .package = "RKorAPClient"
+  )
+
+  result <- collocationScoreQuery(
+    kco,
+    node = "node",
+    collocate = c("first", "second"),
+    vc = c("vc1", "vc2"),
+    leftContextSize = 0,
+    rightContextSize = 1
+  )
+
+  expect_equal(nrow(result), 4)
+  expect_equal(result$collocate, c("first", "first", "second", "second"))
+  expect_equal(result$vc, c("vc1", "vc2", "vc1", "vc2"))
+  expect_true(all(mapply(
+    grepl,
+    pattern = result$collocate,
+    x = result$query,
+    MoreArgs = list(fixed = TRUE)
+  )))
+})
+
+test_that("collocationScoreQuery aligns observed frequencies with collocates", {
+  kco <- methods::new(
+    "KorAPConnection",
+    apiUrl = "https://example.test/",
+    KorAPUrl = "https://example.test/"
+  )
+
+  fake_frequency_query <- function(kco, query, vc = "", ...) {
+    expand <- length(query) != length(vc)
+    combinations <- if (expand) {
+      tidyr::expand_grid(query = query, vc = vc)
+    } else {
+      tibble::tibble(query = query, vc = vc)
+    }
+
+    combinations |>
+      dplyr::mutate(
+        totalResults = 10,
+        webUIRequestUrl = "https://example.test/",
+        total = 1000
+      )
+  }
+
+  testthat::local_mocked_bindings(
+    frequencyQuery = fake_frequency_query,
+    .package = "RKorAPClient"
+  )
+
+  result <- collocationScoreQuery(
+    kco,
+    node = "node",
+    collocate = c("first", "second"),
+    vc = c("vc1", "vc2"),
+    observed = c(3, 7),
+    smoothingConstant = 0
+  )
+
+  expect_equal(result$O, c(3, 3, 7, 7))
+})
+
 
 test_that("collocationAnalysis works and warns about missing token", {
   skip_if_offline()
