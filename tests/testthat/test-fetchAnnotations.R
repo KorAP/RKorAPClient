@@ -341,7 +341,11 @@ test_that("fetchAnnotations handles morphological annotations with pipe separato
 test_that("issue #30 regression keeps all morphological features", {
   skip_if_offline()
 
-  matches <- KorAPConnection(verbose = FALSE, cache = FALSE) %>%
+  matches <- KorAPConnection(
+    accessToken = NULL,
+    verbose = FALSE,
+    cache = FALSE
+  ) %>%
     corpusQuery("aufgrund einer Ameisenplage", vc = "availability=/CC.*/", metadataOnly = FALSE) %>%
     fetchNext(maxFetch = 5) %>%
     fetchAnnotations("marmot", verbose = FALSE) %>%
