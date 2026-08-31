@@ -125,8 +125,15 @@ user interface.
 \section{Interpreting multi-VC comparisons}{
 
 
-The comparison columns are an exploration aid, not a significance test. When
-reading them, keep three properties in mind.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+The comparison columns produced when \code{vc} holds more than one virtual corpus
+are experimental: their names and semantics may still change in a future
+release without a deprecation cycle. Code that has to keep working across
+versions should select the columns it needs explicitly.
+
+They are an exploration aid, not a significance test. When reading them, keep
+three properties in mind.
 
 \strong{Imputed scores describe presence/absence, not contrast.} A collocate
 that passes the \code{minOccur} and \code{topCollocatesLimit} thresholds in one virtual
