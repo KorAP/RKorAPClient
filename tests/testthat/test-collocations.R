@@ -372,6 +372,35 @@ test_that("add_multi_vc_comparisons flags imputed cells", {
   expect_lte(unique(c1$loser_logDice_value), min(sample_result$logDice))
 })
 
+test_that("add_multi_vc_comparisons reports imputation when verbose", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n", "n"),
+    collocate = c("c1", "c2", "c2"),
+    vc = c("vc1", "vc1", "vc2"),
+    label = c("A", "A", "B"),
+    N = rep(100, 3),
+    O = c(10, 10, 20),
+    O1 = rep(50, 3),
+    O2 = rep(30, 3),
+    E = rep(5, 3),
+    w = rep(2, 3),
+    leftContextSize = rep(1, 3),
+    rightContextSize = rep(1, 3),
+    frequency = c(10, 10, 20),
+    logDice = c(6, 5, 7),
+    pmi = c(3, 2, 4)
+  )
+
+  output <- capture.output(
+    RKorAPClient:::add_multi_vc_comparisons(sample_result, verbose = TRUE)
+  )
+  expect_match(paste(output, collapse = " "), "Imputed scores for 1 of 2")
+  expect_match(paste(output, collapse = " "), "queryMissingScores")
+
+  # nothing is printed unless verbose
+  expect_silent(RKorAPClient:::add_multi_vc_comparisons(sample_result, verbose = FALSE))
+})
+
 test_that("add_multi_vc_comparisons reports no imputation when all labels are complete", {
   sample_result <- tibble::tibble(
     node = rep("n", 4),

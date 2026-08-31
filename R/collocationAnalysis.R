@@ -256,7 +256,8 @@ setMethod(
 
         multi_result |>
           add_multi_vc_comparisons(
-            missingScoreQuantile = missingScoreQuantile
+            missingScoreQuantile = missingScoreQuantile,
+            verbose = kco@verbose
           )
       }
     } else {
@@ -574,7 +575,7 @@ inject_focus_into_query <- function(query) {
   sprintf("contains(<%s>, (%s))", span, combined)
 }
 
-add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
+add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05, verbose = FALSE) {
   label <- node <- collocate <- vc <- webUIRequestUrl <- NULL
 
   if (!"label" %in% names(result) || dplyr::n_distinct(result$label) < 2) {
@@ -1287,6 +1288,22 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     comparison$n_imputed <- rep(0L, nrow(comparison))
   }
   comparison$imputed <- comparison$n_imputed > 0L
+
+  n_imputed_rows <- sum(comparison$imputed)
+  if (n_imputed_rows > 0) {
+    log_info(verbose, sprintf(
+      paste0(
+        "Imputed scores for %d of %d node/collocate combinations (%d of %d label cells) ",
+        "that are not attested in every virtual corpus. Their delta and winner/loser ",
+        "columns reflect presence vs. absence rather than a measured contrast; see the ",
+        "`imputed` column and `queryMissingScores`.\n"
+      ),
+      n_imputed_rows,
+      nrow(comparison),
+      sum(comparison$n_imputed),
+      nrow(comparison) * length(labels)
+    ))
+  }
 
   collapse_consensus_url_columns <- function(url_cols) {
     if (length(url_cols) == 0) {
