@@ -58,81 +58,103 @@ import(httr2)
 import(keyring)
 import(methods)
 import(utils)
-importFrom(PTXQC,lcpCount)
-importFrom(PTXQC,lcsCount)
+importFrom(PTXQC,
+  lcpCount,
+  lcsCount
+)
 importFrom(broom,tidy)
 importFrom(curl,has_internet)
-importFrom(dplyr,.data)
-importFrom(dplyr,across)
-importFrom(dplyr,all_of)
-importFrom(dplyr,anti_join)
-importFrom(dplyr,arrange)
-importFrom(dplyr,as_tibble)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,case_when)
-importFrom(dplyr,desc)
-importFrom(dplyr,enquo)
-importFrom(dplyr,everything)
-importFrom(dplyr,filter)
-importFrom(dplyr,first)
-importFrom(dplyr,group_by)
-importFrom(dplyr,if_else)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,n)
-importFrom(dplyr,quo_name)
-importFrom(dplyr,relocate)
-importFrom(dplyr,rename)
-importFrom(dplyr,row_number)
-importFrom(dplyr,rowwise)
-importFrom(dplyr,select)
-importFrom(dplyr,slice_head)
-importFrom(dplyr,starts_with)
-importFrom(dplyr,summarise)
-importFrom(dplyr,tibble)
-importFrom(dplyr,ungroup)
-importFrom(dplyr,where)
-importFrom(ggplot2,GeomPoint)
-importFrom(ggplot2,aes)
-importFrom(ggplot2,element_text)
-importFrom(ggplot2,geom_line)
-importFrom(ggplot2,geom_point)
-importFrom(ggplot2,geom_ribbon)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggproto)
-importFrom(ggplot2,layer)
-importFrom(ggplot2,scale_x_continuous)
-importFrom(ggplot2,theme)
-importFrom(httr2,oauth_client)
-importFrom(httr2,oauth_flow_auth_code)
-importFrom(httr2,url_modify)
-importFrom(httr2,url_parse)
+importFrom(dplyr,
+  .data,
+  across,
+  all_of,
+  anti_join,
+  arrange,
+  as_tibble,
+  bind_cols,
+  bind_rows,
+  case_when,
+  desc,
+  enquo,
+  everything,
+  filter,
+  first,
+  group_by,
+  if_else,
+  left_join,
+  mutate,
+  n,
+  quo_name,
+  relocate,
+  rename,
+  row_number,
+  rowwise,
+  select,
+  slice_head,
+  starts_with,
+  summarise,
+  tibble,
+  ungroup,
+  where
+)
+importFrom(ggplot2,
+  GeomPoint,
+  aes,
+  element_text,
+  geom_line,
+  geom_point,
+  geom_ribbon,
+  ggplot,
+  ggproto,
+  layer,
+  scale_x_continuous,
+  theme
+)
+importFrom(httr2,
+  oauth_client,
+  oauth_flow_auth_code,
+  url_modify,
+  url_parse
+)
 importFrom(jsonlite,fromJSON)
 importFrom(lubridate,year)
-importFrom(magrittr,"%>%")
-importFrom(magrittr,debug_pipe)
-importFrom(purrr,map)
-importFrom(purrr,pmap)
+importFrom(magrittr,
+  "%>%",
+  debug_pipe
+)
+importFrom(purrr,
+  map,
+  pmap
+)
 importFrom(rlang,sym)
-importFrom(stats,median)
-importFrom(stats,prop.test)
-importFrom(stringr,str_detect)
-importFrom(stringr,str_match)
-importFrom(stringr,str_split)
-importFrom(stringr,word)
-importFrom(tibble,add_column)
-importFrom(tibble,as_tibble)
-importFrom(tibble,enframe)
-importFrom(tibble,remove_rownames)
-importFrom(tibble,rownames_to_column)
-importFrom(tibble,tibble)
-importFrom(tidyr,complete)
-importFrom(tidyr,expand_grid)
-importFrom(tidyr,pivot_longer)
-importFrom(tidyr,pivot_wider)
-importFrom(tidyr,unchop)
-importFrom(tidyr,unnest)
-importFrom(urltools,param_get)
-importFrom(urltools,url_decode)
-importFrom(urltools,url_encode)
+importFrom(stats,
+  median,
+  prop.test
+)
+importFrom(stringr,
+  str_detect,
+  str_match,
+  str_split,
+  word
+)
+importFrom(tibble,
+  add_column,
+  as_tibble,
+  enframe,
+  remove_rownames,
+  rownames_to_column,
+  tibble
+)
+importFrom(tidyr,
+  complete,
+  expand_grid,
+  pivot_longer,
+  pivot_wider,
+  unchop,
+  unnest
+)
+importFrom(urltools,
+  param_get,
+  url_decode,
+  url_encode
+)
