@@ -372,6 +372,61 @@ test_that("add_multi_vc_comparisons flags imputed cells", {
   expect_lte(unique(c1$loser_logDice_value), min(sample_result$logDice))
 })
 
+test_that("add_multi_vc_comparisons warns about dropped duplicate rows", {
+  sample_result <- tibble::tibble(
+    node = rep("n", 4),
+    collocate = c("c", "c", "c", "c"),
+    vc = c("vc1", "vc1", "vc2", "vc2"),
+    # the same collocate twice per label, as after collecting several context positions
+    label = c("A", "A", "B", "B"),
+    N = rep(100, 4),
+    O = c(10, 11, 20, 21),
+    O1 = rep(50, 4),
+    O2 = rep(30, 4),
+    E = rep(5, 4),
+    w = rep(2, 4),
+    leftContextSize = rep(1, 4),
+    rightContextSize = rep(1, 4),
+    frequency = c(10, 11, 20, 21),
+    logDice = c(5, 6, 7, 8),
+    pmi = c(2, 2, 3, 3)
+  )
+
+  expect_warning(
+    enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result),
+    "occur more than once"
+  )
+  expect_warning(
+    RKorAPClient:::add_multi_vc_comparisons(sample_result),
+    "mergeDuplicateCollocates"
+  )
+  # the first row of each combination is what ends up in the comparison
+  expect_true(all(enriched$logDice_A == 5))
+  expect_true(all(enriched$logDice_B == 7))
+})
+
+test_that("add_multi_vc_comparisons is silent for unique node/collocate/label rows", {
+  sample_result <- tibble::tibble(
+    node = rep("n", 4),
+    collocate = c("c1", "c1", "c2", "c2"),
+    vc = rep(c("vc1", "vc2"), 2),
+    label = rep(c("A", "B"), 2),
+    N = rep(100, 4),
+    O = c(10, 20, 30, 40),
+    O1 = rep(50, 4),
+    O2 = rep(30, 4),
+    E = rep(5, 4),
+    w = rep(2, 4),
+    leftContextSize = rep(1, 4),
+    rightContextSize = rep(1, 4),
+    frequency = c(10, 20, 30, 40),
+    logDice = c(5, 7, 6, 4),
+    pmi = c(2, 3, 4, 1)
+  )
+
+  expect_no_warning(RKorAPClient:::add_multi_vc_comparisons(sample_result))
+})
+
 test_that("add_multi_vc_comparisons reports imputation when verbose", {
   sample_result <- tibble::tibble(
     node = c("n", "n", "n"),

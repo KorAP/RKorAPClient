@@ -661,6 +661,25 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05, verbos
     score_cols
   )
 
+  # The pivots below keep only the first row per node/collocate/label. Duplicates do occur
+  # legitimately (e.g. the same collocate found at several context positions), but silently
+  # discarding all but one of them would misrepresent the comparison, so say so.
+  comparison_keys <- paste(result$node, result$collocate, result$label, sep = "\r")
+  duplicate_keys <- unique(comparison_keys[duplicated(comparison_keys)])
+  if (length(duplicate_keys) > 0) {
+    warning(
+      sprintf(
+        paste0(
+          "%d node/collocate/label combination(s) occur more than once; only the first row ",
+          "of each is used for the multi-VC comparison columns. Consider ",
+          "mergeDuplicateCollocates() to combine context positions before comparing."
+        ),
+        length(duplicate_keys)
+      ),
+      call. = FALSE
+    )
+  }
+
   comparison <- result |>
     dplyr::select(node, collocate, label, dplyr::all_of(score_cols)) |>
     tidyr::pivot_wider(
