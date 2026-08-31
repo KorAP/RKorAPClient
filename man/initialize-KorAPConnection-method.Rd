@@ -6,12 +6,7 @@
 \usage{
 \S4method{initialize}{KorAPConnection}(
   .Object,
-  KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) | Sys.getenv("KORAP_URL") == "") {
-    
-    "https://korap.ids-mannheim.de/"
- } else {
-     Sys.getenv("KORAP_URL")
- },
+  KorAPUrl = defaultKorAPUrl(),
   apiVersion = "v1.0",
   apiUrl,
   accessToken = getAccessToken(KorAPUrl),

@@ -5,6 +5,28 @@ setClassUnion("characterOrNULL", c("character", "NULL"))
 setClassUnion("listOrNULL", c("list", "NULL"))
 # setOldClass("httr2_oauth_client")
 
+#' @rdname KorAPConnection
+#' @export
+setClass("KorAPConnection", slots = c(KorAPUrl = "character", apiVersion = "character", indexRevision = "characterOrNULL", apiUrl = "character", accessToken = "characterOrNULL", oauthClient = "ANY", oauthScope = "characterOrNULL", authorizationSupported = "logical", userAgent = "character", timeout = "numeric", verbose = "logical", cache = "logical", welcome = "listOrNULL"))
+
+generic_kor_app_id <- "99FbPHH7RrN36hbndF7b6f"
+
+kustvakt_redirect_uri <- "http://localhost:1410/"
+kustvakt_auth_path <- "settings/oauth/authorize"
+
+#' Default KorAP server URL
+#'
+#' Returns the KorAP instance URL to connect to if none is given explicitly:
+#' the environment variable `KORAP_URL` if it is set and non-empty, and the
+#' IDS Mannheim KorAP main instance otherwise.
+#'
+#' @return URL of the KorAP instance to connect to by default
+#' @keywords internal
+defaultKorAPUrl <- function() {
+  url <- Sys.getenv("KORAP_URL", unset = "")
+  if (nzchar(url)) url else "https://korap.ids-mannheim.de/"
+}
+
 #' Connect to KorAP Server
 #'
 #' `KorAPConnection()` creates a connection to a KorAP server for corpus queries.
@@ -101,27 +123,32 @@ setClassUnion("listOrNULL", c("list", "NULL"))
 #' @import utils
 #' @import methods
 #' @include logging.R
-
 #' @export
-KorAPConnection <- setClass("KorAPConnection", slots = c(KorAPUrl = "character", apiVersion = "character", indexRevision = "characterOrNULL", apiUrl = "character", accessToken = "characterOrNULL", oauthClient = "ANY", oauthScope = "characterOrNULL", authorizationSupported = "logical", userAgent = "character", timeout = "numeric", verbose = "logical", cache = "logical", welcome = "listOrNULL"))
-
-generic_kor_app_id <- "99FbPHH7RrN36hbndF7b6f"
-
-kustvakt_redirect_uri <- "http://localhost:1410/"
-kustvakt_auth_path <- "settings/oauth/authorize"
-
+KorAPConnection <- function(KorAPUrl = defaultKorAPUrl(),
+                            apiVersion = "v1.0",
+                            apiUrl,
+                            accessToken = getAccessToken(KorAPUrl),
+                            oauthClient = NULL,
+                            oauthScope = "search match_info",
+                            authorizationSupported = TRUE,
+                            userAgent = "R-KorAP-Client",
+                            timeout = 240,
+                            verbose = FALSE,
+                            cache = TRUE) {
+  # Forward only the arguments that were actually supplied, so that the
+  # defaults and the `missing()` based overrides of the initialize method
+  # (see below) keep working. The defaults above merely mirror those of the
+  # initialize method to document them (see test-korapconnection-signature.R).
+  args <- as.list(match.call())[-1L]
+  do.call(methods::new, c("KorAPConnection", args), envir = parent.frame())
+}
 
 #' Initialize KorAPConnection object
 #' @keywords internal
 #' @export
 #'
 setMethod("initialize", "KorAPConnection", function(.Object,
-                                                    KorAPUrl = if (is.null(Sys.getenv("KORAP_URL")) |
-                                                      Sys.getenv("KORAP_URL") == "") {
-                                                      "https://korap.ids-mannheim.de/"
-                                                    } else {
-                                                      Sys.getenv("KORAP_URL")
-                                                    },
+                                                    KorAPUrl = defaultKorAPUrl(),
                                                     apiVersion = "v1.0",
                                                     apiUrl,
                                                     accessToken = getAccessToken(KorAPUrl),
