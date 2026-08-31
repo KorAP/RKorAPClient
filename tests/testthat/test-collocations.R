@@ -322,6 +322,81 @@ test_that("add_multi_vc_comparisons fills missing label URLs from vc", {
   )
 })
 
+test_that("add_multi_vc_comparisons flags imputed cells", {
+  sample_result <- tibble::tibble(
+    node = c("n", "n", "n"),
+    collocate = c("c1", "c2", "c2"),
+    vc = c("corpusSigle=/A/", "corpusSigle=/A/", "corpusSigle=/B/"),
+    label = c("A", "A", "B"),
+    N = c(100, 100, 100),
+    O = c(10, 10, 20),
+    O1 = c(50, 50, 50),
+    O2 = c(30, 30, 30),
+    E = c(5, 5, 5),
+    w = c(2, 2, 2),
+    leftContextSize = c(1, 1, 1),
+    rightContextSize = c(1, 1, 1),
+    frequency = c(10, 10, 20),
+    webUIRequestUrl = c(
+      "https://korap.example/A1",
+      "https://korap.example/A2",
+      "https://korap.example/B2"
+    ),
+    logDice = c(6, 5, 7),
+    pmi = c(3, 2, 4)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
+
+  expect_true(all(c("imputed_A", "imputed_B", "n_imputed", "imputed") %in% colnames(enriched)))
+
+  c1 <- enriched[enriched$collocate == "c1", ]
+  c2 <- enriched[enriched$collocate == "c2", ]
+
+  # c1 only occurs in A, so B's scores had to be imputed
+  expect_true(all(c1$imputed_B))
+  expect_true(all(!c1$imputed_A))
+  expect_true(all(c1$imputed))
+  expect_true(all(c1$n_imputed == 1L))
+
+  # c2 occurs in both, so nothing is imputed
+  expect_true(all(!c2$imputed_A))
+  expect_true(all(!c2$imputed_B))
+  expect_true(all(!c2$imputed))
+  expect_true(all(c2$n_imputed == 0L))
+
+  # c1's delta is measured against the imputed floor rather than against observed data:
+  # the absent label loses, at or below the weakest score actually attested anywhere.
+  expect_true(all(is.finite(c1$max_delta_logDice)))
+  expect_equal(unique(c1$loser_logDice), "B")
+  expect_lte(unique(c1$loser_logDice_value), min(sample_result$logDice))
+})
+
+test_that("add_multi_vc_comparisons reports no imputation when all labels are complete", {
+  sample_result <- tibble::tibble(
+    node = rep("n", 4),
+    collocate = c("c1", "c1", "c2", "c2"),
+    vc = rep(c("vc1", "vc2"), 2),
+    label = rep(c("A", "B"), 2),
+    N = rep(100, 4),
+    O = c(10, 20, 30, 40),
+    O1 = rep(50, 4),
+    O2 = rep(30, 4),
+    E = rep(5, 4),
+    w = rep(2, 4),
+    leftContextSize = rep(1, 4),
+    rightContextSize = rep(1, 4),
+    frequency = c(10, 20, 30, 40),
+    logDice = c(5, 7, 6, 4),
+    pmi = c(2, 3, 4, 1)
+  )
+
+  enriched <- RKorAPClient:::add_multi_vc_comparisons(sample_result)
+
+  expect_true(all(!enriched$imputed))
+  expect_true(all(enriched$n_imputed == 0L))
+})
+
 test_that("add_multi_vc_comparisons handles more than two labels", {
   sample_result <- tibble::tibble(
     node = rep("n", 3),

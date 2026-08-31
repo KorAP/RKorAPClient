@@ -60,6 +60,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #'   \item Ranks per label/measure with the pattern \code{rank_<label>_<measure>} (1 is best) and the corresponding percentile ranks \code{percentile_rank_<label>_<measure>}.
 #'   \item Pairwise contrasts for two-label comparisons, e.g. \code{delta_<measure>}, \code{delta_rank_<measure>}, and \code{delta_percentile_rank_<measure>}.
 #'   \item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}), including winner/loser \code{webUIRequestUrl} columns. In multi-VC comparisons, missing per-label concordance URLs are derived from another available row URL for the same \code{node}/\code{collocate} by replacing the \code{cq} parameter with the target label's virtual corpus. Unsuffixed \code{winner_webUIRequestUrl} and \code{loser_webUIRequestUrl} columns are populated only when the score-based URL choices agree.
+#'   \item \code{imputed_<label>}, \code{n_imputed}, and \code{imputed}: flags marking rows whose scores were not observed for some label but imputed (see \code{missingScoreQuantile}). Filter with \code{dplyr::filter(!imputed)} to keep only collocates attested in every compared virtual corpus.
 #'   \item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
 #' }
 #' @importFrom dplyr arrange desc slice_head bind_rows group_by mutate ungroup left_join select row_number all_of first
@@ -726,6 +727,18 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
 
   comparison <- dplyr::left_join(comparison, rank_data, by = c("node", "collocate"))
 
+  # Record which label/measure cells are absent *before* any imputation happens below.
+  # Deltas computed from imputed cells reflect presence/absence of the collocate in a
+  # virtual corpus, not a measured contrast, so users need to be able to tell them apart.
+  imputed_flags <- lapply(labels, function(safe_label) {
+    label_score_cols <- intersect(paste0(score_cols, "_", safe_label), names(comparison))
+    if (length(label_score_cols) == 0) {
+      return(rep(FALSE, nrow(comparison)))
+    }
+    Reduce(`|`, lapply(label_score_cols, function(col) is.na(comparison[[col]])))
+  })
+  names(imputed_flags) <- paste0("imputed_", labels)
+
   rank_replacements <- numeric(0)
   rank_column_names <- grep("^rank_", names(comparison), value = TRUE)
   if (length(rank_column_names) > 0) {
@@ -1229,6 +1242,16 @@ add_multi_vc_comparisons <- function(result, missingScoreQuantile = 0.05) {
     }
     comparison[[max_delta_pct_col]] <- max_deltas
   }
+
+  for (flag_col in names(imputed_flags)) {
+    comparison[[flag_col]] <- imputed_flags[[flag_col]]
+  }
+  if (length(imputed_flags) > 0) {
+    comparison$n_imputed <- as.integer(Reduce(`+`, lapply(imputed_flags, as.integer)))
+  } else {
+    comparison$n_imputed <- rep(0L, nrow(comparison))
+  }
+  comparison$imputed <- comparison$n_imputed > 0L
 
   collapse_consensus_url_columns <- function(url_cols) {
     if (length(url_cols) == 0) {
