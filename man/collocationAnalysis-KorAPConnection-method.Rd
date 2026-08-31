@@ -79,7 +79,7 @@
 
 \item{queryMissingScores}{if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold}
 
-\item{missingScoreQuantile}{lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores}
+\item{missingScoreQuantile}{lower quantile (evaluated per association measure over the pooled result set) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay at or below the weakest observed scores. Imputed cells are marked in the \verb{imputed*} columns; see the section on interpreting multi-VC comparisons below}
 
 \item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
 
@@ -122,6 +122,44 @@ In this case, the client library will fall back to client-side tokenization whic
 This might lead to false negatives and to frequencies that differ from corresponding ones acquired via the web
 user interface.
 }
+\section{Interpreting multi-VC comparisons}{
+
+
+The comparison columns are an exploration aid, not a significance test. When
+reading them, keep three properties in mind.
+
+\strong{Imputed scores describe presence/absence, not contrast.} A collocate
+that passes the \code{minOccur} and \code{topCollocatesLimit} thresholds in one virtual
+corpus but not in another has no observed score for the latter. Such cells are
+imputed from a floor derived from the pooled result set (see
+\code{missingScoreQuantile}), so the corresponding \verb{delta_*} and \verb{max_delta_*}
+values measure the distance to that floor rather than an attested difference.
+The \code{imputed}, \code{n_imputed} and \verb{imputed_<label>} columns mark these rows;
+\code{dplyr::filter(!imputed)} restricts the result to collocates attested
+everywhere, and \code{queryMissingScores = TRUE} replaces most imputed cells with
+scores actually retrieved from the backend.
+
+\strong{Imputed values are relative to one analysis.} The floor is computed
+from the scores present in the result at hand. Analysing a node on its own and
+analysing it together with other nodes therefore yield different imputed
+values, and deltas involving imputed cells are not comparable across separate
+calls. Deltas between observed scores are unaffected.
+
+\strong{Winners carry no uncertainty.} Unlike \code{\link[=ci]{ci()}}, which attaches
+confidence intervals to relative frequencies, the \verb{winner_*} / \verb{loser_*}
+columns simply order point estimates. A collocate wins by a hair on six
+occurrences exactly as decisively as one that wins by a wide margin on
+thousands. Consult the observed frequencies (\code{O}, \code{O1}, \code{O2}) and the
+\code{webUIRequestUrl} concordance links before drawing conclusions from a
+small difference.
+
+Note also that \verb{rank_<label>_<measure>} and
+\verb{percentile_rank_<label>_<measure>} are computed within each label, over that
+label's own candidate set. Candidate sets usually differ in size between
+virtual corpora, so rank-based deltas compare positions in populations of
+different sizes.
+}
+
 \examples{
 \dontrun{
 

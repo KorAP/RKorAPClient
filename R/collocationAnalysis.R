@@ -43,7 +43,7 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
 #' @param queryMissingScores     if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold
-#' @param missingScoreQuantile   lower quantile (evaluated per association measure) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay below the weakest observed scores
+#' @param missingScoreQuantile   lower quantile (evaluated per association measure over the pooled result set) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay at or below the weakest observed scores. Imputed cells are marked in the `imputed*` columns; see the section on interpreting multi-VC comparisons below
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param cacheAs                path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
@@ -63,6 +63,41 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #'   \item \code{imputed_<label>}, \code{n_imputed}, and \code{imputed}: flags marking rows whose scores were not observed for some label but imputed (see \code{missingScoreQuantile}). Filter with \code{dplyr::filter(!imputed)} to keep only collocates attested in every compared virtual corpus.
 #'   \item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
 #' }
+#' @section Interpreting multi-VC comparisons:
+#'
+#' The comparison columns are an exploration aid, not a significance test. When
+#' reading them, keep three properties in mind.
+#'
+#' \strong{Imputed scores describe presence/absence, not contrast.} A collocate
+#' that passes the `minOccur` and `topCollocatesLimit` thresholds in one virtual
+#' corpus but not in another has no observed score for the latter. Such cells are
+#' imputed from a floor derived from the pooled result set (see
+#' `missingScoreQuantile`), so the corresponding `delta_*` and `max_delta_*`
+#' values measure the distance to that floor rather than an attested difference.
+#' The `imputed`, `n_imputed` and `imputed_<label>` columns mark these rows;
+#' `dplyr::filter(!imputed)` restricts the result to collocates attested
+#' everywhere, and `queryMissingScores = TRUE` replaces most imputed cells with
+#' scores actually retrieved from the backend.
+#'
+#' \strong{Imputed values are relative to one analysis.} The floor is computed
+#' from the scores present in the result at hand. Analysing a node on its own and
+#' analysing it together with other nodes therefore yield different imputed
+#' values, and deltas involving imputed cells are not comparable across separate
+#' calls. Deltas between observed scores are unaffected.
+#'
+#' \strong{Winners carry no uncertainty.} Unlike [ci()], which attaches
+#' confidence intervals to relative frequencies, the `winner_*` / `loser_*`
+#' columns simply order point estimates. A collocate wins by a hair on six
+#' occurrences exactly as decisively as one that wins by a wide margin on
+#' thousands. Consult the observed frequencies (`O`, `O1`, `O2`) and the
+#' `webUIRequestUrl` concordance links before drawing conclusions from a
+#' small difference.
+#'
+#' Note also that `rank_<label>_<measure>` and
+#' `percentile_rank_<label>_<measure>` are computed within each label, over that
+#' label's own candidate set. Candidate sets usually differ in size between
+#' virtual corpora, so rank-based deltas compare positions in populations of
+#' different sizes.
 #' @importFrom dplyr arrange desc slice_head bind_rows group_by mutate ungroup left_join select row_number all_of first
 #' @importFrom purrr pmap
 #' @importFrom tidyr expand_grid pivot_wider
