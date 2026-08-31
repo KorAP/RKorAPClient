@@ -1,5 +1,41 @@
 ## Notes
 
+* resubmission of 1.3.0, fixing the NOTE reported by the incoming pretest on
+  r-devel-linux-x86_64-debian-gcc and -clang:
+  ```
+  Rd files without \usage:
+    'KorAPConnection-class.Rd'
+  \arguments should not be documented without \usage.
+  ```
+  `KorAPConnection()` is now documented as the constructor function it is,
+  instead of as the S4 class generator (whose formals are just `...`), so that
+  its Rd file has a \usage section derived from the actual formals.
+  No Rd file documents \arguments without \usage any more.
+* feature release
+* new result caching option for collocation analyses
+* new, experimental support for comparing collocation analyses across several
+  virtual corpora
+* no new dependencies
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 44 with R version 4.6.1
+* win-builder with R 4.6.1
+* win-builder with R Under development (unstable) (2026-08-27 r90452 ucrt)
+* github workflow on Ubuntu with R Under development (unstable) (2026-06-21 r90185)
+* github workflow on Ubuntu with R 4.6.1
+* github workflow on Ubuntu with R 4.5.3
+* github workflow on macOS 26 (ARM64) with R 4.6.1
+* github workflow on Windows with R 4.6.1
+
+## Notes on 1.2.1
+
 * bug fix and rpy2 compatibility release
 * xml2 dependency added
 

@@ -1,11 +1,14 @@
-# unpublished dev version 1.2.1.9000
+# RKorAPClient 1.3.0
 
 - added `cacheAs` parameter to `collocationAnalysis()` for transparent result caching: if the specified RDS file exists, the cached result is returned immediately; otherwise the analysis runs and the result is saved to the file (`.rds` extension is added automatically if omitted)
 - fixed score threshold in recursive CA
 - focus is now injected into webUIRequestUrls in collocationAnalysis results, when possible
-- added support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.), including explicit winner/loser `webUIRequestUrl` columns for association scores, ranks, and percentile ranks. Missing per-label concordance URLs are now derived by replacing the `cq` parameter of an available row URL with the target label's vc, and unsuffixed consensus `winner_webUIRequestUrl` / `loser_webUIRequestUrl` columns are populated when score-based URL choices agree
+- added *experimental* support for comparing collocation analyses across multiple vcs (`max_delta_<score>`, `winner<score>`, `loser_score<score>` columns etc.), including explicit winner/loser `webUIRequestUrl` columns for association scores, ranks, and percentile ranks. Missing per-label concordance URLs are now derived by replacing the `cq` parameter of an available row URL with the target label's vc, and unsuffixed consensus `winner_webUIRequestUrl` / `loser_webUIRequestUrl` columns are populated when score-based URL choices agree. The names and semantics of these columns may still change without a deprecation cycle
+- collocates that are not attested in every compared vc get their missing scores imputed. Such rows are now marked by the new `imputed`, `n_imputed` and `imputed_<label>` columns, and reported in verbose mode, so that presence/absence artifacts can be told apart from measured contrasts (`filter(!imputed)`). See the new "Interpreting multi-VC comparisons" section in `?collocationAnalysis` for how to read the comparison columns
+- `collocationAnalysis()` now warns when repeated node/collocate/label rows are reduced to their first occurrence for the comparison columns, instead of dropping them silently
 - added support for passing condition labels when comparing multiple vcs by allowing for named vc lists
 - `collocationScoreQuery()` now accepts a vector of collocates and queries every combination of collocate and virtual corpus
+- `KorAPConnection()` is now a regular constructor function instead of the S4 class generator, so that its manual page documents how it is actually called. `new("KorAPConnection", ...)` and all existing calls keep working unchanged
 
 # RKorAPClient 1.2.1
 
