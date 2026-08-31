@@ -859,3 +859,84 @@ test_that("collocationAnalysis handles maxRecurse parameter", {
   )
   expect_true(is.data.frame(result))
 })
+
+test_that("collocationAnalysis returns cached result without contacting the server", {
+  kco <- methods::new(
+    "KorAPConnection",
+    apiUrl = "https://example.invalid/",
+    KorAPUrl = "https://example.invalid/",
+    verbose = FALSE
+  )
+
+  cached <- tibble::tibble(node = "n", collocate = "c", logDice = 7)
+  cache_file <- tempfile(fileext = ".rds")
+  on.exit(unlink(cache_file), add = TRUE)
+  saveRDS(cached, cache_file)
+
+  testthat::local_mocked_bindings(
+    corpusQuery = function(...) stop("server must not be contacted"),
+    .package = "RKorAPClient"
+  )
+
+  expect_equal(
+    collocationAnalysis(kco, "n", cacheAs = cache_file),
+    cached
+  )
+})
+
+test_that("collocationAnalysis appends the .rds extension to cacheAs", {
+  kco <- methods::new(
+    "KorAPConnection",
+    apiUrl = "https://example.invalid/",
+    KorAPUrl = "https://example.invalid/",
+    verbose = FALSE
+  )
+
+  cached <- tibble::tibble(node = "n", collocate = "c", logDice = 7)
+  base_path <- tempfile()
+  on.exit(unlink(paste0(base_path, ".rds")), add = TRUE)
+  saveRDS(cached, paste0(base_path, ".rds"))
+
+  testthat::local_mocked_bindings(
+    corpusQuery = function(...) stop("server must not be contacted"),
+    .package = "RKorAPClient"
+  )
+
+  # given without extension, the .rds file is found
+  expect_equal(collocationAnalysis(kco, "n", cacheAs = base_path), cached)
+  # given with extension, it is not doubled
+  expect_equal(collocationAnalysis(kco, "n", cacheAs = paste0(base_path, ".rds")), cached)
+})
+
+test_that("collocationAnalysis writes and reuses its cache file", {
+  skip_if_offline()
+  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+
+  cache_file <- tempfile(fileext = ".rds")
+  on.exit(unlink(cache_file), add = TRUE)
+  expect_false(file.exists(cache_file))
+
+  expect_warning(
+    first <- collocationAnalysis(
+      kco,
+      "Ameisenplage",
+      searchHitsSampleLimit = 2,
+      topCollocatesLimit = 2,
+      cacheAs = cache_file
+    ),
+    "access token"
+  )
+
+  expect_true(file.exists(cache_file))
+  expect_equal(readRDS(cache_file), first)
+
+  # the second call is served from the cache and therefore issues no token warning
+  second <- collocationAnalysis(
+    kco,
+    "Ameisenplage",
+    searchHitsSampleLimit = 2,
+    topCollocatesLimit = 2,
+    cacheAs = cache_file
+  )
+  expect_equal(second, first)
+})
