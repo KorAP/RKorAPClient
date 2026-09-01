@@ -145,6 +145,46 @@ KorAPConnection(verbose = TRUE) |> auth() |>
   collocationAnalysis("Ameisenplage", cacheAs = "ameisenplage-ca.rds")
 ```
 
+### Comparing collocates across virtual corpora (experimental)
+
+If you pass a *named* vector of virtual corpora as `vc`, `collocationAnalysis` compares the collocates of the node between them and adds a set of comparison columns, labelled with the names you provided:
+
+```r
+library(RKorAPClient)
+library(dplyr)
+
+ca <- KorAPConnection(verbose = TRUE) |> auth() |>
+  collocationAnalysis(
+    "Klima",
+    vc = c(Nullerjahre = "creationDate since 2000 & creationDate until 2009",
+           Zehnerjahre = "creationDate since 2010 & creationDate until 2019"),
+    leftContextSize = 1,
+    rightContextSize = 1,
+    exactFrequencies = FALSE,
+    searchHitsSampleLimit = 2000,
+    topCollocatesLimit = 20
+  )
+
+ca |>
+  filter(label == "Zehnerjahre", !imputed) |>
+  arrange(desc(delta_logDice)) |>
+  select(collocate, logDice_Nullerjahre, logDice_Zehnerjahre, delta_logDice, winner_logDice)
+```
+
+Besides the usual association scores, the result then contains, for each score:
+
+* `<score>_<label>` – the score of the collocate in the respective virtual corpus,
+* `delta_<score>` and `max_delta_<score>` – the difference between the compared corpora,
+* `winner_<score>` / `loser_<score>` – the label in which the collocate is most / least characteristic, each with a corresponding `_value` and `_webUIRequestUrl` column that links directly to the concordances in the KorAP web interface,
+* `imputed`, `n_imputed` and `imputed_<label>` – markers for collocates that were attested in one of the compared corpora only.
+
+Two properties are worth knowing when working with these columns:
+
+* The result holds **one row per collocate and virtual corpus**, with the comparison columns repeated identically on each of them. Filter on `label`, as above, to get one row per collocate.
+* Collocates that pass the `minOccur` and `topCollocatesLimit` thresholds in one virtual corpus but not in the other have no observed score for the latter. Such cells are imputed from a floor value, so their `delta_*` measures the distance to that floor rather than an attested difference. `filter(!imputed)` restricts the comparison to collocates attested everywhere, and `queryMissingScores = TRUE` retrieves the missing scores from the server instead.
+
+Since the labels become part of the column names, plain syntactic names work best – a label starting with a digit, for instance, ends up prefixed with `X`. The names and semantics of the comparison columns are still experimental and may change without a deprecation cycle; `?collocationAnalysis` documents them in full, including how to read them.
+
 ### <a name="authorization"></a> Authorizing RKorAPClient applications to access restricted KWICs from copyrighted texts
 
 In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
