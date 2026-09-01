@@ -39,6 +39,17 @@ KorAPConnection()
 ```
 Explicit `verbose` arguments still take precedence over these settings.
 
+### Local caching of API responses
+
+To speed up repeated analyses and to avoid unnecessary load on the KorAP servers, API responses are cached locally by default, in the cache directory that is standard for your operating system (see [R.cache](https://cran.r-project.org/package=R.cache)). Cached responses are invalidated automatically when the corpus index revision changes.
+
+```r
+kco <- KorAPConnection(cache = FALSE)  # do not cache anything in this connection
+clearCache()                           # discard all locally cached responses
+```
+
+Please note that, in the case of DeReKo, authorized queries behave differently inside and outside the IDS, because of the special license situation. Cached results do not record from where a request was issued, so if you get unexpected results after changing networks, use `clearCache()` or `cache = FALSE`.
+
 ### Frequencies over time and domains using ggplot2
 
 ```r
@@ -66,7 +77,7 @@ query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
 years = c(1980:2010)
 as.alternatives = TRUE
 vc = "textType = /Zeit.*/ & creationDate in"
-KorAPConnection(verbose=T) |>
+KorAPConnection(verbose = TRUE) |>
   frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) |>
   hc_freq_by_year_ci(as.alternatives)
 ```
@@ -89,7 +100,7 @@ KorAPConnection(KorAPUrl = "https://korap.ids-mannheim.de/instance/wiki/", verbo
   fetchAll()
 ```
   
-### Identify *in … setzen* light verb constructions by using the new `collocationAnalysis` function
+### Identify *in … setzen* light verb constructions using `collocationAnalysis`
 
 ```r
 library(RKorAPClient)
@@ -127,13 +138,20 @@ To perform a simple collocation analysis for a word form, rather then a lemma an
 |[in Marsch setzen](https://korap.ids-mannheim.de/?q=Marsch%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                            |    6.87|  9.27|  22041.63|
 |[in Klammern setzen](https://korap.ids-mannheim.de/?q=Klammern%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                        |    6.55| 10.08|  15643.27|
 
+Collocation analyses can take a while. With the `cacheAs` parameter you can have the result stored in an RDS file of your choice, so that repeated calls – when re-knitting a document, for example – return the cached result immediately instead of querying the server again:
+
+```r
+KorAPConnection(verbose = TRUE) |> auth() |>
+  collocationAnalysis("Ameisenplage", cacheAs = "ameisenplage-ca.rds")
+```
+
 ### <a name="authorization"></a> Authorizing RKorAPClient applications to access restricted KWICs from copyrighted texts
 
 In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
 
 In the case of DeReKo, this can be done in three different ways.
 
-#### 1. The latest and laziest way (available since RKorAPClient 0.9.0.9000)
+#### 1. The latest and laziest way (available since RKorAPClient 1.0.0)
 
 Authorize your RKorAPClient application via the usual OAuth browser flow *using the default application id* and the `auth` method:
 
@@ -160,7 +178,7 @@ The whole process is shown in this video:
 
 https://user-images.githubusercontent.com/11092081/142769056-b389649b-eac4-435f-ac6d-1715474a5605.mp4
 
-#### 3. The new way (available since RKorAPClient 0.9.0.9000)
+#### 3. The new way (available since RKorAPClient 1.0.0)
 
 Authorize your RKorAPClient application via the usual OAuth browser flow, using *your own application id* and the `auth` method:
 
@@ -244,7 +262,7 @@ More elaborate R scripts demonstrating the use of the package can be found in th
 ```bash
 # Debian, Ubuntu, ...
 sudo apt -f install # install possibly missing RStudio dependencies
-sudo apt install r-base-dev r-cran-rcpp r-cran-cpp11 libcurl4-gnutls-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev libv8-dev
+sudo apt install r-base-dev r-cran-rcpp r-cran-cpp11 libcurl4-openssl-dev libxml2-dev libsodium-dev libsecret-1-dev libfontconfig1-dev libssl-dev libv8-dev
 
 # Fedora, CentOS, RHEL, Rocky Linux, AlmaLinux, ...
 sudo dnf install R-devel libcurl-devel openssl-devel libxml2-devel libsodium-devel libsecret-devel fontconfig-devel v8-devel
@@ -293,7 +311,7 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 
 **Authors**: [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz/), [Nils Diewald](https://www.ids-mannheim.de/digspra/personal/diewald/)
 
-Copyright (c) 2025, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2026, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/)
 Corpus Analysis Platform at the Leibniz Institute for German Language
