@@ -1,3 +1,7 @@
+# unpublished dev version 1.3.0.9000
+
+- dropped the `PTXQC` dependency, which was imported for two small string functions (`lcpCount()` and `lcsCount()`, used by `queryStringToLabel()`) but pulled in `rmzqc`, `jsonvalidate` and `V8`, and with them the only dependency requiring a `libv8` installation. The two functions are now implemented in the package itself, 10 to 65 times faster than the originals, and with unchanged results
+
 # RKorAPClient 1.3.0
 
 - added `cacheAs` parameter to `collocationAnalysis()` for transparent result caching: if the specified RDS file exists, the cached result is returned immediately; otherwise the analysis runs and the result is saved to the file (`.rds` extension is added automatically if omitted)

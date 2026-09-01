@@ -57,6 +57,76 @@ percent <- function(df) {
     mutate(f = .data$f * 10^2, conf.low = .data$conf.low * 10^2, conf.high = .data$conf.high * 10^2)
 }
 
+#' Number of characters that all given strings share as a prefix
+#'
+#' Replaces `PTXQC::lcpCount()`, to avoid depending on PTXQC for two small
+#' string functions. The length is determined by binary search over vectorized
+#' [startsWith()] calls, which needs `log2(n)` instead of `n` comparisons for a
+#' common prefix of `n` characters.
+#'
+#' As in `PTXQC::lcpCount()`, a single string is its own prefix, and an empty
+#' vector has a common prefix of length 0.
+#'
+#' @param strings vector of strings
+#' @return number of characters common to the beginning of all `strings`
+#' @noRd
+longestCommonPrefixLength <- function(strings) {
+  strings <- as.character(strings)
+  if (length(strings) == 0) {
+    return(0L)
+  }
+  if (length(strings) == 1) {
+    return(nchar(strings[1]))
+  }
+
+  low <- 0L
+  high <- min(nchar(strings))
+  while (low < high) {
+    middle <- (low + high + 1L) %/% 2L
+    # isTRUE keeps NAs from breaking the condition, as in PTXQC, where they
+    # make the character comparison fail and thus end the common prefix
+    if (isTRUE(all(startsWith(strings, substr(strings[1], 1L, middle))))) {
+      low <- middle
+    } else {
+      high <- middle - 1L
+    }
+  }
+  low
+}
+
+#' Number of characters that all given strings share as a suffix
+#'
+#' Replaces `PTXQC::lcsCount()`, which reverses every string character by
+#' character before looking for the common prefix. Works like
+#' `longestCommonPrefixLength()`, but anchored at the end of the strings.
+#'
+#' @param strings vector of strings
+#' @return number of characters common to the end of all `strings`
+#' @noRd
+longestCommonSuffixLength <- function(strings) {
+  strings <- as.character(strings)
+  if (length(strings) == 0) {
+    return(0L)
+  }
+  if (length(strings) == 1) {
+    return(nchar(strings[1]))
+  }
+
+  first <- strings[1]
+  firstLength <- nchar(first)
+  low <- 0L
+  high <- min(nchar(strings))
+  while (low < high) {
+    middle <- (low + high + 1L) %/% 2L
+    if (isTRUE(all(endsWith(strings, substr(first, firstLength - middle + 1L, firstLength))))) {
+      low <- middle
+    } else {
+      high <- middle - 1L
+    }
+  }
+  low
+}
+
 #' Convert query or vc strings to plot labels
 #'
 #' Converts a vector of query or vc strings to typically appropriate legend labels
@@ -74,9 +144,6 @@ percent <- function(df) {
 #' queryStringToLabel(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"))
 #' queryStringToLabel(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"))
 #'
-#' @importFrom PTXQC lcpCount
-#' @importFrom PTXQC lcsCount
-#'
 #' @export
 queryStringToLabel <- function(data, pubDateOnly = FALSE, excludePubDate = FALSE) {
   if (pubDateOnly) {
@@ -84,11 +151,11 @@ queryStringToLabel <- function(data, pubDateOnly = FALSE, excludePubDate = FALSE
   } else if(excludePubDate) {
     data <-substring(data, 1, regexpr("(pub|creation)Date", data))
   }
-  leftCommon = lcpCount(data)
+  leftCommon = longestCommonPrefixLength(data)
   while (leftCommon > 0 && grepl("[[:alnum:]/=.*!]", substring(data[1], leftCommon, leftCommon))) {
     leftCommon <- leftCommon - 1
   }
-  rightCommon = lcsCount(data)
+  rightCommon = longestCommonSuffixLength(data)
   while (rightCommon > 0 && grepl("[[:alnum:]/=.*!]", substring(data[1], 1+nchar(data[1]) - rightCommon, 1+nchar(data[1]) - rightCommon))) {
     rightCommon <- rightCommon - 1
   }

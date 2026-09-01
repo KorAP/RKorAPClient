@@ -58,10 +58,6 @@ import(httr2)
 import(keyring)
 import(methods)
 import(utils)
-importFrom(PTXQC,
-  lcpCount,
-  lcsCount
-)
 importFrom(broom,tidy)
 importFrom(curl,has_internet)
 importFrom(dplyr,
