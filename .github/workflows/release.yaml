@@ -1,0 +1,100 @@
+# Creates a GitHub release whenever a version tag is pushed, using the
+# corresponding section of NEWS.md as release notes.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag to (re-)generate the release for, e.g. v1.3.0'
+        required: true
+
+name: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Determine tag
+        id: tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Extract release notes from NEWS.md
+        id: notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.tag.outputs.version }}"
+
+          # Print everything between the level 1 NEWS.md heading that mentions
+          # this version and the next level 1 heading, then strip the blank
+          # lines at both ends.
+          awk -v ver="$VERSION" '
+            /^# / {
+              if (found) exit
+              line = $0
+              gsub(/[^0-9A-Za-z.]+/, " ", line)
+              split(line, tok, " ")
+              for (i in tok) if (tok[i] == ver) found = 1
+              next
+            }
+            found { print }
+          ' NEWS.md | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "::error::No NEWS.md section found for version ${VERSION}."
+            exit 1
+          fi
+
+          echo "Release notes for ${VERSION}:"
+          cat release-notes.md
+
+          DESCRIPTION_VERSION="$(grep '^Version:' DESCRIPTION | sed -e 's/^Version:[[:space:]]*//')"
+          if [ "$DESCRIPTION_VERSION" != "$VERSION" ]; then
+            echo "::warning::Tag version ${VERSION} does not match DESCRIPTION version ${DESCRIPTION_VERSION}."
+          fi
+
+          # x.y.z is a regular (CRAN) release, everything else a pre-release
+          if echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "title=RKorAPClient v${VERSION} (CRAN-Release)" >> "$GITHUB_OUTPUT"
+            echo "prerelease=" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=RKorAPClient v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.tag.outputs.tag }}"
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release ${TAG} already exists, updating it."
+            gh release edit "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "${{ steps.notes.outputs.title }}" \
+              --notes-file release-notes.md
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "${{ steps.notes.outputs.title }}" \
+              --notes-file release-notes.md \
+              ${{ steps.notes.outputs.prerelease }}
+          fi
