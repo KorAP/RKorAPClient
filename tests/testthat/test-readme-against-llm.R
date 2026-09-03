@@ -1,12 +1,49 @@
-library(tidyllm)
+# Models the documentation is prompted with. Cheap, fast models are used on
+# purpose: the tasks are simple, and if such a model cannot follow the Readme,
+# that says something about the Readme, which is what is being tested here.
+# Override with a comma separated list in RKORAP_LLM_MODELS, e.g. to add
+# OpenAI's cheapest models, "gpt-5-nano" or "gpt-5.6-luna".
+defaultLlmModels <- c(
+  "gemini-3.5-flash-lite",
+  "claude-sonnet-5",
+  "hf:zai-org/GLM-5.3-Flash" # GLM-5.3-Flash, via the Synthetic API
+)
 
-# Helper function to skip if no API keys are available
-skip_if_no_api_key <- function() {
+llmModels <- function() {
+  configured <- Sys.getenv("RKORAP_LLM_MODELS", unset = "")
+  if (nzchar(configured)) {
+    trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
+  } else {
+    defaultLlmModels
+  }
+}
+
+# Provider and API key environment variable belonging to a model id
+llmProvider <- function(model) {
+  if (grepl("^gpt-", model, ignore.case = TRUE)) {
+    list(name = "openai", keyVar = "OPENAI_API_KEY")
+  } else if (grepl("^claude-", model, ignore.case = TRUE)) {
+    list(name = "claude", keyVar = "ANTHROPIC_API_KEY")
+  } else if (grepl("^gemini-", model, ignore.case = TRUE)) {
+    list(name = "gemini", keyVar = "GOOGLE_API_KEY")
+  } else if (grepl("^hf:", model, ignore.case = TRUE)) {
+    # OpenAI compatible endpoint, but tidyllm's openai provider does not allow
+    # for a custom base url, so these are queried directly (see below)
+    list(name = "synthetic", keyVar = "SYNTHETIC_API_KEY")
+  } else {
+    stop(paste(
+      "Unsupported model:", model,
+      "- supported prefixes: gpt-, claude-, gemini-, hf: (Synthetic)"
+    ))
+  }
+}
+
+# Helper function to skip if the API key of the given model is not available
+skip_if_no_api_key <- function(model) {
+  keyVar <- llmProvider(model)$keyVar
   skip_if_not(
-    nzchar(Sys.getenv("OPENAI_API_KEY")) ||
-      nzchar(Sys.getenv("ANTHROPIC_API_KEY")) ||
-      nzchar(Sys.getenv("GOOGLE_API_KEY")),
-    "No API keys found (need OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY)"
+    nzchar(Sys.getenv(keyVar)),
+    paste0("No API key for ", model, " found (need ", keyVar, ")")
   )
 }
 
@@ -38,8 +75,25 @@ read_readme_content <- function() {
   paste(readme_content, collapse = "\n")
 }
 
+# Helper function to call an OpenAI compatible endpoint that tidyllm cannot be
+# pointed at, because its openai provider takes no custom base url
+call_openai_compatible_api <- function(prompt, model, temperature, baseUrl, keyVar) {
+  response <- httr2::request(paste0(baseUrl, "/chat/completions")) |>
+    httr2::req_auth_bearer_token(Sys.getenv(keyVar)) |>
+    httr2::req_body_json(list(
+      model = model,
+      temperature = temperature,
+      messages = list(list(role = "user", content = prompt))
+    )) |>
+    httr2::req_retry(max_tries = 3) |>
+    httr2::req_timeout(120) |>
+    httr2::req_perform()
+
+  httr2::resp_body_json(response)$choices[[1]]$message$content
+}
+
 # Helper function to call LLM API using tidyllm
-call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LLM_MODEL) {
+call_llm_api <- function(prompt, model, max_tokens = 500, temperature = 0.1) {
   cat("Calling LLM API with model:", model, "\n")
   # Only print prompt up to the beginning of README content
   readme_start <- regexpr("README Documentation:", prompt, fixed = TRUE)
@@ -51,50 +105,53 @@ call_llm_api <- function(prompt, max_tokens = 500, temperature = 0.1, model = LL
   }
   tryCatch(
     {
-      # Determine the provider based on model name
-      if (grepl("^gpt-", model, ignore.case = TRUE)) {
-        provider <- openai()
-      } else if (grepl("^claude-", model, ignore.case = TRUE)) {
-        provider <- claude()
-      } else if (grepl("^gemini-", model, ignore.case = TRUE)) {
-        # Debug Gemini API key
-        provider <- gemini()
-      } else {
-        stop(paste("Unsupported model:", model, "- supported prefixes: gpt-, claude-, gemini-"))
-      }
+      provider <- llmProvider(model)
 
-      # Use tidyllm unified API
-      result <- llm_message(prompt) |>
-        chat(
-          .provider = provider,
-          .model = model,
-          .temperature = temperature,
-          .max_tries = 3
+      if (provider$name == "synthetic") {
+        call_openai_compatible_api(
+          prompt,
+          model = model,
+          temperature = temperature,
+          baseUrl = "https://api.synthetic.new/openai/v1",
+          keyVar = provider$keyVar
         )
+      } else {
+        # Use tidyllm unified API
+        result <- tidyllm::llm_message(prompt) |>
+          tidyllm::chat(
+            .provider = switch(provider$name,
+              openai = tidyllm::openai(),
+              claude = tidyllm::claude(),
+              gemini = tidyllm::gemini()
+            ),
+            .model = model,
+            .temperature = temperature,
+            .max_tries = 3
+          )
 
-      # Extract the reply text
-      get_reply(result)
+        # Extract the reply text
+        tidyllm::get_reply(result)
+      }
     },
     error = function(e) {
-      if (grepl("429", as.character(e))) {
+      message <- as.character(e)
+      # Conditions of the account rather than of the documentation: these must
+      # not turn a documentation test red
+      if (grepl("429", message)) {
         skip("LLM API rate limit exceeded - please try again later or check your API key/credits")
-      } else if (grepl("401", as.character(e))) {
-        skip("LLM API authentication failed - please check your API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY)")
+      } else if (grepl("401|403", message)) {
+        skip(paste0(
+          "LLM API authentication failed - please check ",
+          llmProvider(model)$keyVar
+        ))
+      } else if (grepl("402|credit balance|billing|quota|insufficient", message, ignore.case = TRUE)) {
+        skip(paste0("No credits available for ", model, ": ", message))
       } else {
-        stop(paste("LLM API error:", as.character(e)))
+        stop(paste("LLM API error:", message))
       }
     }
   )
 }
-
-# Configuration variables
-# LLM_MODEL <- "gpt-4o-mini"                  # OpenAI model option
-# LLM_MODEL <- "claude-3-5-sonnet-latest" # Claude model option
-# LLM_MODEL <- "claude-3-7-sonnet-latest"     # Claude model option
-# LLM_MODEL <- "claude-sonnet-4-0"            # Claude model option
-LLM_MODEL <- "gemini-2.5-pro"               # Google Gemini model option
-# LLM_MODEL <- "gemini-1.5-pro"               # Google Gemini model option
-# LLM_MODEL <- "gemini-2.5-flash"             # Google Gemini model option (faster)
 
 # Helper function to create README-guided prompt
 create_readme_prompt <- function(task_description, specific_task) {
@@ -167,136 +224,147 @@ run_code_if_enabled <- function(code, test_name) {
   }
 }
 
-test_that(paste(LLM_MODEL, "can solve frequency query task with README guidance"), {
-  # Skip if offline
-  skip_if_offline()
+for (model in llmModels()) {
+  test_that(paste(model, "can solve frequency query task with README guidance"), {
+    # Skip if offline
+    skip_if_offline()
 
-  # Skip if no API keys are set
-  skip_if_no_api_key()
+    # Skip if no API keys are set
+    skip_if_no_api_key(model)
 
-  # Check for README file
-  skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+    # tidyllm is only suggested, so the tests must not fail without it
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
 
-  # Create the prompt with README context and task
-  prompt <- create_readme_prompt(
-    "write R code to perform a frequency query for the word 'Demokratie' across the past three years. The code should use the RKorAPClient package and return a data frame.",
-    "Write R code to query frequency of 'Demokratie' from the past three years using RKorAPClient."
-  )
+    # Check for README file
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
-  # Call LLM API
-  generated_response <- call_llm_api(prompt, max_tokens = 500)
-  generated_code <- extract_r_code(generated_response)
+    # Create the prompt with README context and task
+    prompt <- create_readme_prompt(
+      "write R code to perform a frequency query for the word 'Demokratie' across the past three years. The code should use the RKorAPClient package and return a data frame.",
+      "Write R code to query frequency of 'Demokratie' from the past three years using RKorAPClient."
+    )
 
-  # Basic checks on the generated code
-  expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
-  expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
-  expect_true(grepl("Demokratie", generated_code), "Generated code should include the search term 'Demokratie'")
-  last_year <- as.numeric(format(Sys.Date(), "%Y")) - 1
+    # Call LLM API
+    generated_response <- call_llm_api(prompt, model, max_tokens = 500)
+    generated_code <- extract_r_code(generated_response)
 
-  expect_true(grepl("Date in", generated_code), "Generated code should vc restriction on years")
+    # Basic checks on the generated code
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
+    expect_true(grepl("Demokratie", generated_code), "Generated code should include the search term 'Demokratie'")
+    last_year <- as.numeric(format(Sys.Date(), "%Y")) - 1
 
-  # Check that the generated code contains essential RKorAPClient patterns
-  # expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code), "Generated code should use pipe operators")
+    expect_true(grepl("Date in", generated_code), "Generated code should vc restriction on years")
 
-  # Test code syntax
-  syntax_valid <- test_code_syntax(generated_code)
-  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+    # Check that the generated code contains essential RKorAPClient patterns
+    # expect_true(grepl("\\|>", generated_code) || grepl("%>%", generated_code), "Generated code should use pipe operators")
 
-  # Print the generated code for manual inspection
-  cat("Generated code:\n", generated_code, "\n")
+    # Test code syntax
+    syntax_valid <- test_code_syntax(generated_code)
+    expect_true(syntax_valid, "Generated code should be syntactically valid R code")
 
-  # Run the code if RUN_LLM_CODE is set
-  execution_result <- run_code_if_enabled(generated_code, "frequency query")
-  if (!is.na(execution_result)) {
-    expect_true(execution_result, "Generated code should execute without runtime errors")
-  }
-})
+    # Print the generated code for manual inspection
+    cat("Generated code:\n", generated_code, "\n")
+
+    # Run the code if RUN_LLM_CODE is set
+    execution_result <- run_code_if_enabled(generated_code, "frequency query")
+    if (!is.na(execution_result)) {
+      expect_true(execution_result, "Generated code should execute without runtime errors")
+    }
+  })
 
 
-test_that(paste(LLM_MODEL, "can solve collocation analysis task with README guidance"), {
-  # Skip if offline
-  skip_if_offline()
+  test_that(paste(model, "can solve collocation analysis task with README guidance"), {
+    # Skip if offline
+    skip_if_offline()
 
-  # Skip if no API keys are set
-  skip_if_no_api_key()
+    # Skip if no API keys are set
+    skip_if_no_api_key(model)
 
-  # Check for README file
-  skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+    # tidyllm is only suggested, so the tests must not fail without it
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
 
-  # Create the prompt for collocation analysis
-  prompt <- create_readme_prompt(
-    paste("Write R code to perform a collocation analysis for the lemma 'leverage' based on the current English Wikipedia Corpus using default parameters", "and show the three highest collocates according to their log dice score.
-"),
-    "Write R code to perform collocation analysis for lemma 'leverage' using RKorAPClient."
-  )
+    # Check for README file
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
-  # Call LLM API
-  generated_response <- call_llm_api(prompt, max_tokens = 500)
-  generated_code <- extract_r_code(generated_response)
+    # Create the prompt for collocation analysis
+    prompt <- create_readme_prompt(
+      paste("Write R code to perform a collocation analysis for the lemma 'leverage' based on the current English Wikipedia Corpus using default parameters", "and show the three highest collocates according to their log dice score.
+  "),
+      "Write R code to perform collocation analysis for lemma 'leverage' using RKorAPClient."
+    )
 
-  # Basic checks on the generated code
-  expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
-  expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
-  expect_true(grepl("tt/l=leverage", generated_code), "Generated code should include the search the lemma 'leverage'")
-  # expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
-  expect_true(grepl("instance/english", generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
+    # Call LLM API
+    generated_response <- call_llm_api(prompt, model, max_tokens = 500)
+    generated_code <- extract_r_code(generated_response)
 
-  # Test code syntax
-  syntax_valid <- test_code_syntax(generated_code)
-  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+    # Basic checks on the generated code
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
+    expect_true(grepl("tt/l=leverage", generated_code), "Generated code should include the search the lemma 'leverage'")
+    # expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
+    expect_true(grepl("instance/english", generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
-  # Print the generated code for manual inspection
-  cat("Generated collocation analysis code:\n", generated_code, "\n")
+    # Test code syntax
+    syntax_valid <- test_code_syntax(generated_code)
+    expect_true(syntax_valid, "Generated code should be syntactically valid R code")
 
-  # Run the code if RUN_LLM_CODE is set
-  execution_result <- run_code_if_enabled(generated_code, "collocation analysis")
-  if (!is.na(execution_result)) {
-    expect_true(execution_result, "Generated code should execute without runtime errors")
-  }
-})
+    # Print the generated code for manual inspection
+    cat("Generated collocation analysis code:\n", generated_code, "\n")
 
-test_that(paste(LLM_MODEL, "can solve corpus query task with README guidance"), {
-  # Skip if offline
-  skip_if_offline()
+    # Run the code if RUN_LLM_CODE is set
+    execution_result <- run_code_if_enabled(generated_code, "collocation analysis")
+    if (!is.na(execution_result)) {
+      expect_true(execution_result, "Generated code should execute without runtime errors")
+    }
+  })
 
-  # Skip if no API keys are set
-  skip_if_no_api_key()
+  test_that(paste(model, "can solve corpus query task with README guidance"), {
+    # Skip if offline
+    skip_if_offline()
 
-  # Check for README file
-  skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+    # Skip if no API keys are set
+    skip_if_no_api_key(model)
 
-  # Create the prompt for corpus query
-  prompt <- create_readme_prompt(
-    "write R code to perform a simple corpus query for 'Hello world' and fetch all results. The code should use the RKorAPClient package.",
-    "Write R code to query 'Hello world' and fetch all results using RKorAPClient."
-  )
+    # tidyllm is only suggested, so the tests must not fail without it
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
 
-  # Call LLM API
-  generated_response <- call_llm_api(prompt, max_tokens = 300)
-  generated_code <- extract_r_code(generated_response)
+    # Check for README file
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
-  # Basic checks on the generated code
-  expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
-  expect_true(grepl("corpusQuery", generated_code), "Generated code should include corpusQuery")
-  expect_true(grepl("Hello world", generated_code), "Generated code should include the search term 'Hello world'")
-  expect_true(grepl("fetchAll", generated_code), "Generated code should include fetchAll")
+    # Create the prompt for corpus query
+    prompt <- create_readme_prompt(
+      "write R code to perform a simple corpus query for 'Hello world' and fetch all results. The code should use the RKorAPClient package.",
+      "Write R code to query 'Hello world' and fetch all results using RKorAPClient."
+    )
 
-  # Check that the generated code follows the README example pattern
-  expect_true(
-    grepl("\\|>", generated_code) || grepl("%>%", generated_code),
-    "Generated code should use pipe operators"
-  )
+    # Call LLM API
+    generated_response <- call_llm_api(prompt, model, max_tokens = 300)
+    generated_code <- extract_r_code(generated_response)
 
-  # Test code syntax
-  syntax_valid <- test_code_syntax(generated_code)
-  expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+    # Basic checks on the generated code
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("corpusQuery", generated_code), "Generated code should include corpusQuery")
+    expect_true(grepl("Hello world", generated_code), "Generated code should include the search term 'Hello world'")
+    expect_true(grepl("fetchAll", generated_code), "Generated code should include fetchAll")
 
-  # Print the generated code for manual inspection
-  cat("Generated corpus query code:\n", generated_code, "\n")
+    # Check that the generated code follows the README example pattern
+    expect_true(
+      grepl("\\|>", generated_code) || grepl("%>%", generated_code),
+      "Generated code should use pipe operators"
+    )
 
-  # Run the code if RUN_LLM_CODE is set
-  execution_result <- run_code_if_enabled(generated_code, "corpus query")
-  if (!is.na(execution_result)) {
-    expect_true(execution_result, "Generated code should execute without runtime errors")
-  }
-})
+    # Test code syntax
+    syntax_valid <- test_code_syntax(generated_code)
+    expect_true(syntax_valid, "Generated code should be syntactically valid R code")
+
+    # Print the generated code for manual inspection
+    cat("Generated corpus query code:\n", generated_code, "\n")
+
+    # Run the code if RUN_LLM_CODE is set
+    execution_result <- run_code_if_enabled(generated_code, "corpus query")
+    if (!is.na(execution_result)) {
+      expect_true(execution_result, "Generated code should execute without runtime errors")
+    }
+  })
+}
