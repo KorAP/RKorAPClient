@@ -10,12 +10,14 @@ defaultLlmModels <- c(
 )
 
 llmModels <- function() {
-  configured <- Sys.getenv("RKORAP_LLM_MODELS", unset = "")
-  if (nzchar(configured)) {
-    trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
-  } else {
-    defaultLlmModels
+  configured <- Sys.getenv("RKORAP_LLM_MODELS", unset = NA_character_)
+  if (is.na(configured)) {
+    return(defaultLlmModels)
   }
+  # set but empty means no models at all, which is how these tests are kept out
+  # of the pipeline job that runs everything else
+  models <- trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
+  models[nzchar(models)]
 }
 
 # Provider and API key environment variable belonging to a model id
