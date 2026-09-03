@@ -1,6 +1,62 @@
 #' @include logging.R
 setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocationAnalysis"))
 
+#' Name of the attribute under which cache files record their analysis parameters
+#' @noRd
+collocationCacheAttribute <- "RKorAPClient.collocationAnalysis"
+
+#' Parameters that a cached collocation analysis was computed with
+#'
+#' Collected from the calling `collocationAnalysis()` frame, so that parameters
+#' added in the future are taken into account automatically. `kco` and `cacheAs`
+#' are excluded: the former is not a parameter of the analysis, the latter only
+#' says where to store it.
+#'
+#' @param frame environment of the `collocationAnalysis()` call
+#' @param dots arguments passed on to [collocationScoreQuery()]
+#' @param kco [KorAPConnection()] object
+#' @return list of parameters to store with, and compare against, a cache file
+#' @noRd
+collocationCacheParameters <- function(frame, dots, kco) {
+  parameterNames <- setdiff(
+    names(formals(sys.function(sys.parent()))),
+    c("kco", "cacheAs", "...")
+  )
+  list(
+    parameters = mget(parameterNames, envir = frame),
+    dots = dots,
+    # reusing one cache file for two KorAP instances is a mistake worth catching
+    apiUrl = kco@apiUrl,
+    # recorded for reference only, deliberately not compared: corpus updates
+    # should not invalidate a deliberately kept analysis
+    indexRevision = kco@indexRevision
+  )
+}
+
+#' Parameters in which a cached collocation analysis differs from the current call
+#'
+#' @param stored parameters recorded in the cache file
+#' @param current parameters of the current call
+#' @return names of the differing parameters, empty if the cache is still valid
+#' @noRd
+differingCollocationCacheParameters <- function(stored, current) {
+  differing <- character(0)
+
+  for (name in union(names(stored$parameters), names(current$parameters))) {
+    if (!identical(stored$parameters[[name]], current$parameters[[name]])) {
+      differing <- c(differing, name)
+    }
+  }
+  if (!identical(stored$dots, current$dots)) {
+    differing <- c(differing, "...")
+  }
+  if (!identical(stored$apiUrl, current$apiUrl)) {
+    differing <- c(differing, "KorAP instance")
+  }
+
+  differing
+}
+
 #' Collocation analysis
 #'
 #' @family collocation analysis functions
@@ -46,6 +102,13 @@ setGeneric("collocationAnalysis", function(kco, ...) standardGeneric("collocatio
 #' @param missingScoreQuantile   lower quantile (evaluated per association measure over the pooled result set) that anchors the adaptive floor used for imputing missing scores between virtual corpora; a robust spread is subtracted from this anchor so the imputed values stay at or below the weakest observed scores. Imputed cells are marked in the `imputed*` columns; see the section on interpreting multi-VC comparisons below
 #' @param vcLabel optional label override for the current virtual corpus (used internally when named VC collections are expanded)
 #' @param cacheAs                path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).
+#'
+#'   The analysis parameters are stored alongside the result. If they differ from
+#'   those of the current call, the cached result would not be the one that was
+#'   asked for, so it is recomputed and the file overwritten, with a warning
+#'   naming the parameters that differ. Pass a different \code{cacheAs} file name
+#'   to keep an existing analysis. Cache files written by RKorAPClient 1.3.0 do
+#'   not contain the parameters yet and are used as they are.
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
 #' @return
@@ -163,13 +226,43 @@ setMethod(
            ...) {
     word <- frequency <- O <- NULL
 
-    if (!is.null(cacheAs) && !grepl("\\.rds$", cacheAs, ignore.case = TRUE)) {
-      cacheAs <- paste0(cacheAs, ".rds")
+    cacheParameters <- NULL
+    if (!is.null(cacheAs)) {
+      if (!grepl("\\.rds$", cacheAs, ignore.case = TRUE)) {
+        cacheAs <- paste0(cacheAs, ".rds")
+      }
+      cacheParameters <- collocationCacheParameters(environment(), list(...), kco)
     }
 
     if (!is.null(cacheAs) && file.exists(cacheAs)) {
-      log_info(kco@verbose, sprintf("Loading collocation analysis from cache: %s\n", cacheAs))
-      return(readRDS(cacheAs))
+      cached <- readRDS(cacheAs)
+      storedParameters <- attr(cached, collocationCacheAttribute)
+      attr(cached, collocationCacheAttribute) <- NULL
+
+      if (is.null(storedParameters)) {
+        # written before parameter checking existed, so there is nothing to check
+        log_info(kco@verbose, sprintf(
+          "Loading collocation analysis from cache (written without parameters): %s\n", cacheAs
+        ))
+        return(cached)
+      }
+
+      differing <- differingCollocationCacheParameters(storedParameters, cacheParameters)
+      if (length(differing) == 0) {
+        log_info(kco@verbose, sprintf("Loading collocation analysis from cache: %s\n", cacheAs))
+        return(cached)
+      }
+
+      warning(
+        sprintf(
+          paste0(
+            "Cache file '%s' was created with different parameters (%s) and is recomputed and overwritten.\n",
+            "Pass a different cacheAs file name to keep the cached analysis."
+          ),
+          cacheAs, paste(differing, collapse = ", ")
+        ),
+        call. = FALSE
+      )
     }
 
     if (!exactFrequencies && (!is.na(withinSpan) && !is.null(withinSpan) && nzchar(withinSpan))) {
@@ -417,7 +510,11 @@ setMethod(
 
     if (!is.null(cacheAs)) {
       log_info(kco@verbose, sprintf("Saving collocation analysis to cache: %s\n", cacheAs))
-      saveRDS(result, cacheAs)
+      # only the stored copy carries the parameters, so that the returned value
+      # is the same whether it was cached or not
+      cachedResult <- result
+      attr(cachedResult, collocationCacheAttribute) <- cacheParameters
+      saveRDS(cachedResult, cacheAs)
     }
 
     result

@@ -1,5 +1,7 @@
 # unpublished dev version 1.3.0.9000
 
+- `collocationAnalysis()` now stores the analysis parameters in its `cacheAs` file and compares them on the next call. If they differ, the cached result is not the one that was asked for, so it is recomputed and the file overwritten, with a warning naming the parameters that differ. This catches the case of a parameter being changed while an old cache file is still lying around. Cache files written by 1.3.0 do not contain the parameters yet and keep being used as they are
+
 - dropped the `PTXQC` dependency, which was imported for two small string functions (`lcpCount()` and `lcsCount()`, used by `queryStringToLabel()`) but pulled in `rmzqc`, `jsonvalidate` and `V8`, and with them the only dependency requiring a `libv8` installation. The two functions are now implemented in the package itself, 10 to 65 times faster than the originals, and with unchanged results
 
 # RKorAPClient 1.3.0

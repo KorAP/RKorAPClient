@@ -83,7 +83,14 @@
 
 \item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
 
-\item{cacheAs}{path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).}
+\item{cacheAs}{path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).
+
+The analysis parameters are stored alongside the result. If they differ from
+those of the current call, the cached result would not be the one that was
+asked for, so it is recomputed and the file overwritten, with a warning
+naming the parameters that differ. Pass a different \code{cacheAs} file name
+to keep an existing analysis. Cache files written by RKorAPClient 1.3.0 do
+not contain the parameters yet and are used as they are.}
 
 \item{...}{more arguments will be passed to \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}}
 }
