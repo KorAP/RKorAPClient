@@ -56,6 +56,15 @@ The functions are primarily used by \code{\link[=collocationScoreQuery]{collocat
 
 \strong{ll}: log-likelihood (Dunning 1993) using Stefan Evert's (2004) simplified implementation
 }
+\details{
+\code{logDice} is computed as defined by Rychlý (2008), that is from the plain
+marginal frequencies of node and collocate, so that its values are
+comparable to those of other tools, such as Sketch Engine. Unlike the
+expectation based scores, it does not take the window size into account: the
+Dice coefficient relates the co-occurrence frequency to how often the two
+words occur at all, and \code{O1} and \code{O2} count word tokens, while a window size
+factor would count window positions.
+}
 \examples{
 \dontrun{
 

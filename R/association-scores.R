@@ -82,6 +82,16 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
 #'
 #' @description
 #' **logDice**: log-Dice coefficient, a heuristic measure that is popular in lexicography (Rychlý 2008)
+#'
+#' @details
+#' `logDice` is computed as defined by Rychlý (2008), that is from the plain
+#' marginal frequencies of node and collocate, so that its values are
+#' comparable to those of other tools, such as Sketch Engine. Unlike the
+#' expectation based scores, it does not take the window size into account: the
+#' Dice coefficient relates the co-occurrence frequency to how often the two
+#' words occur at all, and `O1` and `O2` count word tokens, while a window size
+#' factor would count window positions.
+#'
 #' @export
 #'
 #' @references
@@ -89,7 +99,7 @@ mi3 <- function(O1, O2, O, N, E, window_size) {
 #'
 
 logDice <-  function(O1, O2, O, N, E, window_size) {
-  14 + log2(2 * O / (window_size * O1 + O2))
+  14 + log2(2 * O / (O1 + O2))
 }
 
 
@@ -111,6 +121,28 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 #'
 ll <- function(O1, O2, O, N, E, window_size) {
   r1 = as.double(O1) * window_size
+
+  # The contingency table classifies all N corpus tokens by whether they are
+  # inside a window around the node. That breaks down once the windows, counted
+  # as window_size * O1, cover more than the corpus, which happens for a very
+  # frequent node combined with a wide window: the table would get a negative
+  # cell and the score would silently become NaN.
+  exceedsCorpus = !is.na(r1) & r1 >= as.double(N)
+  if (any(exceedsCorpus)) {
+    warning(
+      sprintf(
+        paste0(
+          "Log-likelihood is not defined where the windows around the node cover the whole corpus ",
+          "(window_size * O1 >= N, affecting %d of %d values). Returning NA for these. ",
+          "Use a smaller window."
+        ),
+        sum(exceedsCorpus), length(exceedsCorpus)
+      ),
+      call. = FALSE
+    )
+  }
+  r1 = dplyr::if_else(exceedsCorpus, NA_real_, r1)
+
   r2 = as.double(N) - r1
   c1 = O2
   c2 = N - c1
