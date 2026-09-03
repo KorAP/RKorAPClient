@@ -369,4 +369,71 @@ for (model in llmModels()) {
       expect_true(execution_result, "Generated code should execute without runtime errors")
     }
   })
+
+  test_that(paste(model, "can solve corpus size task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      "write R code that reports how many tokens the virtual corpus of newspaper texts published since 2020 contains.",
+      "Write R code to determine the size of a virtual corpus using RKorAPClient."
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("corpusStats", generated_code), "Generated code should include corpusStats")
+    expect_true(grepl("vc", generated_code), "Generated code should restrict to a virtual corpus")
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated corpus size code:\n", generated_code, "\n")
+  })
+
+  test_that(paste(model, "can solve text metadata task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      "write R code that retrieves all metadata KorAP holds for the text with the sigle WPD17/L79/98721.",
+      "Write R code to retrieve the metadata of a text using RKorAPClient."
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("textMetadata", generated_code), "Generated code should include textMetadata")
+    expect_true(grepl("WPD17/L79/98721", generated_code, fixed = TRUE), "Generated code should include the text sigle")
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated text metadata code:\n", generated_code, "\n")
+  })
+
+  test_that(paste(model, "can solve association score task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code that computes association scores for the word 'Grund' together with each of the",
+        "collocates 'triftiger' and 'guter', without searching for collocates first."
+      ),
+      "Write R code to compute association scores for known collocation candidates using RKorAPClient."
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("collocationScoreQuery", generated_code), "Generated code should include collocationScoreQuery")
+    expect_true(grepl("triftiger", generated_code), "Generated code should include the collocate 'triftiger'")
+    expect_true(grepl("guter", generated_code), "Generated code should include the collocate 'guter'")
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated association score code:\n", generated_code, "\n")
+  })
 }

@@ -100,6 +100,55 @@ KorAPConnection(KorAPUrl = "https://korap.ids-mannheim.de/instance/wiki/", verbo
   fetchAll()
 ```
   
+### How big is my (virtual) corpus?
+
+`corpusStats` reports the size of the whole corpus or of a virtual corpus:
+
+```r
+library(RKorAPClient)
+kco <- KorAPConnection(verbose = TRUE)
+corpusStats(kco, vc = "pubDate since 2020")
+```
+
+```
+<KorAPCorpusStats>
+The virtual corpus described by "pubDate since 2020" contains 3,942,948,561 tokens
+in 253,752,552 sentences in 13,857,981 documents.
+```
+
+With `as.df = TRUE` you get a one row data frame with `tokens`, `sentences`, `paragraphs` and `documents` columns instead, which makes it easy to compare several virtual corpora.
+
+### Metadata of a text
+
+`textMetadata` retrieves all metadata KorAP holds for a text, given its sigle as found in the `textSigle` column of query results:
+
+```r
+KorAPConnection() |> textMetadata("WPD17/L79/98721")
+```
+
+|textSigle       |author                 |title    |pubDate    |textType     |
+|:---------------|:----------------------|:--------|:----------|:------------|
+|WPD17/L79/98721 |GeorgDerReisende, u.a. |Leverone |2017-07-01 |Enzyklopädie |
+
+The result has one column per metadata field the corpus provides – 26 in this example, so the table above shows only a selection.
+
+### Association scores for collocation candidates you already have
+
+While `collocationAnalysis` searches for collocates, `collocationScoreQuery` computes association scores for pairs you already have in mind. It accepts a vector of collocates and queries every combination of collocate and virtual corpus:
+
+```r
+KorAPConnection() |>
+  collocationScoreQuery("Grund", c("triftiger", "guter", "Berlin"))
+```
+
+|node  |collocate |        O|         E| logDice|   pmi|       ll|
+|:-----|:---------|--------:|---------:|-------:|-----:|--------:|
+|Grund |triftiger |  2390.06|      6.31|    0.64|  8.57| 26288.28|
+|Grund |guter     | 12902.28|   2713.05|    3.04|  2.25| 19938.66|
+|Grund |Berlin    |  7866.48|  26211.71|    2.03| -1.74| 17789.94|
+
+`O` is the observed and `E` the expected co-occurrence frequency. *Triftiger* is by far the most strongly attracted of the three (highest `pmi`), while *Berlin* co-occurs with *Grund* less often than chance would predict, which is what a negative `pmi` expresses.
+
 ### Identify *in … setzen* light verb constructions using `collocationAnalysis`
 
 ```r
