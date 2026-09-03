@@ -436,4 +436,74 @@ for (model in llmModels()) {
 
     cat("Generated association score code:\n", generated_code, "\n")
   })
+
+  # The code of the following two tasks cannot reasonably be executed in a test:
+  # authorization needs a browser flow or a token for restricted data, and a
+  # multi-VC collocation analysis runs for minutes. Only the generated code is
+  # inspected, which is the point anyway: can the Readme be followed?
+
+  test_that(paste(model, "can solve authorization task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code that authorizes the application so that it also receives KWIC snippets from",
+        "corpora with restricted licenses, and then queries 'Ameisenplage' including those snippets."
+      ),
+      "Write R code that authorizes and retrieves KWIC snippets using RKorAPClient."
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(
+      grepl("auth\\(|accessToken", generated_code),
+      "Generated code should authorize via auth() or an accessToken"
+    )
+    expect_true(
+      grepl("metadataOnly\\s*=\\s*FALSE", generated_code),
+      "Generated code should set metadataOnly = FALSE to receive KWIC snippets"
+    )
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated authorization code:\n", generated_code, "\n")
+  })
+
+  test_that(paste(model, "can solve multi-VC comparison task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code that compares the collocates of 'Kritik' between newspaper texts published before 2010",
+        "and those published since 2010, and shows those collocates that are attested in both, ordered by how",
+        "differently they are associated."
+      ),
+      "Write R code comparing collocates across two virtual corpora using RKorAPClient."
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 500))
+
+    expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
+    # the labels of the comparison columns come from the names of the vc vector
+    expect_true(
+      grepl("vc\\s*=\\s*c\\(\\s*[A-Za-z.`\"']", generated_code),
+      "Generated code should pass a named vector of virtual corpora"
+    )
+    # one row per collocate and vc, so the comparison needs to be reduced
+    expect_true(
+      grepl("label", generated_code) || grepl("distinct", generated_code),
+      "Generated code should reduce the result to one row per collocate, via label or distinct()"
+    )
+    # imputed scores describe presence/absence rather than a measured contrast
+    expect_true(grepl("imputed", generated_code), "Generated code should take the imputed flag into account")
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated multi-VC comparison code:\n", generated_code, "\n")
+  })
 }
