@@ -92,10 +92,13 @@ often its words occur, rather than how surprising it is. That is what it was
 designed for (Rychlý 2008), and it is why its values do not depend on the
 corpus size and are comparable across corpora.
 
-When ranking or thresholding by logDice, as \code{\link[=collocationAnalysis]{collocationAnalysis()}} does by
-default, it is therefore worth discarding pairs that are not attested more
-often than expected, with \code{dplyr::filter(O > E)}, or requiring a minimum
-\code{pmi} or \code{ll}.
+Since \code{\link[=collocationAnalysis]{collocationAnalysis()}} ranks and thresholds by logDice, it therefore
+drops collocates occurring less often than expected by default. Its
+\code{minObservedExpectedRatio} parameter controls this: raise it to demand a
+stronger contrast, or set it to 0 to see the unfiltered ranking, for instance
+to study repulsion. \code{\link[=collocationScoreQuery]{collocationScoreQuery()}} does not filter, as there the
+pairs to score are given explicitly. For results obtained otherwise,
+\code{dplyr::filter(O > E)} or a minimum \code{pmi} or \code{ll} has the same effect.
 }
 
 \examples{

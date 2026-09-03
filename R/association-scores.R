@@ -40,10 +40,13 @@
 #' designed for (Rychlý 2008), and it is why its values do not depend on the
 #' corpus size and are comparable across corpora.
 #'
-#' When ranking or thresholding by logDice, as [collocationAnalysis()] does by
-#' default, it is therefore worth discarding pairs that are not attested more
-#' often than expected, with `dplyr::filter(O > E)`, or requiring a minimum
-#' `pmi` or `ll`.
+#' Since [collocationAnalysis()] ranks and thresholds by logDice, it therefore
+#' drops collocates occurring less often than expected by default. Its
+#' `minObservedExpectedRatio` parameter controls this: raise it to demand a
+#' stronger contrast, or set it to 0 to see the unfiltered ranking, for instance
+#' to study repulsion. [collocationScoreQuery()] does not filter, as there the
+#' pairs to score are given explicitly. For results obtained otherwise,
+#' `dplyr::filter(O > E)` or a minimum `pmi` or `ll` has the same effect.
 NULL
 #' NULL
 

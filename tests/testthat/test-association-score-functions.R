@@ -16,3 +16,26 @@ test_that("association scores are calculated correctly", {
   expect_equal(x[["logDice"]], -Inf)
 
 })
+
+test_that("filterByObservedExpectedRatio keeps only attested enough collocates", {
+  filterBy <- RKorAPClient:::filterByObservedExpectedRatio
+  result <- tibble::tibble(
+    collocate = c("attracted", "asExpected", "repelled"),
+    O = c(100, 10, 1),
+    E = c(10, 10, 10)
+  )
+
+  expect_equal(filterBy(result, 1)$collocate, c("attracted", "asExpected"))
+  expect_equal(filterBy(result, 5)$collocate, "attracted")
+  # 0 and NULL switch the filter off, for studying repulsion for instance
+  expect_equal(nrow(filterBy(result, 0)), 3)
+  expect_equal(nrow(filterBy(result, NULL)), 3)
+
+  # rows without an expected frequency are kept rather than silently dropped
+  withNA <- tibble::tibble(collocate = "unknown", O = 1, E = NA_real_)
+  expect_equal(nrow(filterBy(withNA, 1)), 1)
+
+  # nothing to do without the columns, or without rows
+  expect_equal(nrow(filterBy(tibble::tibble(collocate = "x"), 1)), 1)
+  expect_equal(nrow(filterBy(result[0, ], 1)), 0)
+})

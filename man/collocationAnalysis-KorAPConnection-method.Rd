@@ -27,6 +27,7 @@
   threshold = 2,
   localStopwords = c(),
   collocateFilterRegex = "^[:alnum:]+-?[:alnum:]*$",
+  minObservedExpectedRatio = 1,
   queryMissingScores = FALSE,
   missingScoreQuantile = 0.05,
   vcLabel = NA_character_,
@@ -74,13 +75,24 @@
 \item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0}).
 Note that the default score, \code{logDice}, expresses how salient a pair is
 rather than how surprising, so that a frequent collocate can pass it while
-co-occurring less often than expected. Adding \code{dplyr::filter(O > E)}, or a
-minimum \code{pmi} or \code{ll}, removes those. See the "Salience versus surprise"
-section of \code{\link{association-score-functions}}.}
+co-occurring less often than expected. \code{minObservedExpectedRatio} keeps
+those out. See the "Salience versus surprise" section of
+\code{\link{association-score-functions}}.}
 
 \item{localStopwords}{vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls}
 
 \item{collocateFilterRegex}{allow only collocates matching the regular expression}
+
+\item{minObservedExpectedRatio}{minimum ratio of observed to expected co-occurrence
+frequency a collocate must reach. Defaults to 1, which keeps only collocates
+that occur at least as often as expected by chance, corresponding to a
+non-negative \code{pmi}. Without it, frequent words can end up among the top
+collocates by \code{logDice} although the node does not attract them at all (see
+the "Salience versus surprise" section of
+\code{\link{association-score-functions}}). Raise it to demand a stronger
+contrast, e.g. 2 for collocates occurring at least twice as often as
+expected, or set it to 0 to switch the filter off and obtain the unfiltered
+result of earlier versions, e.g. in order to study repulsion.}
 
 \item{queryMissingScores}{if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold}
 
