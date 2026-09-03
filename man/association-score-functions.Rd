@@ -65,6 +65,39 @@ Dice coefficient relates the co-occurrence frequency to how often the two
 words occur at all, and \code{O1} and \code{O2} count word tokens, while a window size
 factor would count window positions.
 }
+\section{Salience versus surprise}{
+
+
+\code{logDice} is the only one of these scores that does not compare the observed
+co-occurrence frequency to an expected one. As it merely puts \code{O} into the
+numerator of the Dice coefficient, the difference between the score of a pair
+and the score that same pair would get if it co-occurred exactly as often as
+expected is precisely the pointwise mutual information:
+
+\code{logDice(O) - logDice(E) = log2(O / E) = pmi}
+
+The level a pair starts from therefore depends on the marginal frequencies
+alone, and it is high whenever both words are frequent. Collocates of \emph{Grund}
+in DeReKo, in a window of five words to each side, illustrate this:
+\itemize{
+\item \emph{triftiger} is rare, so it starts from a logDice of -4.60 and reaches 3.96,
+exceeding what is expected by a \code{pmi} of 8.57
+\item \emph{Berlin} is frequent, so it starts from 5.58 and still reaches 3.84, while
+co-occurring 1.74 bits \emph{less} often than expected
+}
+
+A frequent collocate can thus reach a respectable logDice although the node
+does not attract it at all. logDice measures how salient a pair is, given how
+often its words occur, rather than how surprising it is. That is what it was
+designed for (Rychlý 2008), and it is why its values do not depend on the
+corpus size and are comparable across corpora.
+
+When ranking or thresholding by logDice, as \code{\link[=collocationAnalysis]{collocationAnalysis()}} does by
+default, it is therefore worth discarding pairs that are not attested more
+often than expected, with \code{dplyr::filter(O > E)}, or requiring a minimum
+\code{pmi} or \code{ll}.
+}
+
 \examples{
 \dontrun{
 

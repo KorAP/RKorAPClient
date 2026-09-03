@@ -147,7 +147,7 @@ KorAPConnection() |>
 |Grund |guter     | 12902.50|   2713.24|    6.06|  2.25| 19938.70|
 |Grund |Berlin    |  7865.50|  26212.26|    3.84| -1.74| 17790.28|
 
-`O` is the observed and `E` the expected co-occurrence frequency. *Triftiger* is by far the most strongly attracted of the three (highest `pmi`), while *Berlin* co-occurs with *Grund* less often than chance would predict, which is what a negative `pmi` expresses. `logDice`, in contrast, does not compare against an expected frequency but relates the co-occurrence frequency to how often the two words occur at all, which is why the frequent *guter Grund* leads there.
+`O` is the observed and `E` the expected co-occurrence frequency. *Triftiger* is by far the most strongly attracted of the three (highest `pmi`), while *Berlin* co-occurs with *Grund* less often than chance would predict, which is what a negative `pmi` expresses. `logDice`, in contrast, does not compare against an expected frequency but relates the co-occurrence frequency to how often the two words occur at all, which is why the frequent *guter Grund* leads there – and why *Berlin*, although it co-occurs with *Grund* less often than expected, still scores nearly as high as *triftiger*. When ranking by `logDice`, as `collocationAnalysis` does by default, `dplyr::filter(O > E)` or a minimum `pmi` discards such pairs.
 
 ### Identify *in … setzen* light verb constructions using `collocationAnalysis`
 

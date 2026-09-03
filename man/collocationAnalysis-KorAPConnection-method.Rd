@@ -71,7 +71,12 @@
 
 \item{thresholdScore}{association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls (only applied when \code{maxRecurse > 0})}
 
-\item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0})}
+\item{threshold}{minimum value of \code{thresholdScore} function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0}).
+Note that the default score, \code{logDice}, expresses how salient a pair is
+rather than how surprising, so that a frequent collocate can pass it while
+co-occurring less often than expected. Adding \code{dplyr::filter(O > E)}, or a
+minimum \code{pmi} or \code{ll}, removes those. See the "Salience versus surprise"
+section of \code{\link{association-score-functions}}.}
 
 \item{localStopwords}{vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls}
 

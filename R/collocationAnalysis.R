@@ -95,7 +95,12 @@ differingCollocationCacheParameters <- function(stored, current) {
 #' @param maxRecurse             apply collocation analysis recursively `maxRecurse` times
 #' @param addExamples            If TRUE, examples for instances of collocations will be added in a column `example`. This makes a difference in particular if `node` is given as a lemma query.
 #' @param thresholdScore         association score function (see \code{\link{association-score-functions}}) to use for computing the threshold that is applied for recursive collocation analysis calls (only applied when \code{maxRecurse > 0})
-#' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0})
+#' @param threshold              minimum value of `thresholdScore` function call to apply collocation analysis recursively (only applied when \code{maxRecurse > 0}).
+#'   Note that the default score, `logDice`, expresses how salient a pair is
+#'   rather than how surprising, so that a frequent collocate can pass it while
+#'   co-occurring less often than expected. Adding `dplyr::filter(O > E)`, or a
+#'   minimum `pmi` or `ll`, removes those. See the "Salience versus surprise"
+#'   section of \code{\link{association-score-functions}}.
 #' @param localStopwords         vector of stopwords that will not be considered as collocates in the current function call, but that will not be passed to recursive calls
 #' @param collocateFilterRegex   allow only collocates matching the regular expression
 #' @param queryMissingScores     if TRUE, attempt to retrieve corpus-based association scores for vc/collocate combinations that would otherwise be imputed, by re-querying the KorAP backend without applying the collocate frequency threshold
