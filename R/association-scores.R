@@ -153,40 +153,27 @@ logDice <-  function(O1, O2, O, N, E, window_size) {
 #' Free PDF available from <https://purl.org/stefan.evert/PUB/Evert2004phd.pdf>
 #'
 ll <- function(O1, O2, O, N, E, window_size) {
+  # The contingency table classifies co-occurrence tokens, not corpus tokens:
+  # with a window of `window_size` positions, every occurrence of a word takes
+  # part in that many pairs, so all of the sample size and both marginals scale
+  # with it. Scaling only the row, as this did before, leaves a table whose
+  # cells do not add up to one sample, and lets `N - window_size * O1` turn
+  # negative for a frequent node in a wide window. The expected co-occurrence
+  # frequency is unaffected, being `window_size * O1 * O2 / N` either way, which
+  # is why the other scores do not depend on this.
+  total = as.double(N) * window_size
   r1 = as.double(O1) * window_size
-
-  # The contingency table classifies all N corpus tokens by whether they are
-  # inside a window around the node. That breaks down once the windows, counted
-  # as window_size * O1, cover more than the corpus, which happens for a very
-  # frequent node combined with a wide window: the table would get a negative
-  # cell and the score would silently become NaN.
-  exceedsCorpus = !is.na(r1) & r1 >= as.double(N)
-  if (any(exceedsCorpus)) {
-    warning(
-      sprintf(
-        paste0(
-          "Log-likelihood is not defined where the windows around the node cover the whole corpus ",
-          "(window_size * O1 >= N, affecting %d of %d values). Returning NA for these. ",
-          "Use a smaller window."
-        ),
-        sum(exceedsCorpus), length(exceedsCorpus)
-      ),
-      call. = FALSE
-    )
-  }
-  r1 = dplyr::if_else(exceedsCorpus, NA_real_, r1)
-
-  r2 = as.double(N) - r1
-  c1 = O2
-  c2 = N - c1
+  r2 = total - r1
+  c1 = as.double(O2) * window_size
+  c2 = total - c1
   o11 = O
   o12 = r1 - o11
-  o21 = c1 - O
+  o21 = c1 - o11
   o22 = r2 - o21
-  e11 = r1 * c1 / N
-  e12 = r1 * c2 / N
-  e21 = r2 * c1 / N
-  e22 = r2 * c2 / N
+  e11 = r1 * c1 / total
+  e12 = r1 * c2 / total
+  e21 = r2 * c1 / total
+  e22 = r2 * c2 / total
   2 * ( dplyr::if_else(o11>0, o11 * log(o11/e11), 0)
         + dplyr::if_else(o12>0, o12 * log(o12/e12), 0)
         + dplyr::if_else(o21>0, o21 * log(o21/e21), 0)

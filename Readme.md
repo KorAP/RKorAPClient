@@ -143,9 +143,9 @@ KorAPConnection() |>
 
 |node  |collocate |        O|         E| logDice|   pmi|       ll|
 |:-----|:---------|--------:|---------:|-------:|-----:|--------:|
-|Grund |triftiger |  2390.50|      6.31|    3.96|  8.57| 26287.80|
-|Grund |guter     | 12902.50|   2713.24|    6.06|  2.25| 19938.70|
-|Grund |Berlin    |  7865.50|  26212.26|    3.84| -1.74| 17790.28|
+|Grund |triftiger |  2390.50|      6.31|    3.96|  8.57| 23808.61|
+|Grund |guter     | 12902.50|   2713.24|    6.06|  2.25| 19868.49|
+|Grund |Berlin    |  7865.50|  26212.26|    3.84| -1.74| 17766.78|
 
 `O` is the observed and `E` the expected co-occurrence frequency. *Triftiger* is by far the most strongly attracted of the three (highest `pmi`), while *Berlin* co-occurs with *Grund* less often than chance would predict, which is what a negative `pmi` expresses. `logDice`, in contrast, does not compare against an expected frequency but relates the co-occurrence frequency to how often the two words occur at all, which is why the frequent *guter Grund* leads there – and why *Berlin*, although it co-occurs with *Grund* less often than expected, still scores nearly as high as *triftiger*. `collocationAnalysis` therefore discards collocates occurring less often than expected by default, which its `minObservedExpectedRatio` parameter controls. `collocationScoreQuery` does not filter, since here the pairs to score are asked for explicitly – which is why *Berlin* is shown above.
 
@@ -399,6 +399,8 @@ https://user-images.githubusercontent.com/11092081/142772382-1354b8db-551f-48de-
 ### RKorAPClient
 
 **Authors**: [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz/), [Nils Diewald](https://www.ids-mannheim.de/digspra/personal/diewald/)
+
+**Contributors**: [Tim Feldmüller](https://github.com/feldmueller)
 
 Copyright (c) 2026, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
