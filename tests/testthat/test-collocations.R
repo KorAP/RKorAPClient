@@ -983,7 +983,11 @@ test_that("collocationAnalysis writes and reuses its cache file", {
   )
 
   expect_true(file.exists(cache_file))
-  expect_equal(readRDS(cache_file), first)
+  # the file records the analysis parameters, the returned value does not
+  cached <- readRDS(cache_file)
+  expect_false(is.null(attr(cached, RKorAPClient:::collocationCacheAttribute)))
+  attr(cached, RKorAPClient:::collocationCacheAttribute) <- NULL
+  expect_equal(cached, first)
 
   # the second call is served from the cache and therefore issues no token warning
   second <- collocationAnalysis(
