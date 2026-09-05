@@ -4,11 +4,6 @@ include:
 build-rkorapclient-on-stable:
   extends: .install-rkorapclient
   image: rocker/tidyverse
-  variables:
-    # The Readme documentation prompting tests query LLMs and are therefore neither
-    # deterministic nor free. They run in their own job below, so that neither
-    # a model's mood nor an empty API account can turn this one red.
-    RKORAP_LLM_MODELS: ""
   cache:
     key: rkorapclient-ubuntu-stable
     paths:
@@ -16,6 +11,12 @@ build-rkorapclient-on-stable:
     - ccache/
     - rlib/
   script:
+    # The Readme documentation prompting tests query LLMs and are therefore
+    # neither deterministic nor free. They run in their own job below, so that
+    # neither a model's mood nor an empty API account can turn this one red.
+    # Exported here rather than declared under variables:, since a project or
+    # instance variable of that name would take precedence over the latter.
+    - export RKORAP_LLM_MODELS=""
     - start_section testing "Testing RKorAPClient"
     - echo -e "apt-cache\nccache\nrlib" >> .Rbuildignore
     - R -q -e "devtools::check(args = c('--no-examples'))"
@@ -29,13 +30,6 @@ readme-doc-prompting-tests:
   extends: .install-rkorapclient
   image: rocker/tidyverse
   allow_failure: true
-  variables:
-    # GLM-5.3-Flash solves all documentation tasks reliably, while the other
-    # low cost models are not there yet. Add them back here, comma separated,
-    # once they are: "gemini-3.5-flash-lite", "claude-sonnet-5", "gpt-5-nano".
-    # Do not set this as a project variable in the GitLab UI: those take
-    # precedence over the yml and would re-enable the tests in the job above.
-    RKORAP_LLM_MODELS: "hf:zai-org/GLM-5.3-Flash"
   cache:
     key: rkorapclient-ubuntu-stable
     paths:
@@ -43,6 +37,12 @@ readme-doc-prompting-tests:
     - ccache/
     - rlib/
   script:
+    # GLM-5.3-Flash solves all documentation tasks reliably, while the other
+    # low cost models are not there yet. Add them back here, comma separated,
+    # once they are: "gemini-3.5-flash-lite", "claude-sonnet-5", "gpt-5-nano".
+    # Exported here rather than declared under variables:, since a project or
+    # instance variable of that name would take precedence over the latter.
+    - export RKORAP_LLM_MODELS="hf:zai-org/GLM-5.3-Flash"
     - start_section docprompting "Prompting LLMs with the Readme"
     - echo -e "apt-cache\nccache\nrlib" >> .Rbuildignore
     - R -q -e 'devtools::test(filter = "readme-against-llm")'
