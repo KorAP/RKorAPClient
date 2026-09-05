@@ -156,19 +156,23 @@ call_llm_api <- function(prompt, model, max_tokens = 500, temperature = 0.1) {
 }
 
 # Helper function to create README-guided prompt
-create_readme_prompt <- function(task_description, specific_task) {
+#
+# Shaped the way a user would reasonably prompt, since what is tested here is
+# also what we recommend: the documentation first, the task once and at the end,
+# and the expectations stated rather than left to a persona ("you are an expert
+# R programmer" moves the wording of an answer, not its correctness).
+create_readme_prompt <- function(task_description) {
   readme_text <- read_readme_content()
   if (is.null(readme_text)) {
     stop("README.md not found")
   }
 
   paste0(
-    "You are an expert R programmer. Based on the following README documentation for the RKorAPClient package, ",
-    task_description, "\n\n",
-    "README Documentation:\n",
+    "The following is the README of the R package RKorAPClient.\n\n",
     readme_text,
-    "\n\nTask: ", specific_task,
-    "\n\nProvide only the R code without explanations."
+    "\n\nTask, based on that documentation: ", task_description,
+    "\n\nWrite clear, idiomatic tidyverse code, in the style of the README's",
+    " own examples. Answer with a single R code block and nothing else."
   )
 }
 
@@ -269,8 +273,7 @@ for (model in llmModels()) {
 
     # Create the prompt with README context and task
     prompt <- create_readme_prompt(
-      "write R code to perform a frequency query for the word 'Demokratie' across the past three years. The code should use the RKorAPClient package and return a data frame.",
-      "Write R code to query frequency of 'Demokratie' from the past three years using RKorAPClient."
+      "write R code to perform a frequency query for the word 'Demokratie' across the past three years. The code should use the RKorAPClient package and return a data frame."
     )
 
     # Call LLM API
@@ -319,8 +322,7 @@ for (model in llmModels()) {
     # Create the prompt for collocation analysis
     prompt <- create_readme_prompt(
       paste("Write R code to perform a collocation analysis for the lemma 'leverage' based on the current English Wikipedia Corpus using default parameters", "and show the three highest collocates according to their log dice score.
-  "),
-      "Write R code to perform collocation analysis for lemma 'leverage' using RKorAPClient."
+  ")
     )
 
     # Call LLM API
@@ -371,8 +373,7 @@ for (model in llmModels()) {
 
     # Create the prompt for corpus query
     prompt <- create_readme_prompt(
-      "write R code to perform a simple corpus query for 'Hello world' and fetch all results. The code should use the RKorAPClient package.",
-      "Write R code to query 'Hello world' and fetch all results using RKorAPClient."
+      "write R code to perform a simple corpus query for 'Hello world' and fetch all results. The code should use the RKorAPClient package."
     )
 
     # Call LLM API
@@ -412,8 +413,7 @@ for (model in llmModels()) {
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
-      "write R code that reports how many tokens the virtual corpus of newspaper texts published since 2020 contains.",
-      "Write R code to determine the size of a virtual corpus using RKorAPClient."
+      "write R code that reports how many tokens the virtual corpus of newspaper texts published since 2020 contains."
     )
 
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
@@ -433,8 +433,7 @@ for (model in llmModels()) {
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
-      "write R code that retrieves all metadata KorAP holds for the text with the sigle WPD17/L79/98721.",
-      "Write R code to retrieve the metadata of a text using RKorAPClient."
+      "write R code that retrieves all metadata KorAP holds for the text with the sigle WPD17/L79/98721."
     )
 
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
@@ -457,8 +456,7 @@ for (model in llmModels()) {
       paste(
         "write R code that computes association scores for the word 'Grund' together with each of the",
         "collocates 'triftiger' and 'guter', without searching for collocates first."
-      ),
-      "Write R code to compute association scores for known collocation candidates using RKorAPClient."
+      )
     )
 
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
@@ -487,8 +485,7 @@ for (model in llmModels()) {
       paste(
         "write R code that authorizes the application so that it also receives KWIC snippets from",
         "corpora with restricted licenses, and then queries 'Ameisenplage' including those snippets."
-      ),
-      "Write R code that authorizes and retrieves KWIC snippets using RKorAPClient."
+      )
     )
 
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
@@ -518,8 +515,7 @@ for (model in llmModels()) {
         "write R code that compares the collocates of 'Kritik' between newspaper texts published before 2010",
         "and those published since 2010, and shows those collocates that are attested in both, ordered by how",
         "differently they are associated."
-      ),
-      "Write R code comparing collocates across two virtual corpora using RKorAPClient."
+      )
     )
 
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 500))
