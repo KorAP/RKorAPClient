@@ -498,9 +498,11 @@ for (model in llmModels()) {
     generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 500))
 
     expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
-    # the labels of the comparison columns come from the names of the vc vector
+    # the labels of the comparison columns come from the names of the vc vector,
+    # which may just as well be built before the call rather than inside it
     expect_true(
-      grepl("vc\\s*=\\s*c\\(\\s*[A-Za-z.`\"']", generated_code),
+      grepl("vc\\s*=\\s*c\\(\\s*[A-Za-z.`\"']", generated_code) ||
+        grepl("c\\(\\s*[`\"']?[A-Za-z.][A-Za-z0-9._]*[`\"']?\\s*=[^=]", generated_code),
       "Generated code should pass a named vector of virtual corpora"
     )
     # one row per collocate and vc, so the comparison needs to be reduced
