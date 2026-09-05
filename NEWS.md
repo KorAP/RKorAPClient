@@ -12,6 +12,12 @@
 
 - **improved coverage of the doc-prompting tests**, which now range from a frequency query over time to comparing collocates across virtual corpora, keeping a result in a `cacheAs` file and labelling corpora by name. They prompt current LLMs with the Readme and check the code written from it, so that a gap in the documentation shows up as a failing test. This guards the quality of the Readme and improves vibe coding results. The approach is briefly described in [Kupietz et al. (2026)](https://doi.org/10.37307/j.1868-775X.2026.02.08)
 
+- fixed collocation analysis dropping snippets whose markup did not have one particular shape, which cost about 15% of the hits of a `contains(<base/s=s>, ...)` query: those are cut at the sentence boundary and carry a `<span class="cutted">` inside the match, and a match filling the whole sentence leaves an empty context span. The two context spans are now read one by one and stripped of their markup, whatever it contains ([#14](https://github.com/KorAP/RKorAPClient/issues/14)). This only concerns servers that do not deliver tokenized matches, where collocation analysis falls back to parsing the KWIC markup
+
+- `findExample()` no longer aborts with "replacement has length zero" when a failed request leaves the query without any snippet to take an example from ([#14](https://github.com/KorAP/RKorAPClient/issues/14))
+
+- `snippet2FreqTable()` and `matches2FreqTable()` work with their own default of an empty stopword list again, which used to leave the table without the column the stopwords are joined on
+
 - dropped the `PTXQC` dependency, which was imported for two small string functions (`lcpCount()` and `lcsCount()`, used by `queryStringToLabel()`) but pulled in `rmzqc`, `jsonvalidate` and `V8`, and with them the only dependency requiring a `libv8` installation.
 
 # RKorAPClient 1.3.0

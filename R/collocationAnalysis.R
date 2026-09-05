@@ -1458,7 +1458,9 @@ matches2FreqTable <- function(matches,
       summarise(frequency = sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
-    stopwordsTable <- dplyr::tibble(word = stopwords)
+    # as.character keeps the column when stopwords is empty: tibble(word = c())
+    # would drop it altogether and the anti_join below would not find it
+    stopwordsTable <- dplyr::tibble(word = as.character(stopwords))
 
     left <- tail(unlist(matches$tokens$left[index]), leftContextSize)
 
@@ -1479,6 +1481,25 @@ matches2FreqTable <- function(matches,
         dplyr::bind_rows(oldTable)
     }
   }
+}
+
+#' Text content of a KWIC snippet span
+#'
+#' Returns the text inside the span captured by `pattern`, with any nested
+#' markup removed, or `NA` if the snippet does not contain that span at all.
+#' The capture is greedy on purpose: the context spans contain further spans,
+#' such as `<span class="more">`, whose closing tag a lazy match would stop at.
+#'
+#' @param snippet KWIC snippet
+#' @param pattern regular expression whose first group captures the span content
+#' @return text content of the span, or `NA`
+#' @noRd
+htmlSpanContent <- function(snippet, pattern) {
+  content <- str_match(snippet, pattern)[1, 2]
+  if (is.na(content)) {
+    return(NA_character_)
+  }
+  stringr::str_trim(stringr::str_replace_all(content, "<[^>]*>", " "))
 }
 
 #' @importFrom magrittr debug_pipe
@@ -1519,26 +1540,31 @@ snippet2FreqTable <- function(snippet,
       summarise(frequency = sum(frequency), .groups = "drop") |>
       arrange(desc(frequency))
   } else {
-    stopwordsTable <- dplyr::tibble(word = stopwords)
-    match <-
-      str_match(
-        snippet,
-        '<span class="context-left">(<span class="more"></span>)?(.*[^ ]) *</span><span class="match"><mark>.*</mark></span><span class="context-right"> *([^<]*)'
-      )
+    # as.character keeps the column when stopwords is empty: tibble(word = c())
+    # would drop it altogether and the anti_join below would not find it
+    stopwordsTable <- dplyr::tibble(word = as.character(stopwords))
+
+    # The two context spans are taken one by one, up to the element that follows
+    # them, and stripped of whatever markup they contain. Matching the snippet
+    # as a whole used to require one particular shape and silently dropped every
+    # snippet of any other, which cost about 15% of the hits of a
+    # contains(<base/s=s>, ...) query: those are cut at the sentence boundary and
+    # carry a <span class="cutted"> inside the match, and a match filling the
+    # whole sentence leaves an empty context span (see issue #14).
+    leftContext <- htmlSpanContent(snippet, '<span class="context-left">(.*)</span><span class="match">')
+    rightContext <- htmlSpanContent(snippet, '<span class="context-right">(.*)</span>')
 
     left <- if (leftContextSize > 0) {
-      tail(unlist(str_split(match[1, 3], tokenizeRegex)), leftContextSize)
+      tail(unlist(str_split(leftContext, tokenizeRegex)), leftContextSize)
     } else {
       ""
     }
-    #    cat(paste("left:", left, "\n", collapse=" "))
 
     right <- if (rightContextSize > 0) {
-      head(unlist(str_split(match[1, 4], tokenizeRegex)), rightContextSize)
+      head(unlist(str_split(rightContext, tokenizeRegex)), rightContextSize)
     } else {
       ""
     }
-    #    cat(paste("right:", right, "\n", collapse=" "))
 
     if (is.na(left[1]) || is.na(right[1]) || length(left) + length(right) == 0) {
       oldTable
@@ -1639,8 +1665,13 @@ findExample <-
       q <- corpusQuery(kco, paste0("(", query[i], ")"), vc = vc[i], metadataOnly = FALSE)
       if (q@totalResults > 0) {
         q <- fetchNext(q, maxFetch = 50, randomizePageOrder = F)
+        # A failed request leaves collectedMatches without a snippet column at
+        # all, so that the example is character(0) rather than NA and assigning
+        # it fails with "replacement has length zero" (see issue #14).
         example <- as.character((q@collectedMatches)$snippet[1])
-        out[i] <- if (matchOnly) {
+        out[i] <- if (length(example) != 1 || is.na(example)) {
+          ""
+        } else if (matchOnly) {
           gsub(".*<mark>(.+)</mark>.*", "\\1", example)
         } else {
           stringr::str_replace(example, "<[^>]*>", "")
