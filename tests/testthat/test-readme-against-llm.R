@@ -6,7 +6,7 @@
 defaultLlmModels <- c(
   "gemini-3.5-flash-lite",
   "claude-sonnet-5",
-  "hf:zai-org/GLM-5.3-Flash" # GLM-5.3-Flash, via the Synthetic API
+  "z-ai/glm-5.3-flash" # via OpenRouter, see openRouterProvider() below
 )
 
 llmModels <- function() {
@@ -29,15 +29,58 @@ llmProvider <- function(model) {
   } else if (grepl("^gemini-", model, ignore.case = TRUE)) {
     list(name = "gemini", keyVar = "GOOGLE_API_KEY")
   } else if (grepl("^hf:", model, ignore.case = TRUE)) {
-    # OpenAI compatible endpoint, but tidyllm's openai provider does not allow
-    # for a custom base url, so these are queried directly (see below)
-    list(name = "synthetic", keyVar = "SYNTHETIC_API_KEY")
+    stop(paste(
+      "The Synthetic API was replaced by OpenRouter, so", model,
+      "is no longer supported - use z-ai/glm-5.3-flash instead"
+    ))
+  } else if (grepl("/", model, fixed = TRUE)) {
+    # OpenRouter model ids are author/model. Its endpoint is OpenAI compatible,
+    # but tidyllm's openai provider does not allow for a custom base url, so
+    # these are queried directly (see below).
+    list(
+      name = "openrouter",
+      keyVar = "OPENROUTER_API_KEY",
+      baseUrl = "https://openrouter.ai/api/v1"
+    )
   } else {
     stop(paste(
       "Unsupported model:", model,
-      "- supported prefixes: gpt-, claude-, gemini-, hf: (Synthetic)"
+      "- supported are gpt-*, claude-*, gemini-* and author/model (OpenRouter)"
     ))
   }
+}
+
+# Models that go through tidyllm, as opposed to those queried directly
+usesTidyllm <- function(model) {
+  is.null(llmProvider(model)$baseUrl)
+}
+
+# OpenRouter serves one model from a couple of dozen hosts and would pick one by
+# availability, which the tests cannot use: the hosts differ in quantization and
+# answer a documentation prompt in anything between one second and seven
+# minutes. So the hosts are named, and everything outside the list is ruled out,
+# which keeps a change in the generated code about the Readme rather than about
+# which machine answered.
+#
+# OpenRouter works the list from the front and moves on whenever a host
+# declines. Baseten answers in about a second and serves every request, as long
+# as the OpenRouter account holds a Baseten key of its own, under Settings ->
+# Integrations. Without one, OpenRouter reaches the hosts through pools it
+# shares between all of its users, and those are exhausted often enough to cost
+# about one prompt in eight. The rest of the list carries those: Relace takes
+# some fifteen seconds and is the cheapest of the hosts, Z.ai tens of seconds
+# and has always answered. Relace serves the model in fp4 rather than fp8,
+# which is why it is not the first choice, although it is the fastest of the
+# hosts on shared capacity.
+#
+# Override with RKORAP_OPENROUTER_PROVIDER, comma separated, in that order.
+openRouterProviders <- function() {
+  configured <- Sys.getenv(
+    "RKORAP_OPENROUTER_PROVIDER",
+    unset = "baseten/fp8,relace/fp4,z-ai/fp8"
+  )
+  hosts <- trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
+  as.list(hosts[nzchar(hosts)])
 }
 
 # Helper function to skip if the API key of the given model is not available
@@ -79,16 +122,30 @@ read_readme_content <- function() {
 
 # Helper function to call an OpenAI compatible endpoint that tidyllm cannot be
 # pointed at, because its openai provider takes no custom base url
-call_openai_compatible_api <- function(prompt, model, temperature, baseUrl, keyVar) {
-  response <- httr2::request(paste0(baseUrl, "/chat/completions")) |>
-    httr2::req_auth_bearer_token(Sys.getenv(keyVar)) |>
-    httr2::req_body_json(list(
-      model = model,
-      temperature = temperature,
-      messages = list(list(role = "user", content = prompt))
-    )) |>
-    httr2::req_retry(max_tries = 3) |>
-    httr2::req_timeout(120) |>
+call_openai_compatible_api <- function(prompt, model, temperature, provider) {
+  body <- list(
+    model = model,
+    temperature = temperature,
+    messages = list(list(role = "user", content = prompt))
+  )
+  if (provider$name == "openrouter") {
+    body$provider <- list(
+      order = openRouterProviders(),
+      allow_fallbacks = FALSE
+    )
+  }
+  response <- httr2::request(paste0(provider$baseUrl, "/chat/completions")) |>
+    httr2::req_auth_bearer_token(Sys.getenv(provider$keyVar)) |>
+    httr2::req_headers(
+      # attributes the requests to the package in the OpenRouter activity log
+      "HTTP-Referer" = "https://github.com/KorAP/RKorAPClient",
+      "X-Title" = "RKorAPClient documentation prompting tests"
+    ) |>
+    httr2::req_body_json(body) |>
+    # every named host can be out of capacity at once, which passes as a 429
+    httr2::req_retry(max_tries = 5) |>
+    # generous, since the last hosts of the list take minutes rather than seconds
+    httr2::req_timeout(300) |>
     httr2::req_perform()
 
   httr2::resp_body_json(response)$choices[[1]]$message$content
@@ -109,13 +166,12 @@ call_llm_api <- function(prompt, model, max_tokens = 500, temperature = 0.1) {
     {
       provider <- llmProvider(model)
 
-      if (provider$name == "synthetic") {
+      if (!usesTidyllm(model)) {
         call_openai_compatible_api(
           prompt,
           model = model,
           temperature = temperature,
-          baseUrl = "https://api.synthetic.new/openai/v1",
-          keyVar = provider$keyVar
+          provider = provider
         )
       } else {
         # Use tidyllm unified API
@@ -148,6 +204,12 @@ call_llm_api <- function(prompt, model, max_tokens = 500, temperature = 0.1) {
         ))
       } else if (grepl("402|credit balance|billing|quota|insufficient", message, ignore.case = TRUE)) {
         skip(paste0("No credits available for ", model, ": ", message))
+      } else if (grepl("404", message) && llmProvider(model)$name == "openrouter") {
+        # none of the named hosts is serving the model at the moment
+        skip(paste0(
+          "OpenRouter has no endpoint for ", model, " at ",
+          paste(openRouterProviders(), collapse = ", ")
+        ))
       } else {
         stop(paste("LLM API error:", message))
       }
@@ -266,7 +328,7 @@ for (model in llmModels()) {
     skip_if_no_api_key(model)
 
     # tidyllm is only suggested, so the tests must not fail without it
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
 
     # Check for README file
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
@@ -314,7 +376,7 @@ for (model in llmModels()) {
     skip_if_no_api_key(model)
 
     # tidyllm is only suggested, so the tests must not fail without it
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
 
     # Check for README file
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
@@ -366,7 +428,7 @@ for (model in llmModels()) {
     skip_if_no_api_key(model)
 
     # tidyllm is only suggested, so the tests must not fail without it
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
 
     # Check for README file
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
@@ -409,7 +471,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve corpus size task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -429,7 +491,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve text metadata task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -449,7 +511,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve association score task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -473,7 +535,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve result caching task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -496,7 +558,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve labelled corpora task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -527,7 +589,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve authorization task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(
@@ -556,7 +618,7 @@ for (model in llmModels()) {
   test_that(paste(model, "can solve multi-VC comparison task with README guidance"), {
     skip_if_offline()
     skip_if_no_api_key(model)
-    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
     skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
 
     prompt <- create_readme_prompt(

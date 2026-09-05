@@ -42,7 +42,8 @@ readme-doc-prompting-tests:
     # once they are: "gemini-3.5-flash-lite", "claude-sonnet-5", "gpt-5-nano".
     # Exported here rather than declared under variables:, since a project or
     # instance variable of that name would take precedence over the latter.
-    - export RKORAP_LLM_MODELS="hf:zai-org/GLM-5.3-Flash"
+    # Needs OPENROUTER_API_KEY as a masked project variable.
+    - export RKORAP_LLM_MODELS="z-ai/glm-5.3-flash"
     - start_section docprompting "Prompting LLMs with the Readme"
     - echo -e "apt-cache\nccache\nrlib" >> .Rbuildignore
     - R -q -e 'devtools::test(filter = "readme-against-llm")'
