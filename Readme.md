@@ -239,7 +239,11 @@ Since the labels become part of the column names, plain syntactic names work bes
 
 In order to perform collocation analysis and other textual queries on corpus parts for which KWIC access requires a login, you need to authorize your application with an access token.
 
-In the case of DeReKo, this can be done in three different ways.
+What a token buys is KWIC access, not the query itself. Frequencies are counted over the whole corpus either way, so `frequencyQuery()`, `corpusStats()` and `collocationScoreQuery()` need no authorization even on DeReKo – the very first example above queries it unauthorized. What an unauthorized application does not receive are the KWIC snippets of copyrighted texts, which is why `corpusQuery()` with `metadataOnly = FALSE` and `collocationAnalysis()`, which reads those snippets, do need one there.
+
+Even that is a matter of the individual text's license rather than of the corpus: DeReKo's freely licensed parts, the Wikipedia corpora among them, hand out their snippets to anyone. Some instances are liberally licensed throughout and need no authorization at all – the German and English Wikipedia talk pages at <https://korap.ids-mannheim.de/instance/wiki> and <https://korap.ids-mannheim.de/instance/english>, both under a Creative Commons license, return KWIC snippets to a plain `KorAPConnection()`.
+
+In the case of DeReKo, authorization can be done in three different ways.
 
 #### 1. The latest and laziest way (available since RKorAPClient 1.0.0)
 
