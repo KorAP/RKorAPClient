@@ -174,12 +174,39 @@ create_readme_prompt <- function(task_description, specific_task) {
 
 # Helper function to extract R code from markdown code blocks
 extract_r_code <- function(response_text) {
-  # Remove markdown code blocks if present
-  code <- gsub("```[rR]?\\n?", "", response_text)
-  code <- gsub("```\\n?$", "", code)
-  # Remove leading/trailing whitespace
-  trimws(code)
+  # Asked for code alone, a model may still explain itself around it, or offer a
+  # second way of doing the same in a block of its own. Only the first block is
+  # what was asked for; stripping the fences and keeping everything else puts
+  # the prose in between into the code, where it does not parse.
+  block <- stringr::str_match(response_text, "(?s)```[^\\n]*\\n(.*?)```")[1, 2]
+  trimws(if (is.na(block)) response_text else block)
 }
+
+test_that("the first code block is what is taken from a reply", {
+  fenced <- function(...) paste(c(...), collapse = "\n")
+
+  expect_equal(
+    extract_r_code(fenced("```r", "corpusStats(kco)", "```")),
+    "corpusStats(kco)"
+  )
+  # prose around the block does not belong to the code
+  expect_equal(
+    extract_r_code(fenced("Here you are:", "```R", "corpusStats(kco)", "```", "Hope that helps!")),
+    "corpusStats(kco)"
+  )
+  # a second block, offered as an alternative, would not parse together with the
+  # sentence introducing it
+  expect_equal(
+    extract_r_code(fenced(
+      "```r", "corpusStats(kco)", "```",
+      "Or, as a data frame:",
+      "```r", "corpusStats(kco, as.df = TRUE)", "```"
+    )),
+    "corpusStats(kco)"
+  )
+  # a reply that took "only the R code" literally has no fences to look for
+  expect_equal(extract_r_code("corpusStats(kco)"), "corpusStats(kco)")
+})
 
 # Helper function to test code syntax
 test_code_syntax <- function(code) {
