@@ -303,7 +303,15 @@ for (model in llmModels()) {
     # Basic checks on the generated code
     expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
     expect_true(grepl("collocationAnalysis", generated_code), "Generated code should include collocationAnalysis")
-    expect_true(grepl("tt/l=leverage", generated_code), "Generated code should include the search the lemma 'leverage'")
+    # both ways of asking for the lemma are correct: the annotation layer in the
+    # query, as the Readme shows it, or collocationAnalysis' lemmatizeNodeQuery,
+    # which builds the same query from a plain word
+    expect_true(grepl("leverage", generated_code), "Generated code should include the node 'leverage'")
+    expect_true(
+      grepl("tt/l=leverage", generated_code) ||
+        grepl("lemmatizeNodeQuery\\s*=\\s*T", generated_code),
+      "Generated code should search for the lemma, via tt/l= or lemmatizeNodeQuery = TRUE"
+    )
     # expect_true(grepl("auth", generated_code), "Generated code should include auth() for collocation analysis")
     expect_true(grepl("instance/english", generated_code, fixed = TRUE), "Generated code should include the specified KorAP URL")
 
