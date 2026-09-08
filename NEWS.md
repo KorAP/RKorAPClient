@@ -1,5 +1,7 @@
 # unpublished dev version 1.3.0.9000
 
+- **`cacheAsInfo()`** reads back what a `cacheAs` file was produced by: the parameters of the call, the KorAP instance, the index revision its corpus had at the time, and the version of RKorAPClient that wrote it. For a result kept next to a document, that is what says which numbers it rests on
+
 - **`cacheAs` is now offered by `frequencyQuery()`, `corpusStats()`, `collocationScoreQuery()` and `textMetadata()`** as well, not only by `collocationAnalysis()`. It is a different thing from the connection's `cache`, which is a transparent speed-up: a `cacheAs` file belongs to the caller and is what keeps an analysis reproducible, since KorAP corpora grow and the same query returns different numbers next year. That is worth having for the quick functions too, where caching for speed would be pointless
 
 - **`cacheAs` files record the version that wrote them** and are refused, with a warning, when that is older than 1.4.0. Their contents are finished results including the association scores, which this version computes differently, so an old file would silently hand back numbers that would not be arrived at again - something no comparison of parameters can notice. The file is then recomputed and overwritten; pass a different name to keep it. How loud a query is no longer counts as a parameter either: `verbose` does not change what is returned

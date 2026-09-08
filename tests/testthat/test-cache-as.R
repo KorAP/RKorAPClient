@@ -4,6 +4,38 @@ test_that("cacheAsFileName appends .rds where it is missing", {
   expect_equal(RKorAPClient:::cacheAsFileName("analysis.RDS"), "analysis.RDS")
 })
 
+test_that("cacheAsInfo says what produced a file", {
+  skip_if_offline()
+  kco <- KorAPConnection(accessToken = NULL, verbose = FALSE)
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+
+  frequencyQuery(kco, "Ameisenplage", cacheAs = file)
+  info <- cacheAsInfo(file)
+
+  expect_equal(info$packageVersion, as.character(utils::packageVersion("RKorAPClient")))
+  expect_equal(info$apiUrl, kco@apiUrl)
+  expect_equal(info$indexRevision, kco@indexRevision)
+  expect_equal(info$parameters$query, "Ameisenplage")
+  # given without its extension, the .rds file is found
+  expect_equal(cacheAsInfo(sub("\\.rds$", "", file)), info)
+})
+
+test_that("cacheAsInfo has nothing to report for a file from before 1.4.0", {
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+  saveRDS(tibble::tibble(x = 1), file)
+
+  expect_null(cacheAsInfo(file))
+})
+
+test_that("cacheAsInfo refuses a file that is not there", {
+  expect_error(
+    cacheAsInfo(file.path(tempdir(), "no-such-cache.rds")),
+    "does not exist"
+  )
+})
+
 test_that("a cache file is written and read back, without contacting the server", {
   skip_if_offline()
   kco <- KorAPConnection(accessToken = NULL, verbose = FALSE)

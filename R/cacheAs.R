@@ -116,6 +116,36 @@ cacheAsRejectionReason <- function(stored, current) {
   }
 }
 
+#' What produced a cacheAs file
+#'
+#' Reads back what a query function recorded in a [cacheAs] file: the parameters
+#' it was called with, the KorAP instance it asked, the index revision that
+#' instance's corpus had at the time, and the version of RKorAPClient that wrote
+#' the file. Useful for saying, of a result kept next to a document, what the
+#' numbers in it rest on.
+#'
+#' @param cacheAs path to the file, with or without its `.rds` extension
+#' @return a list with the elements `scoreVersion`, `packageVersion`,
+#'   `parameters`, `dots`,
+#'   `apiUrl` and `indexRevision`, or `NULL` for a file written by a version
+#'   before 1.4.0, which recorded none of this
+#'
+#' @examples
+#' \dontrun{
+#' KorAPConnection() |> frequencyQuery("Ameisenplage", cacheAs = "ameisenplage.rds")
+#' cacheAsInfo("ameisenplage.rds")
+#' }
+#'
+#' @family cacheAs
+#' @export
+cacheAsInfo <- function(cacheAs) {
+  cacheAs <- cacheAsFileName(cacheAs)
+  if (!file.exists(cacheAs)) {
+    stop(sprintf("Cache file '%s' does not exist.", cacheAs), call. = FALSE)
+  }
+  attr(readRDS(cacheAs), cacheAsAttribute)
+}
+
 #' Read back a result stored in a cache file, if it is the one being asked for
 #'
 #' Warns and returns `NULL` where the file exists but does not match, so that
