@@ -470,6 +470,55 @@ for (model in llmModels()) {
     cat("Generated association score code:\n", generated_code, "\n")
   })
 
+  test_that(paste(model, "can solve result caching task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code for an R Markdown document that reports how often 'Ameisenplage' occurs,",
+        "in a way that does not query the server again every time the document is knitted."
+      )
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("KorAPConnection", generated_code), "Generated code should include KorAPConnection")
+    expect_true(grepl("cacheAs", generated_code), "Generated code should keep the result with cacheAs")
+    expect_true(grepl("Ameisenplage", generated_code), "Generated code should include the search term")
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated result caching code:\n", generated_code, "\n")
+  })
+
+  test_that(paste(model, "can solve labelled corpora task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (llmProvider(model)$name != "synthetic") skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code that reports how many tokens the newspaper texts published before 2010 and",
+        "those published since 2010 contain, with the two rows labelled 'before' and 'since'."
+      )
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("corpusStats", generated_code), "Generated code should include corpusStats")
+    # the labels come from the names of the vc vector, not from a column added afterwards
+    expect_true(
+      grepl("(vc\\s*=\\s*)?c\\(\\s*[`\"']?before[`\"']?\\s*=", generated_code),
+      "Generated code should name the virtual corpora in the vc vector"
+    )
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated labelled corpora code:\n", generated_code, "\n")
+  })
+
   # The code of the following two tasks cannot reasonably be executed in a test:
   # authorization needs a browser flow or a token for restricted data, and a
   # multi-VC collocation analysis runs for minutes. Only the generated code is
