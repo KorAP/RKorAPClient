@@ -1,5 +1,44 @@
 ## Notes
 
+* feature release
+* changed values of two association scores, both described in NEWS.md:
+  `logDice()` is now computed as defined by Rychlý (2008), so that its values
+  are comparable to those of other tools, and the contingency table of `ll()`
+  is now scaled by the window size as a whole rather than in its row total
+  alone
+* `collocationAnalysis()` now discards collocates occurring less often than
+  expected by chance, which its new `minObservedExpectedRatio` parameter
+  controls
+* result caching via `cacheAs` extended from `collocationAnalysis()` to the
+  other query functions, with `cacheAsInfo()`, `blessCacheAs()` and
+  `withCachedResults()` around it
+* fixed collocation analysis silently dropping KWIC snippets whose markup did
+  not have one particular shape, and a crash in `findExample()`
+  (<https://github.com/KorAP/RKorAPClient/issues/14>)
+* dropped the `PTXQC` dependency, and with it `rmzqc`, `jsonvalidate` and `V8`,
+  the only dependency that required a `libv8` installation
+* no new dependencies
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 44 with R version 4.6.1 (2026-06-24)
+* win-builder with R 4.6.1 (2026-06-24 ucrt)
+* win-builder with R Under development (unstable) (2026-09-08 r90509 ucrt)
+* github workflow on Ubuntu with R Under development (unstable) (2026-09-08 r90509)
+* github workflow on Ubuntu with R 4.6.1
+* github workflow on Ubuntu with R 4.5.3
+* github workflow on macOS 26.6.2 (ARM64) with R 4.6.1
+* github workflow on Windows Server 2022 with R 4.6.1
+* gitlab pipeline on Ubuntu 24.04 (rocker/tidyverse) with R 4.6.1
+
+## Notes on 1.3.0
+
 * resubmission of 1.3.0, fixing the NOTE reported by the incoming pretest on
   r-devel-linux-x86_64-debian-gcc and -clang:
   ```
