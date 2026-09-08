@@ -33,6 +33,62 @@ cacheAsAttribute <- "RKorAPClient.cacheAs"
 #' @noRd
 cacheAsScoreVersion <- "1.4.0"
 
+#' How cache files are to be treated on this run
+#'
+#' `"check"`, the default, uses a file only for the call that produced it.
+#' `"reuse"` takes what a file holds whatever it says, and `"offline"` does the
+#' same but refuses to compute anything that is not in a file already - which is
+#' what you want when the talk starts in ten minutes. Set through
+#' `options(rkorap.cacheAs=)` or the `KORAP_CACHE_AS` environment variable, the
+#' option winning where both are given.
+#' @noRd
+cacheAsMode <- function() {
+  mode <- getOption("rkorap.cacheAs", default = NULL)
+  if (is.null(mode)) {
+    mode <- Sys.getenv("KORAP_CACHE_AS", unset = "check")
+  }
+  mode <- tolower(trimws(as.character(mode)))
+  if (!mode %in% c("check", "reuse", "offline")) {
+    stop(
+      sprintf(
+        "Unknown cacheAs mode '%s' - expected \"check\", \"reuse\" or \"offline\".",
+        mode
+      ),
+      call. = FALSE
+    )
+  }
+  mode
+}
+
+#' Take cached results as they are for the duration of an expression
+#'
+#' Sets the cacheAs mode (see [cacheAs]) while `expr` is evaluated and puts it
+#' back afterwards, so that a whole document can be knitted from the files that
+#' are there, without a stray `options()` call outliving it.
+#'
+#' @param expr the code to evaluate
+#' @param mode `"reuse"` to take what the files hold, `"offline"` to refuse
+#'   computing anything that is not in one already
+#' @return the value of `expr`
+#'
+#' @examples
+#' \dontrun{
+#' withCachedResults({
+#'   ca <- KorAPConnection() |> collocationAnalysis("Klima", cacheAs = "klima.rds")
+#'   freq <- KorAPConnection() |> frequencyQuery("Klima", cacheAs = "klima-freq.rds")
+#' })
+#' }
+#'
+#' @family cacheAs
+#' @export
+withCachedResults <- function(expr, mode = c("reuse", "offline")) {
+  mode <- match.arg(mode)
+  previous <- getOption("rkorap.cacheAs")
+  on.exit(options(rkorap.cacheAs = previous), add = TRUE)
+  options(rkorap.cacheAs = mode)
+  expr
+}
+
 #' Append .rds to a cache file name that does not end in it
 #' @noRd
 cacheAsFileName <- function(cacheAs) {
@@ -223,7 +279,18 @@ cacheAsInfo <- function(cacheAs) {
 #' @return the cached result, or `NULL` if there is none to use
 #' @noRd
 readCacheAs <- function(cacheAs, kco, record, what) {
+  mode <- cacheAsMode()
+
   if (!file.exists(cacheAs)) {
+    if (mode == "offline") {
+      stop(
+        sprintf(
+          "Cache file '%s' does not exist, and the cacheAs mode is \"offline\".",
+          cacheAs
+        ),
+        call. = FALSE
+      )
+    }
     return(NULL)
   }
 
@@ -237,11 +304,21 @@ readCacheAs <- function(cacheAs, kco, record, what) {
     return(cached)
   }
 
+  if (mode != "check") {
+    warning(
+      sprintf("Cache file '%s' %s, and is used as it is.", cacheAs, reason),
+      call. = FALSE
+    )
+    return(cached)
+  }
+
   warning(
     sprintf(
       paste0(
         "Cache file '%s' %s.\n",
-        "It is recomputed and overwritten; pass a different cacheAs file name to keep it."
+        "It is recomputed and overwritten. To keep it, pass a different cacheAs ",
+        "file name, vouch for it with blessCacheAs(), or take it as it is with ",
+        "withCachedResults()."
       ),
       cacheAs, reason
     ),

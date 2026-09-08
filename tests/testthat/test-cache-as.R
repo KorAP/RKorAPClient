@@ -49,6 +49,63 @@ test_that("blessCacheAs refuses a file that is not there", {
   expect_error(blessCacheAs(file.path(tempdir(), "no-such-cache.rds")), "does not exist")
 })
 
+test_that("withCachedResults takes a file as it is, and says so", {
+  kco <- offlineKco()
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+  legacy <- tibble::tibble(node = "Test", collocate = "c", logDice = 7)
+  saveRDS(legacy, file)
+
+  testthat::local_mocked_bindings(
+    collocatesQuery = function(...) stop("server must not be contacted"),
+    .package = "RKorAPClient"
+  )
+
+  expect_warning(
+    result <- withCachedResults(collocationAnalysis(kco, "Test", cacheAs = file)),
+    "used as it is"
+  )
+  expect_equal(result, legacy)
+  # and the mode does not outlive the expression
+  expect_null(getOption("rkorap.cacheAs"))
+})
+
+test_that("the offline mode refuses to compute what is not in a file", {
+  kco <- offlineKco()
+  missing <- file.path(tempdir(), "not-written-yet.rds")
+
+  expect_error(
+    withCachedResults(
+      collocationAnalysis(kco, "Test", cacheAs = missing),
+      mode = "offline"
+    ),
+    "offline"
+  )
+})
+
+test_that("the cacheAs mode comes from the option, then the environment", {
+  mode <- RKorAPClient:::cacheAsMode
+
+  expect_equal(mode(), "check")
+
+  local({
+    old <- Sys.getenv("KORAP_CACHE_AS", unset = NA)
+    on.exit(if (is.na(old)) Sys.unsetenv("KORAP_CACHE_AS") else Sys.setenv(KORAP_CACHE_AS = old))
+    Sys.setenv(KORAP_CACHE_AS = "reuse")
+    expect_equal(mode(), "reuse")
+    # the option wins where both are given
+    previous <- options(rkorap.cacheAs = "offline")
+    on.exit(options(previous), add = TRUE)
+    expect_equal(mode(), "offline")
+  })
+
+  local({
+    old <- options(rkorap.cacheAs = "nonsense")
+    on.exit(options(old))
+    expect_error(mode(), "Unknown cacheAs mode")
+  })
+})
+
 test_that("cacheAsInfo says what produced a file", {
   skip_if_offline()
   kco <- KorAPConnection(accessToken = NULL, verbose = FALSE)

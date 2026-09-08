@@ -39,6 +39,7 @@ blessCacheAs(list.files("data", pattern = "\\\\.rds$", full.names = TRUE))
 }
 \seealso{
 Other cacheAs:
-\code{\link[=cacheAsInfo]{cacheAsInfo()}}
+\code{\link[=cacheAsInfo]{cacheAsInfo()}},
+\code{\link[=withCachedResults]{withCachedResults()}}
 }
 \concept{cacheAs}
