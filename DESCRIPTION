@@ -67,6 +67,7 @@ Collate:
     'RKorAPClient-package.R'
     'KorAPQuery.R'
     'association-scores.R'
+    'cacheAs.R'
     'ci.R'
     'collocationAnalysis.R'
     'collocationScoreQuery.R'

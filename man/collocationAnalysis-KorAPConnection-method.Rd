@@ -100,7 +100,7 @@ result of earlier versions, e.g. in order to study repulsion.}
 
 \item{vcLabel}{optional label override for the current virtual corpus (used internally when named VC collections are expanded)}
 
-\item{cacheAs}{path to an RDS file for caching the result. If the file already exists, the cached result is loaded and returned immediately without contacting the server. Otherwise the analysis is run normally and the result is saved to the file before returning. Defaults to \code{NULL} (no caching).
+\item{cacheAs}{path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's \code{cache}, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 
 The analysis parameters are stored alongside the result. If they differ from
 those of the current call, the cached result would not be the one that was

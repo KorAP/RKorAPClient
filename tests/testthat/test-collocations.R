@@ -920,16 +920,26 @@ test_that("collocationAnalysis returns cached result without contacting the serv
     "KorAPConnection",
     apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/",
+    authorizationSupported = FALSE,
     verbose = FALSE
   )
 
-  cached <- tibble::tibble(node = "n", collocate = "c", logDice = 7)
   cache_file <- tempfile(fileext = ".rds")
   on.exit(unlink(cache_file), add = TRUE)
-  saveRDS(cached, cache_file)
+
+  # written by the package itself, so that it carries the record saying what
+  # produced it - a file without one is refused, as one from an older version
+  cached <- local({
+    testthat::local_mocked_bindings(
+      collocatesQuery = function(...) tibble::tibble(),
+      .package = "RKorAPClient"
+    )
+    collocationAnalysis(kco, "n", cacheAs = cache_file)
+  })
 
   testthat::local_mocked_bindings(
     corpusQuery = function(...) stop("server must not be contacted"),
+    collocatesQuery = function(...) stop("server must not be contacted"),
     .package = "RKorAPClient"
   )
 
@@ -947,19 +957,27 @@ test_that("collocationAnalysis appends the .rds extension to cacheAs", {
     verbose = FALSE
   )
 
-  cached <- tibble::tibble(node = "n", collocate = "c", logDice = 7)
   base_path <- tempfile()
   on.exit(unlink(paste0(base_path, ".rds")), add = TRUE)
-  saveRDS(cached, paste0(base_path, ".rds"))
+
+  # given without extension, .rds is appended when writing
+  cached <- local({
+    testthat::local_mocked_bindings(
+      collocatesQuery = function(...) tibble::tibble(),
+      .package = "RKorAPClient"
+    )
+    collocationAnalysis(kco, "n", cacheAs = base_path)
+  })
+  expect_true(file.exists(paste0(base_path, ".rds")))
 
   testthat::local_mocked_bindings(
     corpusQuery = function(...) stop("server must not be contacted"),
+    collocatesQuery = function(...) stop("server must not be contacted"),
     .package = "RKorAPClient"
   )
 
-  # given without extension, the .rds file is found
+  # and the same file is found again, given with or without the extension
   expect_equal(collocationAnalysis(kco, "n", cacheAs = base_path), cached)
-  # given with extension, it is not doubled
   expect_equal(collocationAnalysis(kco, "n", cacheAs = paste0(base_path, ".rds")), cached)
 })
 
@@ -985,8 +1003,8 @@ test_that("collocationAnalysis writes and reuses its cache file", {
   expect_true(file.exists(cache_file))
   # the file records the analysis parameters, the returned value does not
   cached <- readRDS(cache_file)
-  expect_false(is.null(attr(cached, RKorAPClient:::collocationCacheAttribute)))
-  attr(cached, RKorAPClient:::collocationCacheAttribute) <- NULL
+  expect_false(is.null(attr(cached, RKorAPClient:::cacheAsAttribute)))
+  attr(cached, RKorAPClient:::cacheAsAttribute) <- NULL
   expect_equal(cached, first)
 
   # the second call is served from the cache and therefore issues no token warning
