@@ -1,5 +1,7 @@
 # unpublished dev version 1.3.0.9000
 
+- **`blessCacheAs()`** vouches for a cache file that an older version wrote, so that it is used again as it is. Files from the 1.3.0.9000 development cycle already hold correctly computed scores, the corrections having landed there, but say nothing about the version that wrote them and would otherwise be recomputed. What actually produced a file is left as it stands and the blessing recorded beside it, so `cacheAsInfo()` keeps saying where the numbers come from. A file recording no parameters has nothing left to compare once blessed, and is then reused for any call naming it
+
 - **`cacheAsInfo()`** reads back what a `cacheAs` file was produced by: the parameters of the call, the KorAP instance, the index revision its corpus had at the time, and the version of RKorAPClient that wrote it. For a result kept next to a document, that is what says which numbers it rests on
 
 - **`cacheAs` is now offered by `frequencyQuery()`, `corpusStats()`, `collocationScoreQuery()` and `textMetadata()`** as well, not only by `collocationAnalysis()`. It is a different thing from the connection's `cache`, which is a transparent speed-up: a `cacheAs` file belongs to the caller and is what keeps an analysis reproducible, since KorAP corpora grow and the same query returns different numbers next year. That is worth having for the quick functions too, where caching for speed would be pointless

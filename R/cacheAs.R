@@ -79,7 +79,10 @@ cacheAsRecord <- function(frame, dots, kco) {
 #' @return a sentence naming the reason, or `NULL` if the file can be used
 #' @noRd
 cacheAsRejectionReason <- function(stored, current) {
-  generation <- if (is.null(stored)) NULL else stored$scoreVersion
+  # a file vouched for by blessCacheAs() counts as computed the way this version
+  # would compute it, whatever version actually wrote it
+  confirmed <- if (is.null(stored)) NULL else stored$scoresConfirmedFor
+  generation <- if (is.null(confirmed)) stored$scoreVersion else confirmed
 
   if (is.null(generation) || package_version(generation) < package_version(cacheAsScoreVersion)) {
     writtenBy <- if (is.null(stored)) NULL else stored$packageVersion
@@ -94,6 +97,12 @@ cacheAsRejectionReason <- function(stored, current) {
         writtenBy, cacheAsScoreVersion
       )
     })
+  }
+
+  # a blessed file may not say what it was computed with, in which case there is
+  # nothing to compare and the blessing has to stand for it
+  if (is.null(stored$parameters)) {
+    return(NULL)
   }
 
   differing <- character(0)
@@ -114,6 +123,62 @@ cacheAsRejectionReason <- function(stored, current) {
   } else {
     sprintf("was created with different parameters (%s)", paste(differing, collapse = ", "))
   }
+}
+
+#' Vouch for a cacheAs file that an older version wrote
+#'
+#' Association scores changed in 1.4.0, so files from before it are recomputed
+#' rather than used (see [cacheAs]). Where a file is known to hold what this
+#' version would compute - because it was written by a development version that
+#' already had the corrections, for instance - this records that, and the file is
+#' used again as it is.
+#'
+#' What actually wrote a file is left as it stands; the blessing is recorded
+#' beside it, so that [cacheAsInfo()] keeps telling the truth about where the
+#' numbers come from.
+#'
+#' A file that records no parameters, as those written before 1.3.0.9000 do, has
+#' nothing left to be compared against a call once it is blessed, and is
+#' therefore reused for any call that names it. Bless such a file only if that
+#' is what you mean.
+#'
+#' @param cacheAs paths of the files to vouch for, with or without their `.rds`
+#'   extension
+#' @return the paths, invisibly
+#'
+#' @examples
+#' \dontrun{
+#' blessCacheAs("klima-ca.rds")
+#' blessCacheAs(list.files("data", pattern = "\\.rds$", full.names = TRUE))
+#' }
+#'
+#' @family cacheAs
+#' @export
+blessCacheAs <- function(cacheAs) {
+  for (file in cacheAs) {
+    file <- cacheAsFileName(file)
+    if (!file.exists(file)) {
+      stop(sprintf("Cache file '%s' does not exist.", file), call. = FALSE)
+    }
+
+    content <- readRDS(file)
+    record <- attr(content, cacheAsAttribute)
+    if (is.null(record)) {
+      record <- list()
+      message(sprintf(
+        paste0(
+          "'%s' records no parameters, so it will be reused for any call ",
+          "naming it."
+        ),
+        file
+      ))
+    }
+    record$scoresConfirmedFor <- cacheAsScoreVersion
+    record$blessedAt <- Sys.time()
+    attr(content, cacheAsAttribute) <- record
+    saveRDS(content, file)
+  }
+  invisible(cacheAs)
 }
 
 #' What produced a cacheAs file

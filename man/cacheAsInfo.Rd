@@ -29,4 +29,8 @@ cacheAsInfo("ameisenplage.rds")
 }
 
 }
+\seealso{
+Other cacheAs:
+\code{\link[=blessCacheAs]{blessCacheAs()}}
+}
 \concept{cacheAs}

@@ -4,6 +4,51 @@ test_that("cacheAsFileName appends .rds where it is missing", {
   expect_equal(RKorAPClient:::cacheAsFileName("analysis.RDS"), "analysis.RDS")
 })
 
+offlineKco <- function() {
+  methods::new(
+    "KorAPConnection",
+    apiUrl = "https://example.invalid/",
+    KorAPUrl = "https://example.invalid/",
+    authorizationSupported = FALSE,
+    verbose = FALSE
+  )
+}
+
+test_that("blessCacheAs makes an old file usable again", {
+  kco <- offlineKco()
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+  legacy <- tibble::tibble(node = "Test", collocate = "c", logDice = 7)
+  saveRDS(legacy, file)
+
+  testthat::local_mocked_bindings(
+    collocatesQuery = function(...) stop("server must not be contacted"),
+    .package = "RKorAPClient"
+  )
+
+  expect_message(blessCacheAs(file), "records no parameters")
+  expect_silent(result <- collocationAnalysis(kco, "Test", cacheAs = file))
+  expect_equal(result, legacy)
+})
+
+test_that("blessing records itself without claiming a provenance", {
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+  saveRDS(tibble::tibble(x = 1), file)
+
+  suppressMessages(blessCacheAs(file))
+  info <- cacheAsInfo(file)
+
+  expect_equal(info$scoresConfirmedFor, RKorAPClient:::cacheAsScoreVersion)
+  expect_s3_class(info$blessedAt, "POSIXct")
+  # what actually wrote the file is unknown and stays unclaimed
+  expect_null(info$packageVersion)
+})
+
+test_that("blessCacheAs refuses a file that is not there", {
+  expect_error(blessCacheAs(file.path(tempdir(), "no-such-cache.rds")), "does not exist")
+})
+
 test_that("cacheAsInfo says what produced a file", {
   skip_if_offline()
   kco <- KorAPConnection(accessToken = NULL, verbose = FALSE)
