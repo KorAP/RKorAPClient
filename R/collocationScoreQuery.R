@@ -125,7 +125,9 @@ setMethod("collocationScoreQuery", "KorAPConnection",
             tibble(
               node = node,
               collocate = combinations$collocate,
-              label = queryStringToLabel(vc)[combinations$vc_index],
+              # the names the caller gave their virtual corpora, where there
+              # are any, rather than a label guessed from the definitions
+              label = vcLabelsOrGuess(vc)[combinations$vc_index],
               vc = combinations$vc,
               query = query,
               webUIRequestUrl = if (is.na(observed[1]))

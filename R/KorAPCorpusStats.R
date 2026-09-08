@@ -75,6 +75,9 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
                                                      verbose = kco@verbose,
                                                      as.df = FALSE) {
   if (length(vc) > 1) {
+    # the names of a named vc vector would end up as row names, which the first
+    # bind_rows() drops, so they are kept as a column instead
+    vcLabel <- vcLabels(vc)
     # ETA calculation for multiple virtual corpora
     total_items <- length(vc)
     start_time <- Sys.time()
@@ -94,6 +97,9 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
 
       # Process current virtual corpus
       result <- corpusStats(kco, current_vc, verbose = FALSE, as.df = TRUE)
+      if (!is.null(vcLabel)) {
+        result <- tibble::add_column(result, label = vcLabel[i], .after = "vc")
+      }
       results[[i]] <- result
 
       # Record individual processing time
@@ -149,7 +155,9 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
       ))
     }
 
-    do.call(rbind, results)
+    stats <- do.call(rbind, results)
+    rownames(stats) <- NULL
+    stats
   } else {
     url <-
       paste0(

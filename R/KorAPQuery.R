@@ -215,14 +215,20 @@ setMethod(
            as.df = FALSE,
            context = NULL) {
     if (length(query) > 1 || length(vc) > 1) {
+      # expand_grid() and tibble() drop the names of vc, so the labels the
+      # caller gave their virtual corpora are carried along as a column
+      vcLabel <- vcLabels(vc)
       grid <- if (expand) expand_grid(query = query, vc = vc) else tibble(query = query, vc = vc)
+      if (!is.null(vcLabel)) {
+        grid$label <- if (expand) rep(vcLabel, times = length(query)) else vcLabel
+      }
 
       # Initialize timing variables for ETA calculation
       total_queries <- nrow(grid)
       current_query <- 0
       start_time <- Sys.time()
 
-      results <- purrr::pmap(grid, function(query, vc, ...) {
+      results <- purrr::pmap(grid, function(query, vc, label = NULL, ...) {
         current_query <<- current_query + 1
 
         # Execute the single query directly (avoiding recursive call)
@@ -297,6 +303,9 @@ setMethod(
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
+        if (!is.null(label)) {
+          result <- tibble::add_column(result, label = label, .after = "vc")
+        }
 
         return(result)
       })

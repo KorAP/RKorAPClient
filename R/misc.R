@@ -162,6 +162,40 @@ queryStringToLabel <- function(data, pubDateOnly = FALSE, excludePubDate = FALSE
   substring(data, leftCommon + 1, nchar(data) - rightCommon)
 }
 
+#' Labels for a vector of virtual corpora
+#'
+#' The names of a named vector are what the caller chose to call their virtual
+#' corpora, so they are what a label should say. Where a vector is named only in
+#' part, [queryStringToLabel()] derives the rest from the definitions.
+#'
+#' @param vc character vector of virtual corpus definitions
+#' @return character vector of labels, or `NULL` if `vc` carries no names at all
+#' @noRd
+vcLabels <- function(vc) {
+  labels <- names(vc)
+  if (is.null(labels)) {
+    return(NULL)
+  }
+  unnamed <- is.na(labels) | !nzchar(labels)
+  if (any(unnamed)) {
+    labels[unnamed] <- queryStringToLabel(vc)[unnamed]
+  }
+  unname(labels)
+}
+
+#' Labels for a vector of virtual corpora, always giving one
+#'
+#' Like [vcLabels()], but falling back to [queryStringToLabel()] where the
+#' vector carries no names, for callers that label unconditionally.
+#'
+#' @param vc character vector of virtual corpus definitions
+#' @return character vector of labels, one per element of `vc`
+#' @noRd
+vcLabelsOrGuess <- function(vc) {
+  labels <- vcLabels(vc)
+  if (is.null(labels)) queryStringToLabel(vc) else labels
+}
+
 
 ## Mute notes: "Undefined global functions or variables:"
 globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
