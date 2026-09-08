@@ -1,4 +1,4 @@
-# unpublished dev version 1.3.0.9000
+# RKorAPClient 1.4.0
 
 - **`cacheAs` now consistently covers all query functions** – `frequencyQuery()`, `corpusStats()`, `collocationScoreQuery()` and `textMetadata()`. The cache file records its relevant production context: parameters, KorAP instance, index revision and package version. `cacheAsInfo()` prints that record, `blessCacheAs()` vouches for a file that is sound regardless, and `withCachedResults()` takes the files as they are for one expression, `mode = "offline"` refusing to compute anything that is not in one already
 
