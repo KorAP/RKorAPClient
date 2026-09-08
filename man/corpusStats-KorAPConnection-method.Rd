@@ -5,7 +5,7 @@
 \alias{corpusStats}
 \title{Get corpus size and statistics}
 \usage{
-\S4method{corpusStats}{KorAPConnection}(kco, vc = "", verbose = kco@verbose, as.df = FALSE)
+\S4method{corpusStats}{KorAPConnection}(kco, vc = "", verbose = kco@verbose, as.df = FALSE, cacheAs = NULL)
 }
 \arguments{
 \item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
@@ -15,6 +15,8 @@
 \item{verbose}{logical. If \code{TRUE}, additional diagnostics are printed.}
 
 \item{as.df}{return result as data frame instead of as S4 object?}
+
+\item{cacheAs}{path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's \code{cache}, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).}
 }
 \value{
 Object containing corpus statistics with the following information:

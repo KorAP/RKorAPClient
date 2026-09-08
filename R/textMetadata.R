@@ -15,6 +15,7 @@ setGeneric("textMetadata", function(kco, ...) standardGeneric("textMetadata"))
 #' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`)
 #' @param textSigle unique text id (concatenation of corpus, document and text ids, separated by `/`, e.g. ) or vector thereof
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed. Defaults to `kco@verbose`.
+#' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #'
 #' @return Tibble with columns for each metadata property. In case of errors, such as non-existing texts/sigles, the tibble will also contain a column called `errors`.
 #' If there are metadata columns you cannot make sense of, please ignore them. The function simply returns all the metadata it gets from the server.
@@ -32,10 +33,20 @@ setGeneric("textMetadata", function(kco, ...) standardGeneric("textMetadata"))
 #' @export
 setMethod(
   "textMetadata", "KorAPConnection",
-  function(kco, textSigle, verbose = kco@verbose) {
+  function(kco, textSigle, verbose = kco@verbose, cacheAs = NULL) {
+    cacheRecord <- NULL
+    if (!is.null(cacheAs)) {
+      cacheAs <- cacheAsFileName(cacheAs)
+      cacheRecord <- cacheAsRecord(environment(), NULL, kco)
+      cached <- readCacheAs(cacheAs, kco, cacheRecord, "text metadata")
+      if (!is.null(cached)) {
+        return(cached)
+      }
+    }
+
     # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
     key <- 0
-    if (length(textSigle) > 1) {
+    metadata <- if (length(textSigle) > 1) {
       do.call(bind_rows, Map(function(atomicSigle) {
         textMetadata(kco, atomicSigle)
       }, textSigle))
@@ -78,5 +89,10 @@ setMethod(
       }
       res
     }
+
+    if (!is.null(cacheAs)) {
+      writeCacheAs(cacheAs, kco, cacheRecord, "text metadata", metadata)
+    }
+    metadata
   }
 )

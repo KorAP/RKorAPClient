@@ -5,7 +5,7 @@
 \alias{textMetadata}
 \title{Retrieve metadata for a text, identified by its sigle (id)}
 \usage{
-\S4method{textMetadata}{KorAPConnection}(kco, textSigle, verbose = kco@verbose)
+\S4method{textMetadata}{KorAPConnection}(kco, textSigle, verbose = kco@verbose, cacheAs = NULL)
 }
 \arguments{
 \item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()})}
@@ -13,6 +13,8 @@
 \item{textSigle}{unique text id (concatenation of corpus, document and text ids, separated by \code{/}, e.g. ) or vector thereof}
 
 \item{verbose}{logical. If \code{TRUE}, additional diagnostics are printed. Defaults to \code{kco@verbose}.}
+
+\item{cacheAs}{path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's \code{cache}, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).}
 }
 \value{
 Tibble with columns for each metadata property. In case of errors, such as non-existing texts/sigles, the tibble will also contain a column called \code{errors}.

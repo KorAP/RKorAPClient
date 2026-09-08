@@ -1382,6 +1382,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #' @param vc virtual corpus definition(s) (can be a vector)
 #' @param conf.level confidence level of the returned confidence interval (passed through [ci()]  to [prop.test()]).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
+#' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #' @param ... further arguments passed to or from other methods (see [corpusQuery()]), most notably `expand`, a logical that decides if `query` and `vc` parameters are expanded to all of their combinations. It defaults to `TRUE`, if `query` and `vc` have different lengths, and to `FALSE` otherwise.
 #' @export
 #'
@@ -1397,8 +1398,19 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 
 setMethod(
   "frequencyQuery", "KorAPConnection",
-  function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE, ...) {
-    (if (as.alternatives) {
+  function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE,
+           cacheAs = NULL, ...) {
+    cacheRecord <- NULL
+    if (!is.null(cacheAs)) {
+      cacheAs <- cacheAsFileName(cacheAs)
+      cacheRecord <- cacheAsRecord(environment(), list(...), kco)
+      cached <- readCacheAs(cacheAs, kco, cacheRecord, "frequency query")
+      if (!is.null(cached)) {
+        return(cached)
+      }
+    }
+
+    result <- (if (as.alternatives) {
       corpusQuery(kco, query, vc, metadataOnly = TRUE, as.df = TRUE, ...) |>
         group_by(vc) |>
         mutate(total = sum(totalResults))
@@ -1407,6 +1419,11 @@ setMethod(
         mutate(total = corpusStats(kco, vc = vc, as.df = TRUE)$tokens)
     }) |>
       ci(conf.level = conf.level)
+
+    if (!is.null(cacheAs)) {
+      writeCacheAs(cacheAs, kco, cacheRecord, "frequency query", result)
+    }
+    result
   }
 )
 

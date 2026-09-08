@@ -34,6 +34,7 @@ setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 #' @param vc string describing the virtual corpus. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param verbose logical. If `TRUE`, additional diagnostics are printed.
 #' @param as.df return result as data frame instead of as S4 object?
+#' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #' @return Object containing corpus statistics with the following information:
 #' \describe{
 #'   \item{`vc`}{Virtual corpus definition used (empty string for entire corpus)}
@@ -73,8 +74,19 @@ setGeneric("corpusStats", function(kco, ...) standardGeneric("corpusStats"))
 setMethod("corpusStats", "KorAPConnection", function(kco,
                                                      vc = "",
                                                      verbose = kco@verbose,
-                                                     as.df = FALSE) {
-  if (length(vc) > 1) {
+                                                     as.df = FALSE,
+                                                     cacheAs = NULL) {
+  cacheRecord <- NULL
+  if (!is.null(cacheAs)) {
+    cacheAs <- cacheAsFileName(cacheAs)
+    cacheRecord <- cacheAsRecord(environment(), NULL, kco)
+    cached <- readCacheAs(cacheAs, kco, cacheRecord, "corpus statistics")
+    if (!is.null(cached)) {
+      return(cached)
+    }
+  }
+
+  stats <- if (length(vc) > 1) {
     # the names of a named vc vector would end up as row names, which the first
     # bind_rows() drops, so they are kept as a column instead
     vcLabel <- vcLabels(vc)
@@ -186,6 +198,11 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
       )
     }
   }
+
+  if (!is.null(cacheAs)) {
+    writeCacheAs(cacheAs, kco, cacheRecord, "corpus statistics", stats)
+  }
+  stats
 })
 
 #' @rdname KorAPCorpusStats-class

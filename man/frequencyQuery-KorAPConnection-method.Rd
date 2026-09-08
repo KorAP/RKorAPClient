@@ -11,6 +11,7 @@
   vc = "",
   conf.level = 0.95,
   as.alternatives = FALSE,
+  cacheAs = NULL,
   ...
 )
 }
@@ -24,6 +25,8 @@
 \item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link[=ci]{ci()}}  to \code{\link[=prop.test]{prop.test()}}).}
 
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
+
+\item{cacheAs}{path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's \code{cache}, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).}
 
 \item{...}{further arguments passed to or from other methods (see \code{\link[=corpusQuery]{corpusQuery()}}), most notably \code{expand}, a logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations. It defaults to \code{TRUE}, if \code{query} and \code{vc} have different lengths, and to \code{FALSE} otherwise.}
 }

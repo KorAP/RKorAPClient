@@ -25,6 +25,7 @@ utils::globalVariables(c("."))
 #' @param observed           if collocation frequencies are already known (or estimated from a sample) they can be passed as a vector here, otherwise: NA
 #' @param ignoreCollocateCase     logical, set to TRUE if collocate case should be ignored
 #' @param withinSpan         KorAP span specification (see <https://korap.ids-mannheim.de/doc/ql/poliqarp-plus?embedded=true#spans>) for collocations to be searched within. Defaults to `base/s=s`.
+#' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #'
 #' @return tibble with query KorAP web request URL, all observed values and association scores
 #'
@@ -71,8 +72,19 @@ setMethod("collocationScoreQuery", "KorAPConnection",
                    smoothingConstant = .5,
                    observed = NA,
                    ignoreCollocateCase = FALSE,
-                   withinSpan = "base/s=s"
+                   withinSpan = "base/s=s",
+                   cacheAs = NULL
           ) {
+            cacheRecord <- NULL
+            if (!is.null(cacheAs)) {
+              cacheAs <- cacheAsFileName(cacheAs)
+              cacheRecord <- cacheAsRecord(environment(), NULL, kco)
+              cached <- readCacheAs(cacheAs, kco, cacheRecord, "collocation scores")
+              if (!is.null(cached)) {
+                return(cached)
+              }
+            }
+
             # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
             O1 <- O2 <- O <- N <- E <- w <- 0
 
@@ -122,7 +134,7 @@ setMethod("collocationScoreQuery", "KorAPConnection",
               NULL
             }
 
-            tibble(
+            result <- tibble(
               node = node,
               collocate = combinations$collocate,
               # the names the caller gave their virtual corpora, where there
@@ -158,6 +170,10 @@ setMethod("collocationScoreQuery", "KorAPConnection",
             ) %>%
               mutate(!!! lapply(scoreFunctions, mapply, .$O1, .$O2, .$O, .$N, .$E, .$w))
 
+            if (!is.null(cacheAs)) {
+              writeCacheAs(cacheAs, kco, cacheRecord, "collocation scores", result)
+            }
+            result
           })
 
 # #' @export
