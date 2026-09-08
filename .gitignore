@@ -11,5 +11,6 @@ docs
 .claude
 .codex
 .gitlab-ci-local
-
-
+# build artefacts
+*.tar.gz
+*.Rcheck/
