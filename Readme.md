@@ -48,6 +48,8 @@ kco <- KorAPConnection(cache = FALSE)  # do not cache anything in this connectio
 clearCache()                           # discard all locally cached responses
 ```
 
+This cache is a transparent speed-up that you can throw away at any time. To keep a finished result in a file of your own instead, see the `cacheAs` parameter described further below.
+
 Please note that, in the case of DeReKo, authorized queries behave differently inside and outside the IDS, because of the special license situation. Cached results do not record from where a request was issued, so if you get unexpected results after changing networks, use `clearCache()` or `cache = FALSE`.
 
 ### Frequencies over time and domains using ggplot2
@@ -114,6 +116,12 @@ corpusStats(kco, vc = "pubDate since 2020")
 <KorAPCorpusStats>
 The virtual corpus described by "pubDate since 2020" contains 3,942,948,561 tokens
 in 253,752,552 sentences in 13,857,981 documents.
+```
+
+Passing a *named* vector of virtual corpora returns one row per corpus, labelled by the names you chose for them in a `label` column. `frequencyQuery` and `collocationScoreQuery` label their results the same way:
+
+```r
+corpusStats(kco, vc = c(before = "pubDate until 2009", since = "pubDate since 2010"), as.df = TRUE)
 ```
 
 With `as.df = TRUE` you get a one row data frame with `tokens`, `sentences`, `paragraphs` and `documents` columns instead, which makes it easy to compare several virtual corpora.
@@ -188,11 +196,23 @@ For a lemma, either put the lemma layer into the query itself, `collocationAnaly
 |[in Marsch setzen](https://korap.ids-mannheim.de/?q=Marsch%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                            |    6.87|  9.27|  22041.63|
 |[in Klammern setzen](https://korap.ids-mannheim.de/?q=Klammern%20focus%28in%20%5btt%2fp%3dNN%5d%20%7b%5btt%2fl%3dsetzen%5d%7d%29&ql=poliqarp)                        |    6.55| 10.08|  15643.27|
 
-Collocation analyses can take a while. With the `cacheAs` parameter you can have the result stored in an RDS file of your choice, so that repeated calls – when re-knitting a document, for example – return the cached result immediately instead of querying the server again:
+Collocation analyses can take a while, and comparing them across virtual corpora, as shown below, multiplies that. With the `cacheAs` parameter you can have the result stored in an RDS file of your choice, so that repeated calls – when re-knitting a document, for example – return the cached result immediately instead of querying the server again:
 
 ```r
 KorAPConnection(verbose = TRUE) |> auth() |>
   collocationAnalysis("Ameisenplage", cacheAs = "ameisenplage-ca.rds")
+```
+
+`frequencyQuery`, `corpusStats`, `collocationScoreQuery` and `textMetadata` take the parameter as well, where it is less about time: the file keeps the numbers a text was written about, which KorAP would answer differently once the corpus has grown, and it lets the script run again without a server at all. A file is only reused for the call that produced it – a changed parameter, a different KorAP instance, or a version of RKorAPClient whose scores differ has it recomputed and overwritten, with a warning saying why.
+
+Consider keeping such a file under version control next to the document that uses it, so that the analysis travels with the text. `cacheAsInfo()` reads back what produced it: parameters, KorAP instance, index revision and package version.
+
+When a file is refused although you know it to be sound – one written by a development version that already had the current scores, say – `blessCacheAs("klima.rds")` vouches for it once and for good. And when there is no time to recompute anything at all, `withCachedResults({ ... })` takes the files as they are for the code inside it, with `mode = "offline"` refusing to query the server even for a file that is missing:
+
+```r
+withCachedResults(mode = "offline", {
+  ca <- kco |> collocationAnalysis("Klima", cacheAs = "klima-ca.rds")
+})
 ```
 
 ### Comparing collocates across virtual corpora (experimental)
