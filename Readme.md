@@ -467,6 +467,8 @@ Please note that unless you explicitly state otherwise any
 contribution intentionally submitted for inclusion into this software shall –
 as this software itself – be under the [BSD-2 License](LICENSE.md).
 
+Part of the test suite prompts current LLMs with this Readme and checks that the code they write from it uses the package correctly, so that a gap in the documentation shows up as a failing test – see Kupietz et al. (2026) on the approach. The tests are skipped without an API key; `RKORAP_LLM_MODELS` selects the models to prompt.
+
 ## References
 
 - Diewald, Nils/Barbu Mititelu, Verginica/Kupietz, Marc (2019): The KorAP user interface. Accessing CoRoLa via KorAP. In: On design, creation and use of the Reference Corpus of Contemporary Romanian and its analysis tools. CoRoLa, KorAP, DRuKoLA and EuReCo. Edited by Ruxandra Cosma/Marc Kupietz, 64(3). <https://nbn-resolving.org/urn:nbn:de:bsz:mh39-93866>.
@@ -476,3 +478,5 @@ as this software itself – be under the [BSD-2 License](LICENSE.md).
 * Kupietz, Marc / Diewald, Nils / Margaretha, Eliza (2020): [RKorAPClient: An R package for accessing the German Reference Corpus DeReKo via KorAP](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.867.pdf). In: Calzolari, Nicoletta, Frédéric Béchet, Philippe Blache, Khalid Choukri, Christopher Cieri,  Thierry Declerck, Sara Goggi, Hitoshi Isahara, Bente Maegaard, Joseph Mariani, Hélène Mazo, Asuncion Moreno, Jan Odijk, Stelios Piperidis (eds.): [Proceedings of The 12th Language Resources and Evaluation Conference (LREC 2020)](http://www.lrec-conf.org/proceedings/lrec2020/LREC-2020.pdf). Marseille: European Language Resources Association (ELRA), 7017-7023.
 
 * Kupietz, Marc/Diewald, Nils/Margaretha, Eliza (2022): Building paths to corpus data: A multi-level least effort and maximum return approach. In: Fišer, Darja/Witt, Andreas (eds.): CLARIN. The Infrastructure for Language Resources. Berlin: deGruyter, pp. 163–189. <https://doi.org/10.1515/9783110767377-007>.
+
+* Kupietz, Marc / Feldmüller, Tim / Konieczny, Lars / Lang, Christian (2026): [LLMs als Chance für die Linguistik](https://nbn-resolving.org/urn:nbn:de:bsz:mh39-138499). In: *Deutsche Sprache* 2026(2), 197–204. <https://doi.org/10.37307/j.1868-775X.2026.02.08>.
