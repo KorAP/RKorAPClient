@@ -123,7 +123,7 @@ Columns include (depending on the selected association measures):
 \item Ranks per label/measure with the pattern \code{rank_<label>_<measure>} (1 is best) and the corresponding percentile ranks \code{percentile_rank_<label>_<measure>}.
 \item Pairwise contrasts for two-label comparisons, e.g. \code{delta_<measure>}, \code{delta_rank_<measure>}, and \code{delta_percentile_rank_<measure>}.
 \item Summary columns describing the strongest labels per measure (\code{winner_*}, \code{runner_up_*}, \code{loser_*}, and \code{max_delta_*}), including winner/loser \code{webUIRequestUrl} columns. In multi-VC comparisons, missing per-label concordance URLs are derived from another available row URL for the same \code{node}/\code{collocate} by replacing the \code{cq} parameter with the target label's virtual corpus. Unsuffixed \code{winner_webUIRequestUrl} and \code{loser_webUIRequestUrl} columns are populated only when the score-based URL choices agree.
-\item \code{imputed_<label>}, \code{n_imputed}, and \code{imputed}: flags marking rows whose scores were not observed for some label but imputed (see \code{missingScoreQuantile}). Filter with \code{dplyr::filter(!imputed)} to keep only collocates attested in every compared virtual corpus.
+\item \code{imputed_<label>}: whether the score for that label was imputed rather than observed (see \code{missingScoreQuantile}). \code{n_imputed} counts them, and \code{imputed} is \code{n_imputed > 0}: it describes the node/collocate pair across all labels, not the label of the row it stands in. A row can therefore carry \code{imputed = TRUE} while its own scores are perfectly attested, because the pair is missing from some other virtual corpus - use \code{imputed_<label>} for the row itself. Filter with \code{dplyr::filter(!imputed)} to keep only collocates attested in every compared virtual corpus.
 \item Optional helper columns such as \code{query}, \code{example}, or \code{url} when example retrieval is requested.
 }
 }
@@ -168,7 +168,20 @@ values measure the distance to that floor rather than an attested difference.
 The \code{imputed}, \code{n_imputed} and \verb{imputed_<label>} columns mark these rows;
 \code{dplyr::filter(!imputed)} restricts the result to collocates attested
 everywhere, and \code{queryMissingScores = TRUE} replaces most imputed cells with
-scores actually retrieved from the backend.
+scores actually retrieved from the backend. Mind what \code{imputed} is about: the
+pair, not the row. It is \code{TRUE} as soon as one label lacks the collocate, and
+stays \code{TRUE} on the rows of the labels where it is attested, which is what
+makes \code{dplyr::filter(!imputed)} drop the pair as a whole. Whether the row at
+hand rests on an imputed score is what \verb{imputed_<label>} says.
+
+\strong{Per-label columns carry syntactic names.} The label in
+\verb{<measure>_<label>}, \verb{rank_<label>_<measure>} and \verb{imputed_<label>} is the one
+the caller gave, put through \code{\link[=make.names]{make.names()}}, so that the result stays a well
+formed data frame: a virtual corpus named \code{1976-1980} appears as
+\code{logDice_X1976.1980}. The \code{label} column and the \verb{winner_*} / \verb{loser_*}
+columns keep the name as it was given, so mapping between the two means
+applying the same transformation, e.g.
+\code{stats::setNames(make.names(labels), labels)}.
 
 \strong{Imputed values are relative to one analysis.} The floor is computed
 from the scores present in the result at hand. Analysing a node on its own and
