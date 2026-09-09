@@ -270,11 +270,11 @@ cacheAsInfo <- function(cacheAs) {
 #' Read back a result stored in a cache file, if it is the one being asked for
 #'
 #' Warns and returns `NULL` where the file exists but does not match, so that
-#' the caller recomputes and [writeCacheAs()] overwrites it.
+#' the caller recomputes and `writeCacheAs()` overwrites it.
 #'
-#' @param cacheAs cache file name, already passed through [cacheAsFileName()]
+#' @param cacheAs cache file name, already passed through `cacheAsFileName()`
 #' @param kco [KorAPConnection()] object, for its `verbose` flag
-#' @param record what the call at hand computes, from [cacheAsRecord()]
+#' @param record what the call at hand computes, from `cacheAsRecord()`
 #' @param what name of the result, for the log and warning messages
 #' @return the cached result, or `NULL` if there is none to use
 #' @noRd
@@ -329,9 +329,9 @@ readCacheAs <- function(cacheAs, kco, record, what) {
 
 #' Store a result in a cache file, together with what produced it
 #'
-#' @param cacheAs cache file name, already passed through [cacheAsFileName()]
+#' @param cacheAs cache file name, already passed through `cacheAsFileName()`
 #' @param kco [KorAPConnection()] object, for its `verbose` flag
-#' @param record what produced the result, from [cacheAsRecord()]
+#' @param record what produced the result, from `cacheAsRecord()`
 #' @param what name of the result, for the log message
 #' @param result the result to store
 #' @return `result`, invisibly and unchanged

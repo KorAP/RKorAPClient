@@ -185,7 +185,7 @@ vcLabels <- function(vc) {
 
 #' Labels for a vector of virtual corpora, always giving one
 #'
-#' Like [vcLabels()], but falling back to [queryStringToLabel()] where the
+#' Like `vcLabels()`, but falling back to [queryStringToLabel()] where the
 #' vector carries no names, for callers that label unconditionally.
 #'
 #' @param vc character vector of virtual corpus definitions
