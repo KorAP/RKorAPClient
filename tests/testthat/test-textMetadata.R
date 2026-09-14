@@ -54,8 +54,10 @@ test_that("textMetadata works with list valued fields", {
   kco <- KorAPConnection(accessToken = NULL)
   m <- textMetadata(kco, "WUD17/B96/57558")
 
-  expect_true("staat-gesellschaft\\tbiographien-interviews" == m$textClass[1] ||
-              grepl("\\t", m$textClass[1]),
+  # DeReKo-2026 renamed textClass to dmozDomain (list valued); list
+  # valued fields are flattened tab separated
+  expect_true("staat-gesellschaft\\tbiographien-interviews" == m$dmozDomain[1] ||
+              grepl("\\t", m$dmozDomain[1]),
               "multiple text classes / domains should be tab separated")
 })
 

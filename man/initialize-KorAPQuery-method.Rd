@@ -12,7 +12,7 @@
   totalResults = 0,
   nextStartIndex = 0,
   fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "snippet", "tokens"),
+    "textClass", "dmozDomain", "wikiDomain", "snippet", "tokens"),
   requestUrl = "",
   webUIRequestUrl = "",
   apiResponse = NULL,

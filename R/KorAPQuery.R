@@ -45,7 +45,8 @@ setMethod(
   "initialize", "KorAPQuery",
   function(.Object, korapConnection = NULL, request = NULL, vc = "", totalResults = 0, nextStartIndex = 0, fields = c(
              "corpusSigle", "textSigle", "pubDate", "pubPlace",
-             "availability", "textClass", "snippet", "tokens"
+             "availability", "textClass", "dmozDomain", "wikiDomain",
+             "snippet", "tokens"
            ),
            requestUrl = "", webUIRequestUrl = "", apiResponse = NULL, hasMoreMatches = FALSE, collectedMatches = NULL) {
     .Object <- callNextMethod()
@@ -111,7 +112,7 @@ utils::globalVariables(c("."))
 #'   \item{**Publication info**:}{`author`, `editor`, `title`, `docTitle`, `corpusTitle` - authorship and titles}
 #'   \item{**Temporal data**:}{`pubDate`, `creationDate` - when text was published/created}
 #'   \item{**Publication details**:}{`pubPlace`, `publisher`, `reference` - where/how published}
-#'   \item{**Text classification**:}{`textClass`, `textType`, `textTypeArt`, `textDomain`, `textColumn` - topic domain, genre, text type and column}
+#'   \item{**Text classification**:}{`textClass`, `dmozDomain`, `wikiDomain`, `textType`, `textTypeArt`, `textDomain`, `textColumn` - topic domain, genre, text type and column}
 #'   \item{**Adminstrative and technical info**:}{`corpusEditor`, `availability`, `language`, `foundries` - access rights and annotations}
 #'   \item{**Content data**:}{`snippet`, `tokens`, `tokenSource`, `externalLink` - actual text content, tokenization, and link to source text}
 #'   \item{**System data**:}{`indexCreationDate`, `indexLastModified` - corpus indexing info}
@@ -206,6 +207,8 @@ setMethod(
              "pubPlace",
              "availability",
              "textClass",
+             "dmozDomain",
+             "wikiDomain",
              "snippet",
              "tokens"
            ),

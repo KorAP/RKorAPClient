@@ -70,15 +70,15 @@ test_that("fetchAll fetches all results with match positions", {
   expect_equal(matches$matchStart[1], matches$matchEnd[1])
 })
 
-test_that("fetchAll fetches textClass metadatum", {
+test_that("fetchAll fetches dmozDomain metadatum", {
   skip_if_offline()
   q <- KorAPConnection(accessToken = NULL, verbose = TRUE) %>%
     corpusQuery("Ameisenplage", vc = "pubDate since 2014")
   expectedResults <- q@totalResults
   matches <- fetchAll(q)@collectedMatches
-  expect_true(any(grepl("wissenschaft ", matches$textClass)))
-  expect_true(any(grepl(" populaerwissenschaft", matches$textClass)))
-  expect_true(any(grepl("kultur literatur", matches$textClass)))
+  # DeReKo-2026 renamed textClass to dmozDomain (space separated)
+  expect_true(any(grepl("wissenschaft ", matches$dmozDomain)))
+  expect_true(any(grepl(" populaerwissenschaft", matches$dmozDomain)))
 })
 
 test_that("Uncached query for non-matching search string return 0 results", {
