@@ -261,23 +261,26 @@ setMethod(
 
         # Show individual query progress
         log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"", sep = "")
+        queryStart <- Sys.time()
         res <- apiCall(kco, paste0(requestUrl, "&count=0"))
+        queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
         if (is.null(res)) {
-          log_info(verbose, ": API call failed\n")
+          log_info(verbose, ": API call failed after ", sprintf("%.1f", queryDuration), "s\n")
+          warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
           totalResults <- 0
         } else {
           totalResults <- as.integer(res$meta$totalResults)
           log_info(verbose, ": ", totalResults, " hits")
           if (!is.null(res$meta$cached)) {
             log_info(verbose, " [cached]")
-          } else if (!is.null(res$meta$benchmark)) {
-            if (is.character(res$meta$benchmark) && grepl("s$", res$meta$benchmark)) {
-              time_value <- as.numeric(sub("s$", "", res$meta$benchmark))
-              formatted_time <- paste0(round(time_value, 2), "s")
-              log_info(verbose, ", took ", formatted_time)
-            } else {
-              log_info(verbose, ", took ", res$meta$benchmark)
-            }
+          }
+          log_info(verbose, ", took ", sprintf("%.1f", queryDuration), "s")
+          if (!is.null(res$meta$timeExceeded)) {
+            warning(
+              "The query \u201c", query, "\u201d was cut short by the KorAP server ",
+              "(timeExceeded); the reported results are incomplete.",
+              call. = FALSE
+            )
           }
 
           # Calculate and display ETA information on the same line if verbose and we have more than one query
@@ -300,6 +303,7 @@ setMethod(
           query = query,
           totalResults = totalResults,
           vc = vc,
+          queryDuration = queryDuration,
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
@@ -341,40 +345,35 @@ setMethod(
         sep =
           ""
       )
+      queryStart <- Sys.time()
       res <- apiCall(kco, paste0(requestUrl, "&count=0"))
+      queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
       if (is.null(res)) {
         message("API call failed.")
+        warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
         totalResults <- 0
       } else {
         totalResults <- as.integer(res$meta$totalResults)
         log_info(verbose, ": ", totalResults, " hits")
         if (!is.null(res$meta$cached)) {
-          log_info(verbose, " [cached]\n")
-        } else if (!is.null(res$meta$benchmark)) {
-          # Round the benchmark time to 2 decimal places for better readability.
-          # Be robust to locales using comma as decimal separator (e.g., "0,12s").
-          if (is.character(res$meta$benchmark) && grepl("s$", res$meta$benchmark)) {
-            bench_str <- sub("s$", "", res$meta$benchmark)
-            bench_num <- suppressWarnings(as.numeric(gsub(",", ".", bench_str)))
-            if (!is.na(bench_num)) {
-              formatted_time <- paste0(round(bench_num, 2), "s")
-            } else {
-              formatted_time <- res$meta$benchmark
-            }
-            log_info(verbose, ", took ", formatted_time, "\n", sep = "")
-          } else {
-            # Fallback if the format is different than expected
-            log_info(verbose, ", took ", res$meta$benchmark, "\n", sep = "")
-          }
-        } else {
-          log_info(verbose, "\n")
+          log_info(verbose, " [cached]")
         }
+        log_info(verbose, ", took ", sprintf("%.1f", queryDuration), "s")
+        if (!is.null(res$meta$timeExceeded)) {
+          warning(
+            "The query \u201c", query, "\u201d was cut short by the KorAP server ",
+            "(timeExceeded); the reported results are incomplete.",
+            call. = FALSE
+          )
+        }
+        log_info(verbose, "\n")
       }
       if (as.df) {
         data.frame(
           query = query,
           totalResults = totalResults,
           vc = vc,
+          queryDuration = queryDuration,
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
@@ -1390,6 +1389,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #'   - **query**: the query string used for the frequency analysis.
 #'   - **totalResults**: absolute frequency of query matches in the vc.
 #'   - **vc**:  virtual corpus used for the query.
+#'   - **queryDuration**: client-side duration of the request in seconds.
 #'   - **webUIRequestUrl**: URL of the corresponding web UI request with respect to query and vc.
 #'   - **total**: total number of words in vc.
 #'   - **f**:  relative frequency of query matches in the vc.

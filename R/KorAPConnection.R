@@ -438,8 +438,12 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
   }
 
   # Create the request
+  # disable the curl low-speed abort (r-curl kills "stalled" transfers
+  # with less than 1 byte/s after 600s by default): long running
+  # searches are guarded by the overall request timeout instead
   req <- httr2::request(url) |>
     httr2::req_user_agent(kco@userAgent) |>
+    httr2::req_options(low_speed_limit = 0, low_speed_time = 0) |>
     httr2::req_timeout(timeout)
 
   if (!is.null(kco@oauthClient)) {

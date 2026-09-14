@@ -36,6 +36,7 @@ A tibble, with each row containing the following result columns for query and vc
 \item \strong{query}: the query string used for the frequency analysis.
 \item \strong{totalResults}: absolute frequency of query matches in the vc.
 \item \strong{vc}:  virtual corpus used for the query.
+\item \strong{queryDuration}: client-side duration of the request in seconds.
 \item \strong{webUIRequestUrl}: URL of the corresponding web UI request with respect to query and vc.
 \item \strong{total}: total number of words in vc.
 \item \strong{f}:  relative frequency of query matches in the vc.
