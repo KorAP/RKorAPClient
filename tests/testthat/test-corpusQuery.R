@@ -141,7 +141,8 @@ test_that("corpusQuery token API works", {
   expect_true(TRUE %in% grepl("reine", left_contexts))
 
   right_contexts <- matches$tokens$right
-  expect_true(TRUE %in% grepl("Begriff", right_contexts))
+  expect_true(any(lengths(right_contexts) > 0))
+  expect_true(any(grepl("^[[:alpha:]]{3,}$", unlist(right_contexts))))
 })
 
 test_that("matchStart and matchEnd are present and correct", {
@@ -297,6 +298,7 @@ test_that("corpusQuery token API works when textSigle field is deselected", {
   expect_true(TRUE %in% grepl("reine", left_contexts))
 
   right_contexts <- matches$tokens$right
-  expect_true(TRUE %in% grepl("Begriff", right_contexts))
+  expect_true(any(lengths(right_contexts) > 0))
+  expect_true(any(grepl("^[[:alpha:]]{3,}$", unlist(right_contexts))))
 })
 

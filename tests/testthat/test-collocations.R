@@ -115,8 +115,10 @@ test_that("collocationAnalysis works and warns about missing token", {
       ),
     "access token"
   )
-  expect_gt(df$O, df$E)
-  expect_gt(df$logDice, -1)
+  expect_true(all(df$O > df$E))
+  reine <- df[df$collocate == "reine", ]
+  expect_equal(nrow(reine), 1)
+  expect_gt(reine$logDice, -1)
 })
 
 test_that("collocationAnalysis on unaccounted strings does not error out", {
