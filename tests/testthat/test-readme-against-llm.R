@@ -2,11 +2,13 @@
 # purpose: the tasks are simple, and if such a model cannot follow the Readme,
 # that says something about the Readme, which is what is being tested here.
 # Override with a comma separated list in RKORAP_LLM_MODELS, e.g. to add
-# OpenAI's cheapest models, "gpt-5-nano" or "gpt-5.6-luna".
+# OpenAI's cheapest direct model, "gpt-5-nano".
 defaultLlmModels <- c(
   "gemini-3.5-flash-lite",
   "claude-sonnet-5",
-  "z-ai/glm-5.3-flash" # via OpenRouter, see openRouterProvider() below
+  # via OpenRouter, see openRouterProviders() below
+  "z-ai/glm-5.3-flash",
+  "openai/gpt-6-luna"
 )
 
 llmModels <- function() {
@@ -73,11 +75,17 @@ usesTidyllm <- function(model) {
 # which is why it is not the first choice, although it is the fastest of the
 # hosts on shared capacity.
 #
+# The list is one for all OpenRouter models, and OpenRouter passes over the
+# hosts that do not serve the model asked for. GPT-6-Luna is served only by
+# OpenAI, Azure and Amazon Bedrock, of which OpenAI itself is named.
+# Without a host of its own in the list, a model is not served at all, and
+# its tests are skipped.
+#
 # Override with RKORAP_OPENROUTER_PROVIDER, comma separated, in that order.
 openRouterProviders <- function() {
   configured <- Sys.getenv(
     "RKORAP_OPENROUTER_PROVIDER",
-    unset = "baseten/fp8,relace/fp4,z-ai/fp8"
+    unset = "baseten/fp8,relace/fp4,z-ai/fp8,openai"
   )
   hosts <- trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
   as.list(hosts[nzchar(hosts)])

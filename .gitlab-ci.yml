@@ -37,13 +37,15 @@ readme-doc-prompting-tests:
     - ccache/
     - rlib/
   script:
-    # GLM-5.3-Flash solves all documentation tasks reliably, while the other
-    # low cost models are not there yet. Add them back here, comma separated,
-    # once they are: "gemini-3.5-flash-lite", "claude-sonnet-5", "gpt-5-nano".
+    # GLM-5.3-Flash and GPT-6-Luna, both via OpenRouter, solve the
+    # documentation tasks reliably, and as models of different families they
+    # tend to stumble over different gaps in the Readme. The other low cost
+    # models are not there yet. Add them back here, comma separated, once they
+    # are: "gemini-3.5-flash-lite", "claude-sonnet-5", "gpt-5-nano".
     # Exported here rather than declared under variables:, since a project or
     # instance variable of that name would take precedence over the latter.
     # Needs OPENROUTER_API_KEY as a masked project variable.
-    - export RKORAP_LLM_MODELS="z-ai/glm-5.3-flash"
+    - export RKORAP_LLM_MODELS="z-ai/glm-5.3-flash,openai/gpt-6-luna"
     - start_section docprompting "Prompting LLMs with the Readme"
     - echo -e "apt-cache\nccache\nrlib" >> .Rbuildignore
     - R -q -e 'devtools::test(filter = "readme-against-llm")'
