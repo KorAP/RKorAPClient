@@ -29,26 +29,15 @@ test_that("corpusQuery displays ETA with multiple queries", {
   # Also remove literal ANSI sequences if they exist
   output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
 
-  # Test 1: Check that search results are shown
-  expect_match(
-    output_str,
-    "Searching \".*\" in \".*\": \\d+ hits",
-    info = "Search results format not found in output"
-  )
+  # Test 1: Check that one progress row per query is shown, with its hits
+  expect_match(output_str, "Searching 4 queries", info = "Header not found in output")
+  expect_match(output_str, "\\[1/4\\]  Test\\s+.*[0-9,]+ hits", info = "Progress row not found in output")
 
-  # Test 2: Check that ETA is displayed on the same line (should contain digits followed by 's')
-  expect_match(
-    output_str,
-    "ETA: \\d+s",
-    info = "ETA format should show digits followed by 's'"
-  )
+  # the remaining time is left out when it would be under a second, as it is
+  # where the server answers from its cache, so it is tested offline below
 
-  # Test 3: Check that completion time is shown on the same line
-  expect_match(
-    output_str,
-    "\\(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\)",
-    info = "Completion time format not found in output"
-  )
+  # Test 3: Check that the summary is shown
+  expect_match(output_str, "4 queries in \\d+s", info = "Summary not found in output")
 
   # Test 4: Check that we get results for all query combinations
   # Note: with expand=TRUE (default), we should get length(query) * length(vc) results
@@ -91,18 +80,8 @@ test_that("corpusQuery ETA works with frequencyQuery", {
   output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
 
   # Test 1: Check that multiple search queries are processed
-  expect_match(
-    output_str,
-    "Searching \".*\" in \".*\": \\d+ hits",
-    info = "Search results should be shown for multiple queries"
-  )
+  expect_match(output_str, "\\[\\d+/\\d+\\].*[0-9,]+ hits", info = "Search results should be shown for multiple queries")
 
-  # Test 2: Check that ETA is displayed when processing multiple queries
-  expect_match(
-    output_str,
-    "ETA:",
-    info = "ETA should be displayed when processing multiple queries"
-  )
 
   # Test 3: Check that we get results
   expect_true(nrow(result) > 0,
@@ -137,9 +116,7 @@ test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries"
   output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
 
   # Should not contain ETA information when verbose=FALSE
-  expect_false(grepl("ETA:", output_str),
-    info = "ETA should not be displayed when verbose=FALSE"
-  )
+  expect_equal(trimws(output_str), "", info = "Nothing should be displayed when verbose=FALSE")
 
   # Test with single query - should not show ETA even with verbose=TRUE
   kco_verbose <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
@@ -159,9 +136,65 @@ test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries"
   output_str2 <- gsub("\\033\\[[0-9;]*m", "", output_str2)
 
   # Should not contain ETA for single query
-  expect_false(grepl("ETA:", output_str2),
-    info = "ETA should not be displayed for single queries"
+  expect_false(grepl("left", output_str2),
+    info = "The remaining time should not be displayed for single queries"
   )
+  expect_match(output_str2, "Searching \"Test\" in \"pubDate in 2020\": [0-9,]+ hits")
+})
+
+test_that("progress rows are aligned, and without colour when not on a terminal", {
+  layout <- progress_layout(12, c("Hund", "Katze"), c("\u2026 2010", "\u2026 2011"))
+  out <- capture.output({
+    progress_row_start(TRUE, layout, 3, "Hund", "\u2026 2010")
+    progress_row_end(TRUE, "31,883 hits", 4.83, "ok", "~18s left")
+    progress_row_start(TRUE, layout, 10, "Katze", "\u2026 2011")
+    progress_row_end(TRUE, "failed", 0.2, "failed")
+    progress_summary(TRUE, "queries", c("ok", "cached", "failed"), 21)
+  })
+  expect_false(any(grepl("\033", out, fixed = TRUE)))
+  expect_equal(out[1], "  [ 3/12]  Hund   \u2026 2010         31,883 hits    4.8s  ~18s left")
+  expect_equal(out[2], "  [10/12]  Katze  \u2026 2011              failed    0.2s")
+  expect_match(out[3], "3 queries in 21s \\(1 cached, 1 failed\\)$")
+  expect_equal(capture.output(progress_row_start(FALSE, layout, 1, "Hund", "x")), character(0))
+})
+
+test_that("remaining time is estimated from the finished, uncached items", {
+  expect_equal(format_remaining(c(4, 6), c(FALSE, FALSE), 6), "~20s left")
+  # items served from the cache do not count, neither as time nor as a sample
+  expect_equal(format_remaining(c(0.01, 4), c(TRUE, FALSE), 4), "~8s left")
+  expect_equal(format_remaining(c(0.01), TRUE, 4), "")
+  expect_equal(format_remaining(c(0.2), FALSE, 3), "")
+  expect_equal(format_remaining(c(4, 6), c(FALSE, FALSE), 2), "")
+  expect_match(format_remaining(700, FALSE, 2), "^~11m 40s left \\(until \\d{2}:\\d{2}\\)$")
+})
+
+test_that("durations and counts are formatted compactly", {
+  expect_equal(format_duration_short(4.83, precise = TRUE), "4.8s")
+  expect_equal(format_duration_short(18.2), "18s")
+  expect_equal(format_duration_short(185), "3m 05s")
+  expect_equal(format_duration_short(3720), "1h 02m")
+  expect_equal(format_duration_short(NA), "?")
+  expect_equal(format_count(c(12, 31883, 31469333310)), c("12", "31,883", "31,469,333,310"))
+})
+
+test_that("labels are shortened in the middle, and a shared beginning is factored out", {
+  expect_equal(truncate_display("textType = /Zeit.*/ & pubDate in 2010", 13), "textTy\u2026n 2010")
+  expect_equal(truncate_display("short", 13), "short")
+
+  f <- factor_common_prefix(paste("textType = /Zeit.*/ & pubDate in", 2010:2011))
+  expect_equal(f$prefix, "textType = /Zeit.*/ & pubDate in \u2026")
+  expect_equal(f$labels, c("\u20262010", "\u20262011"))
+  # the prefix is cut back to a word boundary
+  expect_equal(
+    factor_common_prefix(c("textType = /Zeitung.*/", "textType = /Zeitschrift.*/"))$prefix,
+    "textType = \u2026"
+  )
+  # short labels, too short a prefix, or nothing to tell apart are left alone
+  expect_equal(factor_common_prefix(c("pubDate in 2010", "pubDate in 2011"))$prefix, "")
+  # nor where it would leave long labels that are better read in full
+  expect_equal(factor_common_prefix(c("pubDate in 2020", paste("pubDate in 2020 &", strrep("x", 40))))$prefix, "")
+  expect_equal(factor_common_prefix(paste0(c("Zeitung", "Zeitschrift"), strrep("x", 20)))$prefix, "")
+  expect_equal(factor_common_prefix(c("pubDate in 2010", "pubDate in 2010"))$prefix, "")
 })
 
 test_that("corpusQuery ETA format_duration function works correctly", {
@@ -187,27 +220,6 @@ test_that("corpusQuery ETA format_duration function works correctly", {
   # Remove ANSI escape sequences
   output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
 
-  # Check that ETA contains reasonable time format (digits followed by 's')
-  # This indirectly tests that format_duration is working
-  if (grepl("ETA:", output_str)) {
-    expect_match(
-      output_str,
-      "ETA: \\d+s",
-      info = "ETA should display time in seconds format when present"
-    )
-
-    # Also check for completion time format which uses the same function
-    expect_match(
-      output_str,
-      "\\(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\)",
-      info = "Completion time should be formatted correctly when ETA is present"
-    )
-  } else {
-    # If no ETA is shown, just verify search results are displayed
-    expect_match(
-      output_str,
-      "Searching \".*\" in \".*\": \\d+ hits",
-      info = "Search results should be displayed even without ETA"
-    )
-  }
+  # Check that the total is formatted as a duration
+  expect_match(output_str, "6 queries in \\d+s", info = "Summary should show the total time")
 })

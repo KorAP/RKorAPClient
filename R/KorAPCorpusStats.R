@@ -90,82 +90,46 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
     # the names of a named vc vector would end up as row names, which the first
     # bind_rows() drops, so they are kept as a column instead
     vcLabel <- vcLabels(vc)
-    # ETA calculation for multiple virtual corpora
     total_items <- length(vc)
+    vcDisplay <- factor_common_prefix(if (!is.null(vcLabel)) vcLabel else ifelse(vc == "", "(all)", vc))
+    layout <- progress_layout(total_items, vcDisplay$labels)
     start_time <- Sys.time()
     results <- list()
     individual_times <- numeric(total_items)
+    statuses <- character(total_items)
+    log_info(
+      verbose, "Getting the size of ", total_items, " virtual corpora",
+      if (nzchar(vcDisplay$prefix)) paste0(": ", vcDisplay$prefix), "\n"
+    )
 
     for (i in seq_along(vc)) {
-      current_vc <- vc[i]
+      progress_row_start(verbose, layout, i, vcDisplay$labels[i])
       item_start_time <- Sys.time()
-
-      # Truncate long vc strings for display
-      vc_display <- if (nchar(current_vc) > 50) {
-        paste0(substr(current_vc, 1, 47), "...")
-      } else {
-        current_vc
-      }
-
-      # Process current virtual corpus
-      result <- corpusStats(kco, current_vc, verbose = FALSE, as.df = TRUE)
+      result <- corpusStats(kco, vc[i], verbose = FALSE, as.df = TRUE)
       if (!is.null(vcLabel)) {
         result <- tibble::add_column(result, label = vcLabel[i], .after = "vc")
       }
       results[[i]] <- result
+      individual_times[i] <- as.numeric(difftime(Sys.time(), item_start_time, units = "secs"))
 
-      # Record individual processing time
-      item_end_time <- Sys.time()
-      individual_times[i] <- as.numeric(difftime(item_end_time, item_start_time, units = "secs"))
-
-      # Format item number with proper alignment
-      current_item_formatted <- sprintf(paste0("%", nchar(total_items), "d"), i)
-
-      # Calculate timing and ETA after first few items, using cache-aware approach
-      if (i >= 2) {
-        eta_info <- calculate_sophisticated_eta(individual_times, i, total_items)
-        cache_indicator <- get_cache_indicator(eta_info$is_cached)
-        eta_display <- format_eta_display(eta_info$eta_seconds, eta_info$estimated_completion_time)
-
-        log_info(verbose, sprintf(
-          "Processed vc %s/%d: \"%s\" in %4.1fs%s%s\n",
-          current_item_formatted,
-          total_items,
-          vc_display,
-          individual_times[i],
-          cache_indicator,
-          eta_display
-        ))
-      } else {
-        # First item, show without ETA
-        cache_indicator <- get_cache_indicator(individual_times[i] < 0.1)
-        log_info(verbose, sprintf(
-          "Processed vc %s/%d: \"%s\" in %4.1fs%s\n",
-          current_item_formatted,
-          total_items,
-          vc_display,
-          individual_times[i],
-          cache_indicator
-        ))
-      }
+      # corpusStats() does not report cache hits, but they come back at once
+      done <- individual_times[seq_len(i)]
+      statuses[i] <- if (is.na(result$tokens)) "failed" else if (individual_times[i] < 0.1) "cached" else "ok"
+      progress_row_end(
+        verbose,
+        if (statuses[i] == "failed") "failed" else paste(format_count(result$tokens), "tokens"),
+        individual_times[i],
+        statuses[i],
+        format_remaining(done, done < 0.1, total_items),
+        # DeReKo as a whole has tens of billions of tokens
+        width = 21
+      )
     }
 
-    # Final timing summary with cache analysis
-    if (verbose && total_items > 1) {
-      total_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
-      avg_time_per_item <- total_time / total_items
-      cached_count <- sum(individual_times < 0.1)
-      non_cached_count <- total_items - cached_count
-
-      log_info(verbose, sprintf(
-        "Completed processing %d virtual corpora in %s (avg: %4.1fs/item, %d cached, %d non-cached)\n",
-        total_items,
-        format_duration(total_time),
-        avg_time_per_item,
-        cached_count,
-        non_cached_count
-      ))
-    }
+    progress_summary(
+      verbose, "virtual corpora", statuses,
+      as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+    )
 
     stats <- do.call(rbind, results)
     rownames(stats) <- NULL
@@ -183,7 +147,7 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
     if (is.null(res)) {
       res <- data.frame(documents = NA, tokens = NA, sentences = NA, paragraphs = NA)
     }
-    log_info(verbose, ": ", res$tokens, " tokens\n")
+    log_info(verbose, ": ", format_count(res$tokens), " tokens\n")
     if (as.df) {
       data.frame(vc = vc, webUIRequestUrl = webUIRequestUrl, res, stringsAsFactors = FALSE)
     } else {

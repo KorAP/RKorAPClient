@@ -29,46 +29,14 @@ test_that("corpusStats displays ETA with multiple virtual corpora", {
   # Remove ANSI escape sequences - improved regex
   output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
 
-  # Test 1: Check that VC progress is shown (format: "Processed vc X/Y" or "Processed VC X/Y")
-  expect_match(
-    output_str,
-    "Processed [vV][cC] \\d+/\\d+:",
-    info = "VC progress counter not found in output"
-  )
+  # Test 1: Check that VC progress is shown as a counter
+  expect_match(output_str, "\\[1/3\\]", info = "VC progress counter not found in output")
 
-  # Test 2: Check that individual timing is displayed (either "( X.Xs)" or "in X.Xs")
-  expect_true(
-    grepl("\\(\\s*\\d+\\.\\d+s\\)", output_str) || grepl("in\\s+\\d+\\.\\d+s", output_str),
-    info = "Individual timing format not found in output"
-  )
+  # Test 2: Check that individual timing and token counts are displayed
+  expect_match(output_str, "[0-9,]+ tokens\\s+\\d+\\.\\ds", info = "Individual timing not found in output")
 
-  # Test 3: Check that ETA is displayed (format like "ETA: MM:SS" or "ETA: HH:MM:SS")
-  expect_match(
-    output_str,
-    "ETA: \\d{2}",
-    info = "ETA format not found in output"
-  )
-
-  # Test 4: Check that completion time is shown (format: YYYY-MM-DD HH:MM:SS)
-  expect_match(
-    output_str,
-    "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}",
-    info = "Completion time format not found in output"
-  )
-
-  # Test 5: Check that final summary is displayed
-  expect_match(
-    output_str,
-    "Completed processing \\d+ virtual corpora",
-    info = "Final processing summary not found in output"
-  )
-
-  # Test 6: Check that cache analysis is included in final summary
-  expect_match(
-    output_str,
-    "\\d+ cached, \\d+ non-cached",
-    info = "Cache analysis not found in final summary"
-  )
+  # Test 4: Check that the final summary is displayed
+  expect_match(output_str, "3 virtual corpora in \\d+s", info = "Final summary not found in output")
 
   # Test 7: Verify we get results for all VCs
   expect_equal(nrow(result), length(vc_list),
@@ -115,16 +83,10 @@ test_that("corpusStats handles cache detection correctly", {
 
   # Test 1: Check for cache indicator presence
   # Note: Actual caching depends on server behavior, so we test the format exists
-  expect_true(
-    grepl("\\[cached\\]", output_str) || !grepl("\\[cached\\]", output_str),
-    info = "Cache indicator format should be present or absent consistently"
-  )
+  expect_match(output_str, "\\[2/2\\].*cached", info = "The repeated VC should come from the cache")
 
   # Test 2: Check that timing is still displayed for all items (either "( X.Xs)" or "in X.Xs")
-  expect_true(
-    grepl("\\(\\s*\\d+\\.\\d+s", output_str) || grepl("in\\s+\\d+\\.\\d+s", output_str),
-    info = "Individual timing should still be displayed with caching"
-  )
+  expect_match(output_str, "tokens\\s+\\d+\\.\\ds", info = "Individual timing should still be displayed with caching")
 
   # Test 3: Verify we still get correct results
   expect_equal(nrow(result), length(vc_list),
@@ -233,14 +195,14 @@ test_that("corpusStats handles long VC definitions with truncation", {
   # Test 1: Check that long VC is truncated (should end with "...")
   expect_match(
     output_str,
-    "\\.\\.\\.",
+    "\\.\\.\\.|\u2026",
     info = "Long VC definition should be truncated with ellipsis"
   )
 
   # Test 2: Check that short VC is not truncated
   expect_match(
     output_str,
-    "\"pubDate in 2020\"",
+    "pubDate in 2020 ",
     info = "Short VC definition should be displayed in full"
   )
 

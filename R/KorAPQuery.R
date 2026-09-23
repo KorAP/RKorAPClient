@@ -226,10 +226,20 @@ setMethod(
         grid$label <- if (expand) rep(vcLabel, times = length(query)) else vcLabel
       }
 
-      # Initialize timing variables for ETA calculation
+      # the whole grid is known up front, so the progress rows can be aligned
       total_queries <- nrow(grid)
+      vcDisplay <- factor_common_prefix(
+        if ("label" %in% names(grid)) grid$label else ifelse(grid$vc == "", "(all)", grid$vc)
+      )
+      layout <- progress_layout(total_queries, grid$query, vcDisplay$labels)
       current_query <- 0
       start_time <- Sys.time()
+      durations <- numeric(0)
+      statuses <- character(0)
+      log_info(
+        verbose && total_queries > 1, "Searching ", total_queries, " queries",
+        if (nzchar(vcDisplay$prefix)) paste0(" in ", vcDisplay$prefix), "\n"
+      )
 
       results <- purrr::pmap(grid, function(query, vc, label = NULL, ...) {
         current_query <<- current_query + 1
@@ -262,44 +272,40 @@ setMethod(
           if (metadataOnly) "&access-rewrite-disabled=true" else ""
         )
 
-        # Show individual query progress
-        log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"", sep = "")
+        progress_row_start(verbose, layout, current_query, query, vcDisplay$labels[current_query])
         queryStart <- Sys.time()
         res <- apiCall(kco, paste0(requestUrl, "&count=0"))
         queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
         if (is.null(res)) {
-          log_info(verbose, ": API call failed after ", sprintf("%.1f", queryDuration), "s\n")
-          warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
+          status <- "failed"
           totalResults <- 0
         } else {
           totalResults <- as.integer(res$meta$totalResults)
-          log_info(verbose, ": ", totalResults, " hits")
-          if (!is.null(res$meta$cached)) {
-            log_info(verbose, " [cached]")
+          status <- if (!is.null(res$meta$timeExceeded)) {
+            "incomplete"
+          } else if (!is.null(res$meta$cached)) {
+            "cached"
+          } else {
+            "ok"
           }
-          log_info(verbose, ", took ", sprintf("%.1f", queryDuration), "s")
-          if (!is.null(res$meta$timeExceeded)) {
-            warning(
-              "The query \u201c", query, "\u201d was cut short by the KorAP server ",
-              "(timeExceeded); the reported results are incomplete.",
-              call. = FALSE
-            )
-          }
-
-          # Calculate and display ETA information on the same line if verbose and we have more than one query
-          if (verbose && total_queries > 1) {
-            eta_info <- calculate_eta(current_query, total_queries, start_time)
-            if (eta_info != "") {
-              elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
-              avg_time_per_query <- elapsed_time / current_query
-
-              # Add ETA info to the same line - remove the leading ". " for cleaner formatting
-              clean_eta_info <- sub("^\\. ", ". ", eta_info)
-              log_info(verbose, clean_eta_info)
-            }
-          }
-
-          log_info(verbose, "\n")
+        }
+        durations <<- c(durations, queryDuration)
+        statuses <<- c(statuses, status)
+        progress_row_end(
+          verbose,
+          if (status == "failed") "failed" else paste(format_count(totalResults), "hits"),
+          queryDuration,
+          status,
+          format_remaining(durations, statuses == "cached", total_queries)
+        )
+        if (status == "failed") {
+          warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
+        } else if (status == "incomplete") {
+          warning(
+            "The query \u201c", query, "\u201d was cut short by the KorAP server ",
+            "(timeExceeded); the reported results are incomplete.",
+            call. = FALSE
+          )
         }
 
         result <- data.frame(
@@ -317,6 +323,7 @@ setMethod(
         return(result)
       })
 
+      progress_summary(verbose && total_queries > 1, "queries", statuses, as.numeric(difftime(Sys.time(), start_time, units = "secs")))
       results %>% bind_rows()
     } else {
       contentFields <- c("snippet", "tokens")
@@ -344,24 +351,22 @@ setMethod(
         paste(fields, collapse = ","),
         if (metadataOnly) "&access-rewrite-disabled=true" else ""
       )
-      log_info(verbose, "\rSearching \"", query, "\" in \"", vc, "\"",
-        sep =
-          ""
-      )
+      log_info(verbose, "Searching \"", query, "\"", if (vc != "") paste0(" in \"", vc, "\""), ": ")
       queryStart <- Sys.time()
       res <- apiCall(kco, paste0(requestUrl, "&count=0"))
       queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
       if (is.null(res)) {
-        message("API call failed.")
+        log_info(verbose, ansi("failed", "red"), " after ", format_duration_short(queryDuration, precise = TRUE), "\n")
         warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
         totalResults <- 0
       } else {
         totalResults <- as.integer(res$meta$totalResults)
-        log_info(verbose, ": ", totalResults, " hits")
-        if (!is.null(res$meta$cached)) {
-          log_info(verbose, " [cached]")
-        }
-        log_info(verbose, ", took ", sprintf("%.1f", queryDuration), "s")
+        log_info(
+          verbose, format_count(totalResults), " hits, ", format_duration_short(queryDuration, precise = TRUE),
+          if (!is.null(res$meta$cached)) paste0(" ", ansi("cached", "dim")),
+          if (!is.null(res$meta$timeExceeded)) paste0(" ", ansi("incomplete", "yellow")),
+          "\n"
+        )
         if (!is.null(res$meta$timeExceeded)) {
           warning(
             "The query \u201c", query, "\u201d was cut short by the KorAP server ",
@@ -369,7 +374,6 @@ setMethod(
             call. = FALSE
           )
         }
-        log_info(verbose, "\n")
       }
       if (as.df) {
         data.frame(

@@ -126,10 +126,7 @@ importFrom(purrr,
   pmap
 )
 importFrom(rlang,sym)
-importFrom(stats,
-  median,
-  prop.test
-)
+importFrom(stats,prop.test)
 importFrom(stringr,
   str_detect,
   str_match,
