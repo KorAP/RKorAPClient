@@ -1,5 +1,37 @@
 ## Notes
 
+* patch release, following a change of the web service the package is a
+  client for: the German Reference Corpus behind the default KorAP instance
+  was re-released (DeReKo-KorAP-2026-II) and renamed the `textClass` metadata
+  field, which the package fetched by default. We apologise for submitting
+  again so soon after 1.4.0, but without this release users of the default
+  instance lose the topic domain of their search results
+* fixed long running searches being aborted after 10 minutes by curl's
+  low-speed limit, regardless of the configured request timeout
+* failed and incomplete searches are now reported by a warning instead of
+  silently yielding 0 or too few hits
+* clearer, correctly estimated progress output in verbose mode
+* no new dependencies
+
+```
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
+R CMD check succeeded
+```
+
+## Test environments
+
+* local Fedora 44 with R version 4.6.1 (2026-06-24)
+* win-builder with R 4.6.1 (2026-06-24 ucrt)
+* win-builder with R Under development (unstable) (2026-09-21 r90579 ucrt)
+* github workflow on Ubuntu with R Under development (unstable) (2026-09-22 r90584)
+* github workflow on Ubuntu with R 4.6.1
+* github workflow on Ubuntu with R 4.5.3
+* github workflow on macOS (ARM64) with R 4.6.1
+* github workflow on Windows Server 2025 with R 4.6.1
+
+## Notes on 1.4.0
+
 * feature release
 * changed values of two association scores, both described in NEWS.md:
   `logDice()` is now computed as defined by Rychlý (2008), so that its values

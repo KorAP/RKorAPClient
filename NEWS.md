@@ -1,3 +1,13 @@
+# RKorAPClient 1.4.1
+
+- **follows the DeReKo-KorAP-2026-II release** of the German Reference Corpus, the default corpus of the default KorAP instance, which replaced the `textClass` metadata field by `dmozDomain` and `wikiDomain`. `corpusQuery()` now fetches both by default, so that the topic domain of matches is available again ([#31](https://github.com/KorAP/RKorAPClient/issues/31)).
+
+- **long running searches are no longer aborted after 10 minutes**. The underlying curl library gave up on transfers delivering less than one byte per second for 600 seconds, which is just what a search does while the server is still counting, regardless of the `timeout` of the connection. Only that timeout applies now
+
+- **failed and incomplete searches are reported**: `corpusQuery()` and `frequencyQuery()` now warn when a request failed or when the KorAP server cut a search short (`timeExceeded`), instead of silently reporting 0 or too few hits. Their data frame results carry the new `queryDuration` column, the time in seconds a request took on the client side
+
+- **clearer verbose output**: a series of queries or virtual corpora is logged as an aligned table, one row per item with its hits or tokens, the time it took and whether it came from the cache, followed by a one-line summary. A virtual corpus definition shared by all rows is named once in the header, e.g. `textType = /Zeit.*/ & pubDate in …`, and the rows show only what varies. The estimated remaining time no longer counts the query just finished as pending, which made it about twice too long in the beginning, and ignores cached queries. Numbers beyond 2^31, e.g. the token count of the whole of DeReKo, are no longer printed as `NA`, and no colour codes are written where the output does not go to a terminal or the RStudio console, e.g. to a log file
+
 # RKorAPClient 1.4.0
 
 - **`cacheAs` now consistently covers all query functions** – `frequencyQuery()`, `corpusStats()`, `collocationScoreQuery()` and `textMetadata()`. The cache file records its relevant production context: parameters, KorAP instance, index revision and package version. `cacheAsInfo()` prints that record, `blessCacheAs()` vouches for a file that is sound regardless, and `withCachedResults()` takes the files as they are for one expression, `mode = "offline"` refusing to compute anything that is not in one already
