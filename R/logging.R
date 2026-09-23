@@ -116,8 +116,8 @@ ansi <- function(text, style = c("green", "red", "yellow", "dim", "bold")) {
 log_symbol <- function(name = c("tick", "cross", "warning")) {
   utf8 <- isTRUE(l10n_info()$`UTF-8`)
   switch(match.arg(name),
-    tick = if (utf8) "✔" else "v",
-    cross = if (utf8) "✖" else "x",
+    tick = if (utf8) "\u2714" else "v",
+    cross = if (utf8) "\u2716" else "x",
     warning = "!"
   )
 }
