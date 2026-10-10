@@ -589,6 +589,46 @@ for (model in llmModels()) {
     cat("Generated labelled corpora code:\n", generated_code, "\n")
   })
 
+  test_that(paste(model, "can solve regular expressions task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    # needs a regular expression both in the query and in the vc, where they are
+    # marked the other way round: "…" in Poliqarp+, /…/ in a vc
+    prompt <- create_readme_prompt(
+      paste(
+        "write R code that counts, in the DeLiKo corpus at https://korap.dnb.de, all occurrences of lemmas",
+        "beginning with 'Kommissar' (e.g. Kommissarin) in books whose text type contains 'Krimi'."
+      )
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
+    expect_true(
+      grepl("=\\s*\\\\?\"Kommissar\\.[*+]", generated_code),
+      "Generated code should mark the regular expression in the query with double quotes"
+    )
+    expect_false(
+      grepl("=\\s*/Kommissar", generated_code),
+      "Generated code should not use /…/ for a regular expression in the query"
+    )
+    expect_true(
+      grepl("textType\\s*=\\s*/[^/]*Krimi", generated_code),
+      "Generated code should mark the regular expression in the vc with slashes"
+    )
+    # in a vc, "…" is a literal string: no error, just no hits
+    expect_false(
+      grepl("textType\\s*=\\s*\\\\?\"[^\"]*\\.[*+]", generated_code),
+      "Generated code should not use double quotes for a regular expression in the vc"
+    )
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated regular expressions code:\n", generated_code, "\n")
+  })
+
   # The code of the following two tasks cannot reasonably be executed in a test:
   # authorization needs a browser flow or a token for restricted data, and a
   # multi-VC collocation analysis runs for minutes. Only the generated code is

@@ -126,6 +126,22 @@ corpusStats(kco, vc = c(before = "pubDate until 2009", since = "pubDate since 20
 
 With `as.df = TRUE` you get a one row data frame with `tokens`, `sentences`, `paragraphs` and `documents` columns instead, which makes it easy to compare several virtual corpora.
 
+### Regular expressions in queries and virtual corpora
+
+The query language (Poliqarp+) and the definitions of virtual corpora mark regular expressions differently, and double quotes mean opposite things in them:
+
+|                    | query (Poliqarp+)                    | virtual corpus (`vc`)                  |
+|--------------------|--------------------------------------|----------------------------------------|
+| regular expression | `"…"`, e.g. `[tt/l="(Frau\|Mann)"]`  | `/…/`, e.g. `textType = /.*Krimi.*/`   |
+| literal string     | `'…'`                                | `"…"`                                  |
+
+```r
+KorAPConnection("https://korap.dnb.de") |>
+  frequencyQuery('[tt/l="(Frau|Mann)"]', vc = "textType = /.*Krimi.*/")
+```
+
+In a query, `/` separates foundry and layer, as in `tt/l`, and is no regex delimiter. In a `vc`, `textType = "Krimi.*"` is no error, but looks for the literal string and finds nothing. Both follow the [regular expression syntax of Lucene 5](https://lucene.apache.org/core/5_0_0/core/org/apache/lucene/util/automaton/RegExp.html), not the Perl-style one of most programming languages. A regular expression has to match the whole value, hence the `.*` around *Krimi*. Inline flags, like `(?i)` for ignoring case, are not supported, so spell out case variants, e.g. `[Kk]rimi`. Nor are shorthand classes: `\d` stands for just the letter *d*, so write `[0-9]` instead.
+
 ### Metadata of a text
 
 `textMetadata` retrieves all metadata KorAP holds for a text, given its sigle as found in the `textSigle` column of query results:

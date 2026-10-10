@@ -1,3 +1,7 @@
+# RKorAPClient (development version)
+
+- **the Readme explains how regular expressions are marked** in queries and in virtual corpora, where double quotes mean opposite things: `"…"` is a regular expression in Poliqarp+, but a literal string in a `vc`, where regular expressions go between slashes. A literal string in a `vc` raises no error but just finds nothing, a trap that a language model, too, easily falls into. A new doc-prompting test checks that code written from the Readme gets both right
+
 # RKorAPClient 1.4.1
 
 - **follows the DeReKo-KorAP-2026-II release** of the German Reference Corpus, the default corpus of the default KorAP instance, which replaced the `textClass` metadata field by `dmozDomain` and `wikiDomain`. `corpusQuery()` now fetches both by default, so that the topic domain of matches is available again ([#31](https://github.com/KorAP/RKorAPClient/issues/31)).
