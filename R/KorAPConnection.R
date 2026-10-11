@@ -381,7 +381,7 @@ warnIfNotAuthorized <- function(kco) {
   if (kco@authorizationSupported & is.null(kco@accessToken) & is.null(kco@oauthClient)) {
     warning(
       paste0(
-        "In order to receive KWICSs also from corpora with restricted licenses, you may need to\n",
+        "In order to receive KWICs also from corpora with restricted licenses, you may need to\n",
         "authorize your application with an access token or the auth() method.\n",
         "To generate an access token, login to KorAP and navigate to KorAP's OAuth settings <",
         kco@KorAPUrl,

@@ -38,7 +38,7 @@ q@collectedMatches
 q <- KorAPConnection() |>
  corpusQuery("<base/s=t>", # this matches each text once
     vc = "pubDate in 1958-03-12",
-    fields = c("textSigle", "title"),
+    fields = c("textSigle", "title")
 ) |>
  fetchAll()
 q@collectedMatches

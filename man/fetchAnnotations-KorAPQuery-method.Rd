@@ -14,7 +14,7 @@
 \arguments{
 \item{kqo}{object obtained from \code{\link[=corpusQuery]{corpusQuery()}} with collected matches. Note: the original corpus query should have \code{metadataOnly = FALSE} for annotation parsing to work.}
 
-\item{foundry}{string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)}
+\item{foundry}{string specifying the foundry to use for annotations (default: "tt" for TreeTagger)}
 
 \item{overwrite}{logical; if TRUE, re-fetch and replace any existing
 annotation columns. If FALSE (default), only add missing annotation layers
@@ -56,7 +56,7 @@ The method parses XML snippet annotations and adds linguistic columns to the dat
 \examples{
 \dontrun{
 
-# Fetch annotations for matches using Tree-Tagger foundry
+# Fetch annotations for matches using TreeTagger foundry
 # Note: Authorization required for copyright-restricted corpora
 q <- KorAPConnection() |>
   auth() |>
@@ -81,7 +81,7 @@ raw_snippet <- q@collectedMatches$annotation_snippet[[i]]
 match_pos <- q@collectedMatches$pos$match[[i]]
 # Lemmas for the left context in match i
 left_lemmas <- q@collectedMatches$lemma$left[[i]]
- # Token text for the right context in match i
+# Token text for the right context in match i
 right_tokens <- q@collectedMatches$atokens$right[[i]]
 
 # Use a different foundry (e.g., MarMoT)

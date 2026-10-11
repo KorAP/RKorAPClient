@@ -28,7 +28,7 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()})}
 
 \item{query}{string that contains the corpus query. The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
@@ -37,13 +37,13 @@
 \item{KorAPUrl}{instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in \code{KorAPConnection}) to provide all necessary information for the query.}
 
 \item{metadataOnly}{logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE.
-If you want your corpus queries to return not only metadata, but also KWICS, you need to authorize
+If you want your corpus queries to return not only metadata, but also KWICs, you need to authorize
 your RKorAPClient application as explained in the
 \href{https://github.com/KorAP/RKorAPClient#authorization}{authorization section}
 of the RKorAPClient Readme on GitHub and set the \code{metadataOnly} parameter to
 \code{FALSE}.}
 
-\item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values.}
+\item{ql}{string to choose the query language (see \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters}{section on Query Parameters} in the Kustvakt-Wiki for possible values).}
 
 \item{fields}{character vector specifying which metadata fields to retrieve for each match.
 Available fields depend on the corpus. For DeReKo (German Reference Corpus), possible fields include:
@@ -53,12 +53,12 @@ Available fields depend on the corpus. For DeReKo (German Reference Corpus), pos
 \item{\strong{Temporal data}:}{\code{pubDate}, \code{creationDate} - when text was published/created}
 \item{\strong{Publication details}:}{\code{pubPlace}, \code{publisher}, \code{reference} - where/how published}
 \item{\strong{Text classification}:}{\code{textClass}, \code{dmozDomain}, \code{wikiDomain}, \code{textType}, \code{textTypeArt}, \code{textDomain}, \code{textColumn} - topic domain, genre, text type and column}
-\item{\strong{Adminstrative and technical info}:}{\code{corpusEditor}, \code{availability}, \code{language}, \code{foundries} - access rights and annotations}
+\item{\strong{Administrative and technical info}:}{\code{corpusEditor}, \code{availability}, \code{language}, \code{foundries} - access rights and annotations}
 \item{\strong{Content data}:}{\code{snippet}, \code{tokens}, \code{tokenSource}, \code{externalLink} - actual text content, tokenization, and link to source text}
 \item{\strong{System data}:}{\code{indexCreationDate}, \code{indexLastModified} - corpus indexing info}
 }
 Use \code{c("textSigle", "pubDate", "author")} to retrieve multiple fields.
-Default fields provide basic text identification and publication metadata. The actual text content (\code{snippet} and \code{tokens}) are activated by default  if \code{metadataOnly} is set to \code{FALSE}.}
+Default fields provide basic text identification and publication metadata. The actual text content fields (\code{snippet} and \code{tokens}) are activated by default if \code{metadataOnly} is set to \code{FALSE}.}
 
 \item{accessRewriteFatal}{abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).}
 
@@ -69,9 +69,9 @@ Default fields provide basic text identification and publication metadata. The a
 \item{as.df}{return result as data frame instead of as S4 object?}
 
 \item{context}{string that specifies the size of the left and the right context returned in \code{snippet}
-(provided that \code{metadataOnly} is set to \code{false} and that the necessary access right are  met).
-The format of the context size specifcation (e.g. \verb{3-token,3-token}) is described in the \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET}{Service: Search GET documentation of the Kustvakt Wiki}.
-If the parameter is not set, the default context size secification of the KorAP server instance will be used.
+(provided that \code{metadataOnly} is set to \code{false} and that the necessary access rights are met).
+The format of the context size specification (e.g. \verb{3-token,3-token}) is described in the \href{https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET}{Service: Search GET documentation of the Kustvakt Wiki}.
+If the parameter is not set, the default context size specification of the KorAP server instance will be used.
 Note that you cannot overrule the maximum context size set in the KorAP server instance,
 as this is typically legally motivated.}
 }

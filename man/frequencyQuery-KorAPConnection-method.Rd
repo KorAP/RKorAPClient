@@ -16,13 +16,13 @@
 )
 }
 \arguments{
-\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()}}
+\item{kco}{\code{\link[=KorAPConnection]{KorAPConnection()}} object (obtained e.g. from \code{KorAPConnection()})}
 
-\item{query}{corpus query string(s.) (can be a vector). The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
+\item{query}{corpus query string(s) (can be a vector). The query language depends on the \code{ql} parameter. Either \code{query} must be provided or \code{KorAPUrl}.}
 
 \item{vc}{virtual corpus definition(s) (can be a vector)}
 
-\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link[=ci]{ci()}}  to \code{\link[=prop.test]{prop.test()}}).}
+\item{conf.level}{confidence level of the returned confidence interval (passed through \code{\link[=ci]{ci()}} to \code{\link[=prop.test]{prop.test()}}).}
 
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
@@ -35,19 +35,19 @@ A tibble, with each row containing the following result columns for query and vc
 \itemize{
 \item \strong{query}: the query string used for the frequency analysis.
 \item \strong{totalResults}: absolute frequency of query matches in the vc.
-\item \strong{vc}:  virtual corpus used for the query.
+\item \strong{vc}: virtual corpus used for the query.
 \item \strong{queryDuration}: client-side duration of the request in seconds.
 \item \strong{webUIRequestUrl}: URL of the corresponding web UI request with respect to query and vc.
 \item \strong{total}: total number of words in vc.
-\item \strong{f}:  relative frequency of query matches in the vc.
-\item \strong{conf.low}:  lower bound of the confidence interval for the relative frequency, given \code{conf.level}.
-\item \strong{conf.high}:  upper bound of the confidence interval for the relative frequency, given \code{conf.level}.
+\item \strong{f}: relative frequency of query matches in the vc.
+\item \strong{conf.low}: lower bound of the confidence interval for the relative frequency, given \code{conf.level}.
+\item \strong{conf.high}: upper bound of the confidence interval for the relative frequency, given \code{conf.level}.
 }
 }
 \description{
 \strong{\code{frequencyQuery}} combines \code{\link[=corpusQuery]{corpusQuery()}}, \code{\link[=corpusStats]{corpusStats()}} and
 \code{\link[=ci]{ci()}} to compute a tibble with the absolute and relative frequencies and
-confidence intervals of one ore multiple search terms across one or multiple
+confidence intervals of one or multiple search terms across one or multiple
 virtual corpora.
 }
 \examples{

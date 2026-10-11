@@ -94,17 +94,17 @@ utils::globalVariables(c("."))
 #' @importFrom purrr pmap
 #' @importFrom dplyr bind_rows group_by
 #'
-#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`)
 #' @param query string that contains the corpus query. The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param vc string describing the virtual corpus in which the query should be performed. An empty string (default) means the whole corpus, as far as it is license-wise accessible.
 #' @param KorAPUrl instead of providing the query and vc string parameters, you can also simply copy a KorAP query URL from your browser and use it here (and in `KorAPConnection`) to provide all necessary information for the query.
 #' @param metadataOnly logical that determines whether queries should return only metadata without any snippets. This can also be useful to prevent access rewrites. Note that the default value is TRUE.
-#'    If you want your corpus queries to return not only metadata, but also KWICS, you need to authorize
+#'    If you want your corpus queries to return not only metadata, but also KWICs, you need to authorize
 #'    your RKorAPClient application as explained in the
 #'   [authorization section](https://github.com/KorAP/RKorAPClient#authorization)
 #'   of the RKorAPClient Readme on GitHub and set the `metadataOnly` parameter to
 #'   `FALSE`.
-#' @param ql string to choose the query language (see [section on Query Parameters](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters) in the Kustvakt-Wiki for possible values.
+#' @param ql string to choose the query language (see [section on Query Parameters](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET#user-content-parameters) in the Kustvakt-Wiki for possible values).
 #' @param fields character vector specifying which metadata fields to retrieve for each match.
 #' Available fields depend on the corpus. For DeReKo (German Reference Corpus), possible fields include:
 #' \describe{
@@ -113,20 +113,20 @@ utils::globalVariables(c("."))
 #'   \item{**Temporal data**:}{`pubDate`, `creationDate` - when text was published/created}
 #'   \item{**Publication details**:}{`pubPlace`, `publisher`, `reference` - where/how published}
 #'   \item{**Text classification**:}{`textClass`, `dmozDomain`, `wikiDomain`, `textType`, `textTypeArt`, `textDomain`, `textColumn` - topic domain, genre, text type and column}
-#'   \item{**Adminstrative and technical info**:}{`corpusEditor`, `availability`, `language`, `foundries` - access rights and annotations}
+#'   \item{**Administrative and technical info**:}{`corpusEditor`, `availability`, `language`, `foundries` - access rights and annotations}
 #'   \item{**Content data**:}{`snippet`, `tokens`, `tokenSource`, `externalLink` - actual text content, tokenization, and link to source text}
 #'   \item{**System data**:}{`indexCreationDate`, `indexLastModified` - corpus indexing info}
 #' }
 #' Use `c("textSigle", "pubDate", "author")` to retrieve multiple fields.
-#' Default fields provide basic text identification and publication metadata. The actual text content (`snippet` and `tokens`) are activated by default  if `metadataOnly` is set to `FALSE`.
+#' Default fields provide basic text identification and publication metadata. The actual text content fields (`snippet` and `tokens`) are activated by default if `metadataOnly` is set to `FALSE`.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).
 #' @param verbose print some info
 #' @param as.df return result as data frame instead of as S4 object?
 #' @param expand logical that decides if `query` and `vc` parameters are expanded to all of their combinations. Defaults to `TRUE`, iff `query` and `vc` have different lengths
 #' @param context string that specifies the size of the left and the right context returned in `snippet`
-#'        (provided that `metadataOnly` is set to `false` and that the necessary access right are  met).
-#'        The format of the context size specifcation (e.g. `3-token,3-token`) is described in the [Service: Search GET documentation of the Kustvakt Wiki](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET).
-#'        If the parameter is not set, the default context size secification of the KorAP server instance will be used.
+#'        (provided that `metadataOnly` is set to `false` and that the necessary access rights are met).
+#'        The format of the context size specification (e.g. `3-token,3-token`) is described in the [Service: Search GET documentation of the Kustvakt Wiki](https://github.com/KorAP/Kustvakt/wiki/Service:-Search-GET).
+#'        If the parameter is not set, the default context size specification of the KorAP server instance will be used.
 #'        Note that you cannot overrule the maximum context size set in the KorAP server instance,
 #'        as this is typically legally motivated.
 #' @return Depending on the `as.df` parameter, a tibble or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
@@ -403,7 +403,7 @@ setMethod(
 )
 
 #' @importFrom purrr map
-repair_data_strcuture <- function(x) {
+repair_data_structure <- function(x) {
   if (is.list(x)) {
     as.character(purrr::map(x, ~ if (length(.x) > 1) {
       paste(.x, collapse = " ")
@@ -535,7 +535,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
       log_info(verbose, "Using fields API: ")
       currentMatches <- res$matches$fields %>%
-        purrr::map(~ mutate(.x, value = repair_data_strcuture(value))) %>%
+        purrr::map(~ mutate(.x, value = repair_data_structure(value))) %>%
         tibble::enframe() %>%
         tidyr::unnest(cols = value) %>%
         tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
@@ -730,7 +730,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' q <- KorAPConnection() |>
 #'  corpusQuery("<base/s=t>", # this matches each text once
 #'     vc = "pubDate in 1958-03-12",
-#'     fields = c("textSigle", "title"),
+#'     fields = c("textSigle", "title")
 #' ) |>
 #'  fetchAll()
 #' q@collectedMatches
@@ -1018,7 +1018,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' @concept Annotations
 #'
 #' @param kqo object obtained from [corpusQuery()] with collected matches. Note: the original corpus query should have `metadataOnly = FALSE` for annotation parsing to work.
-#' @param foundry string specifying the foundry to use for annotations (default: "tt" for Tree-Tagger)
+#' @param foundry string specifying the foundry to use for annotations (default: "tt" for TreeTagger)
 #' @param overwrite logical; if TRUE, re-fetch and replace any existing
 #'   annotation columns. If FALSE (default), only add missing annotation layers
 #'   and preserve already fetched ones (e.g., keep POS/lemma from a previous
@@ -1034,7 +1034,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' @examples
 #' \dontrun{
 #'
-#' # Fetch annotations for matches using Tree-Tagger foundry
+#' # Fetch annotations for matches using TreeTagger foundry
 #' # Note: Authorization required for copyright-restricted corpora
 #' q <- KorAPConnection() |>
 #'   auth() |>
@@ -1059,7 +1059,7 @@ parse_xml_annotations_structured <- function(xml_snippet) {
 #' match_pos <- q@collectedMatches$pos$match[[i]]
 #' # Lemmas for the left context in match i
 #' left_lemmas <- q@collectedMatches$lemma$left[[i]]
-#'  # Token text for the right context in match i
+#' # Token text for the right context in match i
 #' right_tokens <- q@collectedMatches$atokens$right[[i]]
 #'
 #' # Use a different foundry (e.g., MarMoT)
@@ -1370,7 +1370,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #'
 #' **`frequencyQuery`** combines [corpusQuery()], [corpusStats()] and
 #' [ci()] to compute a tibble with the absolute and relative frequencies and
-#' confidence intervals of one ore multiple search terms across one or multiple
+#' confidence intervals of one or multiple search terms across one or multiple
 #' virtual corpora.
 #'
 #' @family frequency analysis
@@ -1383,10 +1383,10 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #' }
 #'
 # @inheritParams corpusQuery
-#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`
-#' @param query corpus query string(s.) (can be a vector). The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
+#' @param kco [KorAPConnection()] object (obtained e.g. from `KorAPConnection()`)
+#' @param query corpus query string(s) (can be a vector). The query language depends on the `ql` parameter. Either `query` must be provided or `KorAPUrl`.
 #' @param vc virtual corpus definition(s) (can be a vector)
-#' @param conf.level confidence level of the returned confidence interval (passed through [ci()]  to [prop.test()]).
+#' @param conf.level confidence level of the returned confidence interval (passed through [ci()] to [prop.test()]).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
 #' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #' @param ... further arguments passed to or from other methods (see [corpusQuery()]), most notably `expand`, a logical that decides if `query` and `vc` parameters are expanded to all of their combinations. It defaults to `TRUE`, if `query` and `vc` have different lengths, and to `FALSE` otherwise.
@@ -1395,13 +1395,13 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #' @return A tibble, with each row containing the following result columns for query and vc combinations:
 #'   - **query**: the query string used for the frequency analysis.
 #'   - **totalResults**: absolute frequency of query matches in the vc.
-#'   - **vc**:  virtual corpus used for the query.
+#'   - **vc**: virtual corpus used for the query.
 #'   - **queryDuration**: client-side duration of the request in seconds.
 #'   - **webUIRequestUrl**: URL of the corresponding web UI request with respect to query and vc.
 #'   - **total**: total number of words in vc.
-#'   - **f**:  relative frequency of query matches in the vc.
-#'   - **conf.low**:  lower bound of the confidence interval for the relative frequency, given `conf.level`.
-#'   - **conf.high**:  upper bound of the confidence interval for the relative frequency, given `conf.level`.
+#'   - **f**: relative frequency of query matches in the vc.
+#'   - **conf.low**: lower bound of the confidence interval for the relative frequency, given `conf.level`.
+#'   - **conf.high**: upper bound of the confidence interval for the relative frequency, given `conf.level`.
 
 setMethod(
   "frequencyQuery", "KorAPConnection",
