@@ -142,6 +142,24 @@ KorAPConnection("https://korap.dnb.de") |>
 
 In a query, `/` separates foundry and layer, as in `tt/l`, and is no regex delimiter. In a `vc`, `textType = "Krimi.*"` is no error, but looks for the literal string and finds nothing. Both follow the [regular expression syntax of Lucene 5](https://lucene.apache.org/core/5_0_0/core/org/apache/lucene/util/automaton/RegExp.html), not the Perl-style one of most programming languages. A regular expression has to match the whole value, hence the `.*` around *Krimi*. Inline flags, like `(?i)` for ignoring case, are not supported, so spell out case variants, e.g. `[Kk]rimi`. Nor are shorthand classes: `\d` stands for just the letter *d*, so write `[0-9]` instead.
 
+### Slow queries: use a random sample of texts
+
+Complex queries can take minutes on a large corpus, especially on DeLiKo@DNB (`https://korap.dnb.de`), or exceed the time limit of the server, in which case RKorAPClient warns that the results are incomplete. As long as KorAP does not offer sampling by itself, you can work around this, if relative frequencies are what you are after, by restricting the virtual corpus to a pseudo-random sample of texts, selected by the last digit of their text sigle (e.g. `A00/JUN/39609`):
+
+| `vc`                    | sample of texts |
+|-------------------------|-----------------|
+| `textSigle = /.*5/`     | about 10 %      |
+| `textSigle = /.*[0-4]/` | about 50 %      |
+
+```r
+KorAPConnection("https://korap.dnb.de", verbose = TRUE) |>
+  frequencyQuery("[orth=mit] [orth=einer]", vc = "textSigle = /.*5/")
+```
+
+The relative frequency `f` remains an estimate for the whole (virtual) corpus, with a correspondingly wider confidence interval, whereas `totalResults` counts only the hits in the sample. Combine the sample with other conditions using `&`, e.g. `vc = "textType = /.*Krimi.*/ & textSigle = /.*5/"`. Each digit selects a different sample, and always the same one, so results stay reproducible.
+
+How much time a sample saves depends on whether the server has recently read the index of the query terms, for whatever query. If not, it saves hardly any, because most of the time goes into reading the index from disk: in DeLiKo@DNB, the query above took 35 seconds on the 10 % sample, about as long as a comparable query on the whole corpus. If so, it saves about as much as it leaves out: the same query took 0.9 seconds on another 10 % sample and 6.6 seconds on the whole corpus. A sample therefore pays off in series of queries on the same terms, such as a `frequencyQuery` over many years or a `collocationAnalysis`. Repeating a query on the same `vc` takes no time anyway, as its result comes from the [local cache](#local-caching-of-api-responses). Queries that are fast anyway do not get faster, because selecting the sample takes some time itself.
+
 ### Metadata of a text
 
 `textMetadata` retrieves all metadata KorAP holds for a text, given its sigle as found in the `textSigle` column of query results:

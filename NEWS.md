@@ -1,6 +1,7 @@
 # RKorAPClient (development version)
 
 - **the Readme explains how regular expressions are marked** in queries and in virtual corpora, where double quotes mean opposite things: `"…"` is a regular expression in Poliqarp+, but a literal string in a `vc`, where regular expressions go between slashes. A literal string in a `vc` raises no error but just finds nothing, a trap that a language model, too, easily falls into. A new doc-prompting test checks that code written from the Readme gets both right
+- **the Readme suggests a random sample of texts for slow queries**, selected by the last digit of the text sigle, e.g. `vc = "textSigle = /.*5/"` for about 10 % of the texts. The relative frequency remains an estimate for the whole corpus. In DeLiKo@DNB, where slow queries are most common, a sample saves about as much time as it leaves out once the server has read the index of the query terms, as in a series of queries on the same terms, but hardly any time before. The help pages of `corpusQuery()`, `frequencyQuery()` and `collocationAnalysis()` describe the workaround as well, until KorAP supports sampling by itself. A new doc-prompting test checks that a language model, asked to speed up a query that times out, comes up with such a sample by itself
 
 # RKorAPClient 1.4.1
 

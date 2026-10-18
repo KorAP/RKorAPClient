@@ -204,6 +204,29 @@ virtual corpora, so rank-based deltas compare positions in populations of
 different sizes.
 }
 
+\section{Slow queries}{
+
+Complex queries can take minutes on large corpora, especially on DeLiKo@DNB
+(\verb{https://korap.dnb.de}), or exceed the time limit of the server, which leaves
+the results incomplete. As long as KorAP does not offer sampling by itself,
+a workaround is to restrict \code{vc} to a pseudo-random sample of texts, selected
+by the last digit of their sigle: \code{"textSigle = /.*5/"} selects about a tenth,
+\code{"textSigle = /.*[0-4]/"} about half of the texts. Combine the sample with
+other conditions using \code{&}, e.g. \code{"textType = /.*Krimi.*/ & textSigle = /.*5/"}.
+Relative frequencies, and association scores that do not depend on the corpus
+size, such as logDice, remain estimates for the whole (virtual) corpus,
+whereas absolute frequencies, and with them log-likelihood scores, shrink with
+the sample. A sample saves about as much time as it leaves out if the server
+has recently read the index of the query terms, e.g. for the same query on
+another virtual corpus, but hardly any time otherwise, when most of the time
+goes into reading the index from disk. It thus pays off in series of queries
+on the same terms, such as a \code{\link[=frequencyQuery]{frequencyQuery()}} over many years or a
+\code{\link[=collocationAnalysis]{collocationAnalysis()}}. Repeating a query on the same \code{vc} takes no time
+anyway, as its result comes from the local cache (see the \code{cache} parameter
+of \code{\link[=KorAPConnection]{KorAPConnection()}}). Queries that are fast anyway do not get faster,
+because selecting the sample takes some time itself.
+}
+
 \examples{
 \dontrun{
 

@@ -90,6 +90,7 @@ filterByObservedExpectedRatio <- function(result, minObservedExpectedRatio) {
 #'   not contain the parameters yet and are used as they are.
 #' @param ...                    more arguments will be passed to [collocationScoreQuery()]
 #' @inheritParams collocationScoreQuery,KorAPConnection-method
+#' @inheritSection corpusQuery,KorAPConnection-method Slow queries
 #' @return
 #' A tibble where each row represents a candidate collocate for the requested node.
 #' Columns include (depending on the selected association measures):

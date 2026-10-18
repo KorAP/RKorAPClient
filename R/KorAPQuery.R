@@ -129,6 +129,26 @@ utils::globalVariables(c("."))
 #'        If the parameter is not set, the default context size specification of the KorAP server instance will be used.
 #'        Note that you cannot overrule the maximum context size set in the KorAP server instance,
 #'        as this is typically legally motivated.
+#' @section Slow queries:
+#' Complex queries can take minutes on large corpora, especially on DeLiKo@DNB
+#' (`https://korap.dnb.de`), or exceed the time limit of the server, which leaves
+#' the results incomplete. As long as KorAP does not offer sampling by itself,
+#' a workaround is to restrict `vc` to a pseudo-random sample of texts, selected
+#' by the last digit of their sigle: `"textSigle = /.*5/"` selects about a tenth,
+#' `"textSigle = /.*[0-4]/"` about half of the texts. Combine the sample with
+#' other conditions using `&`, e.g. `"textType = /.*Krimi.*/ & textSigle = /.*5/"`.
+#' Relative frequencies, and association scores that do not depend on the corpus
+#' size, such as logDice, remain estimates for the whole (virtual) corpus,
+#' whereas absolute frequencies, and with them log-likelihood scores, shrink with
+#' the sample. A sample saves about as much time as it leaves out if the server
+#' has recently read the index of the query terms, e.g. for the same query on
+#' another virtual corpus, but hardly any time otherwise, when most of the time
+#' goes into reading the index from disk. It thus pays off in series of queries
+#' on the same terms, such as a [frequencyQuery()] over many years or a
+#' [collocationAnalysis()]. Repeating a query on the same `vc` takes no time
+#' anyway, as its result comes from the local cache (see the `cache` parameter
+#' of [KorAPConnection()]). Queries that are fast anyway do not get faster,
+#' because selecting the sample takes some time itself.
 #' @return Depending on the `as.df` parameter, a tibble or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
 #' A corresponding URL to be used within a web browser is contained in `@webUIRequestUrl`
 #' Please make sure to check `$collection$rewrites` to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
@@ -1389,6 +1409,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #' @param conf.level confidence level of the returned confidence interval (passed through [ci()] to [prop.test()]).
 #' @param as.alternatives LOGICAL that specifies if the query terms should be treated as alternatives. If `as.alternatives` is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.
 #' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
+#' @inheritSection corpusQuery,KorAPConnection-method Slow queries
 #' @param ... further arguments passed to or from other methods (see [corpusQuery()]), most notably `expand`, a logical that decides if `query` and `vc` parameters are expanded to all of their combinations. It defaults to `TRUE`, if `query` and `vc` have different lengths, and to `FALSE` otherwise.
 #' @export
 #'

@@ -629,6 +629,39 @@ for (model in llmModels()) {
     cat("Generated regular expressions code:\n", generated_code, "\n")
   })
 
+  test_that(paste(model, "can solve slow query task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    # the task does not mention sampling: the model should come up with the
+    # textSigle sample of the Readme by itself, and keep the original condition
+    prompt <- create_readme_prompt(
+      paste(
+        "my R code",
+        "frequencyQuery(KorAPConnection('https://korap.dnb.de'), '[tt/p=ADJA] [tt/p=ADJA] [tt/l=Blick]',",
+        "vc = 'textType = /.*Krimi.*/') runs for minutes and warns that the results are incomplete.",
+        "Rewrite it so that it finishes faster, but still estimates the relative frequency in crime fiction."
+      )
+    )
+
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 300))
+
+    expect_true(grepl("frequencyQuery", generated_code), "Generated code should include frequencyQuery")
+    expect_true(
+      grepl("textSigle\\s*=\\s*/[^/]*\\[?[0-9]", generated_code),
+      "Generated code should restrict the vc to a sample of texts by the last digits of their sigles"
+    )
+    expect_true(
+      grepl("textType\\s*=\\s*/[^/]*Krimi", generated_code) && grepl("&", generated_code, fixed = TRUE),
+      "Generated code should combine the sample with the original condition"
+    )
+    expect_true(test_code_syntax(generated_code), "Generated code should be syntactically valid R code")
+
+    cat("Generated slow query code:\n", generated_code, "\n")
+  })
+
   # The code of the following two tasks cannot reasonably be executed in a test:
   # authorization needs a browser flow or a token for restricted data, and a
   # multi-VC collocation analysis runs for minutes. Only the generated code is
