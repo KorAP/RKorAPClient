@@ -514,6 +514,11 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
   # This is important for correctly showing page numbers in subsequent fetchNext calls
   page_count_start <- current_page_number
 
+  # set when a page could not be fetched, so that the result is not
+  # mistaken for a complete one
+  failed_offset <- NULL
+  last_res <- NULL
+
   repeat {
     # Determine which page to fetch next
     if (randomizePageOrder) {
@@ -548,6 +553,11 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     # Rebuild the URL with all parameters
     query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
     res <- apiCall(kqo@korapConnection, query)
+    if (is.null(res)) {
+      failed_offset <- currentOffset
+      break
+    }
+    last_res <- res
     if (length(res$matches) == 0) {
       break
     }
@@ -706,7 +716,17 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
       break
     }
   }
-  nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, kqo@totalResults)
+  if (!is.null(failed_offset)) {
+    warning(
+      "Fetching the query results from offset ", failed_offset, " failed, so the collected matches are incomplete. ",
+      "Call fetchRest() to fetch the remaining ones.",
+      call. = FALSE
+    )
+    nextStartIndex <- failed_offset
+    res <- last_res
+  } else {
+    nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, kqo@totalResults)
+  }
   KorAPQuery(
     nextStartIndex = nextStartIndex,
     korapConnection = kqo@korapConnection,

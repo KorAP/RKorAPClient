@@ -405,6 +405,34 @@ KorAPCacheSubDir <- function() {
 
 setGeneric("apiCall", function(kco, ...) standardGeneric("apiCall"))
 
+# how often a request is tried, and how long it may wait in all, when the
+# server answers 429 (Too Many Requests) or 503 (Service Unavailable)
+maxApiTries <- 10
+maxRetryWaitSeconds <- 600
+
+#' Seconds to wait before retrying a request, as the server asks
+#'
+#' Reads the Retry-After header of a 429 or 503 response. Kustvakt rounds it
+#' down to full seconds, hence the extra second.
+#'
+#' @param resp httr2 response
+#' @param verbose logical that decides if the wait is reported
+#' @return seconds to wait, or `NA` to let httr2 back off exponentially
+#' @noRd
+retryAfterSeconds <- function(resp, verbose = FALSE) {
+  seconds <- suppressWarnings(as.numeric(httr2::resp_header(resp, "Retry-After", default = NA)))
+  if (is.na(seconds)) {
+    return(NA)
+  }
+  seconds <- seconds + 1
+  log_info(
+    verbose, "\n", ansi("The KorAP server asks to slow down", "yellow"),
+    " (", httr2::resp_status(resp), " ", httr2::resp_status_desc(resp), "), retrying in ",
+    seconds, "s\n"
+  )
+  seconds
+}
+
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 utils::globalVariables(c("."))
 
@@ -441,10 +469,18 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
   # disable the curl low-speed abort (r-curl kills "stalled" transfers
   # with less than 1 byte/s after 600s by default): long running
   # searches are guarded by the overall request timeout instead
+  # Kustvakt limits the number of requests per access token and answers
+  # with 429 and a Retry-After header beyond that, so that fetching many
+  # pages waits for the limit to recover instead of failing
   req <- httr2::request(url) |>
     httr2::req_user_agent(kco@userAgent) |>
     httr2::req_options(low_speed_limit = 0, low_speed_time = 0) |>
-    httr2::req_timeout(timeout)
+    httr2::req_timeout(timeout) |>
+    httr2::req_retry(
+      max_tries = maxApiTries,
+      max_seconds = maxRetryWaitSeconds,
+      after = function(resp) retryAfterSeconds(resp, kco@verbose)
+    )
 
   if (!is.null(kco@oauthClient)) {
     req <- req |> oauthRefresh(kco@oauthClient, scope = kco@oauthScope, kco)
@@ -472,7 +508,8 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
       result <- tryCatch(
         resp |> httr2::resp_body_json(),
         error = function(e) {
-          message("Failed to parse json with error details: ", e$message)
+          # Kustvakt labels some plain text error messages as JSON
+          message("Error details: ", trimws(resp |> httr2::resp_body_string()))
           return(NULL)
         }
       )
