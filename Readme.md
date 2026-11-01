@@ -52,6 +52,18 @@ This cache is a transparent speed-up that you can throw away at any time. To kee
 
 Please note that, in the case of DeReKo, authorized queries behave differently inside and outside the IDS, because of the special license situation. Cached results do not record from where a request was issued, so if you get unexpected results after changing networks, use `clearCache()` or `cache = FALSE`.
 
+### Choosing metadata fields for a time series
+
+The client sends the virtual-corpus definition (`vc`) to the selected KorAP instance. Available metadata fields, their meaning and their coverage depend on that corpus; the client cannot decide which field answers your research question.
+
+- `pubDate` refers to publication, whereas `creationDate` refers to text creation. They are not generally interchangeable. For a question about publication years, use `pubDate`; for creation years, use `creationDate`, after checking how the corpus defines and populates the field.
+- A publication date may describe the edition represented in the corpus, rather than the first publication of the work. A creation date is not automatically a documented date of first publication either.
+- The two fields may give the same results in one corpus or subset. Do not assume that this carries over to another corpus, particularly when moving between DeLiKo and DeReKo.
+
+Check the corpus documentation for the intended meaning, missing values and date precision. `textMetadata()` (see below) shows stored values for individual texts; it does not supply field definitions or a complete inventory of possible values. A syntactically valid query and plausible counts do not establish that the right metadata field was chosen. The need for accessible field descriptions is also discussed in [Kalamar issue #40](https://github.com/KorAP/Kalamar/issues/40).
+
+The following time-series examples use `creationDate`; their year axis therefore follows that field, not necessarily publication year.
+
 ### Frequencies over time and domains using ggplot2
 
 ```r
@@ -67,7 +79,7 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 ```
 ![](man/figures/Readme-Example-1.png)<!-- -->
 
-`frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals.
+`frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals. The relative frequencies and confidence limits are proportions, not values per million. Use `ipm()` when a plotting workflow needs values per million, as in the ggplot2 example above. When using `hc_freq_by_year_ci()`, pass the `frequencyQuery()` result directly: that helper performs the conversion itself (or converts to percentages with `as.alternatives = TRUE`). Calling `ipm()` first would scale the confidence limits twice.
 
 ### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
 
