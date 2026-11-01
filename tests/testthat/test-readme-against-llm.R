@@ -327,7 +327,98 @@ run_code_if_enabled <- function(code, test_name) {
   }
 }
 
+# The interactive helper already converts frequencies and confidence limits.
+# A generated script that also calls ipm() may run without an error, but its
+# confidence bands are then wrong. Inspect parsed names so comments mentioning
+# a pitfall do not count as code that actually uses it.
+interactive_frequency_code_issues <- function(code) {
+  parsed <- tryCatch(parse(text = code), error = function(e) NULL)
+  if (is.null(parsed)) return("invalid R syntax")
+
+  symbols <- all.names(parsed, functions = TRUE, unique = TRUE)
+  required <- c("KorAPConnection", "frequencyQuery", "hc_freq_by_year_ci")
+  missing <- setdiff(required, symbols)
+  issues <- if (length(missing)) paste0("missing ", missing) else character(0)
+  if ("ipm" %in% symbols) {
+    issues <- c(issues, "ipm() before the interactive helper scales confidence limits twice")
+  }
+  if ("ggplotly" %in% symbols) {
+    issues <- c(issues, "uses ggplotly() instead of the documented interactive helper")
+  }
+  if ("auth" %in% symbols) {
+    issues <- c(issues, "frequency queries do not require auth()")
+  }
+  text <- paste(deparse(parsed), collapse = " ")
+  if (grepl("as\\.alternatives\\s*=\\s*TRUE", text)) {
+    issues <- c(issues, "percentages of alternatives are not frequencies per million")
+  }
+  issues
+}
+
+test_that("interactive frequency checks catch executable but misleading code", {
+  good <- paste(
+    "library(RKorAPClient)",
+    'KorAPConnection("https://korap.dnb.de") |>',
+    'frequencyQuery(c("Berlin", "Paris"), vc = "award=buchpreis & pubDate in 2020") |>',
+    "hc_freq_by_year_ci()",
+    sep = "\n"
+  )
+  expect_length(interactive_frequency_code_issues(good), 0)
+  expect_length(interactive_frequency_code_issues(paste("# Do not call ipm() or auth()", good, sep = "\n")), 0)
+  expect_true(any(grepl("scales confidence", interactive_frequency_code_issues(
+    sub("hc_freq_by_year_ci()", "ipm() |> hc_freq_by_year_ci()", good, fixed = TRUE)
+  ))))
+  expect_true(any(grepl("auth", interactive_frequency_code_issues(
+    sub("frequencyQuery", "auth() |> frequencyQuery", good, fixed = TRUE)
+  ))))
+  expect_true(any(grepl("ggplotly", interactive_frequency_code_issues(
+    sub("hc_freq_by_year_ci()", "ggplotly()", good, fixed = TRUE)
+  ))))
+  expect_true(any(grepl("percentages", interactive_frequency_code_issues(
+    sub("hc_freq_by_year_ci()", "hc_freq_by_year_ci(as.alternatives = TRUE)", good, fixed = TRUE)
+  ))))
+  expect_identical(interactive_frequency_code_issues("broken("), "invalid R syntax")
+})
+
+# Kept as a function so a single task/model can also be run while improving the
+# Readme: source this file with RKORAP_LLM_MODELS="", then call this function.
+# Normal CI calls it for each configured model, alongside the other tasks.
+test_interactive_frequency_task <- function(model) {
+  test_that(paste(model, "can solve interactive frequency plot task with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found in current or parent directories")
+
+    # State the desired result in ordinary language. Do not name the plotting
+    # helper: finding it from the documentation is what this task tests.
+    prompt <- create_readme_prompt(paste(
+      "write a short R script with RKorAPClient showing the frequency of European capital names",
+      "in the DeLiKo corpus at https://korap.dnb.de, restricted to award=buchpreis,",
+      "for publication years 2011 to 2025. Show an interactive time-series plot with",
+      "confidence intervals, frequencies per million words and a separate line per capital."
+    ))
+    generated_code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 1000))
+
+    expect_true(test_code_syntax(generated_code), "Generated code should be valid R")
+    issues <- interactive_frequency_code_issues(generated_code)
+    expect_true(length(issues) == 0, info = paste(issues, collapse = "; "))
+    expect_true(grepl("korap.dnb.de", generated_code, fixed = TRUE), "Generated code should select DeLiKo")
+    expect_true(grepl("award", generated_code, fixed = TRUE) && grepl("buchpreis", generated_code, fixed = TRUE),
+                "Generated code should retain the requested virtual corpus")
+    expect_true(grepl("pubDate", generated_code, fixed = TRUE), "Generated code should select publication years")
+
+    cat("Generated interactive frequency code:\n", generated_code, "\n")
+    execution_result <- run_code_if_enabled(generated_code, "interactive frequency plot")
+    if (!is.na(execution_result)) {
+      expect_true(execution_result, "Generated code should execute without runtime errors")
+    }
+  })
+}
+
 for (model in llmModels()) {
+  test_interactive_frequency_task(model)
+
   test_that(paste(model, "can solve frequency query task with README guidance"), {
     # Skip if offline
     skip_if_offline()

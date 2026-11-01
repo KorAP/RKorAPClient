@@ -81,7 +81,9 @@ expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtsch
 
 `frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals. The relative frequencies and confidence limits are proportions, not values per million. Use `ipm()` when a plotting workflow needs values per million, as in the ggplot2 example above. When using `hc_freq_by_year_ci()`, pass the `frequencyQuery()` result directly: that helper performs the conversion itself (or converts to percentages with `as.alternatives = TRUE`). Calling `ipm()` first would scale the confidence limits twice.
 
-### Percentages over time using [highcharter](http://jkunst.com/highcharter/)
+### Interactive time-series plots using [highcharter](http://jkunst.com/highcharter/)
+
+For an **interactive frequency plot over time with confidence intervals**, pass the result of `frequencyQuery()` directly to `hc_freq_by_year_ci()`. This helper is provided by RKorAPClient and returns an interactive HTML widget, with tooltips and clickable data points that open the corresponding KorAP search results. No additional plotting package needs to be loaded. By default, it shows frequencies per million tokens; the example below uses `as.alternatives = TRUE` to show percentages instead.
 
 See the [Highcharts license notes](#highcharts) below.
 
