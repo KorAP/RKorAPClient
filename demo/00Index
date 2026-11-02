@@ -6,6 +6,7 @@ regional                        Map plot regional frequencies of query expressio
 mosaicplot                      Visualize frequencies of alternative query terms in relation to other variables
 shiny-frequency-curves          Web application that plots frequency curves with highcharts and shiny
 writtenVsSpoken                 Compare frequencies in written vs. spoken corpora
+writtenVsSpoken_highcharts      Compare written vs. spoken frequencies with clickable Highcharts bars and confidence intervals
 displayKwics                    Display query results including KWICs (also demonstrates OAuth2 browser workflow)
 light-verb-construction-ca      Collocation analysis to identify light verb constructions matching the pattern "in NN setzen", with result rendered as HTML DataTable
 highcharter-example             Visualize frequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using the package highcharter as wrapper for Highcharts
