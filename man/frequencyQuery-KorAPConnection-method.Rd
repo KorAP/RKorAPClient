@@ -12,6 +12,11 @@
   conf.level = 0.95,
   as.alternatives = FALSE,
   cacheAs = NULL,
+  dispersionBy = NULL,
+  dispersionFunctions = defaultDispersionFunctions(),
+  dispersionExactFrequencies = TRUE,
+  searchHitsSampleLimit = 20000,
+  seed = 7,
   ...
 )
 }
@@ -27,6 +32,21 @@
 \item{as.alternatives}{LOGICAL that specifies if the query terms should be treated as alternatives. If \code{as.alternatives} is TRUE, the sum over all query hits, instead of the respective vc token sizes is used as total for the calculation of relative frequencies.}
 
 \item{cacheAs}{path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's \code{cache}, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).}
+
+\item{dispersionBy}{Optional \code{\link[=corpusPartition]{corpusPartition()}} table or named list of tables.
+Adds a \code{dispersion} list column computed by \code{\link[=dispersionQuery]{dispersionQuery()}}. Each
+partition's base corpus must match the frequency row's \code{vc}.}
+
+\item{dispersionFunctions}{Named list of replaceable dispersion functions;
+see \code{\link[=defaultDispersionFunctions]{defaultDispersionFunctions()}}.}
+
+\item{dispersionExactFrequencies}{Use exact part counts for the optional
+dispersion analysis; \code{FALSE} uses metadata sampling.}
+
+\item{searchHitsSampleLimit}{Maximum number of metadata hits to download for
+the optional dispersion analysis; see \code{\link[=dispersionQuery]{dispersionQuery()}}.}
+
+\item{seed}{Seed for optional dispersion sampling.}
 
 \item{...}{further arguments passed to or from other methods (see \code{\link[=corpusQuery]{corpusQuery()}}), most notably \code{expand}, a logical that decides if \code{query} and \code{vc} parameters are expanded to all of their combinations. It defaults to \code{TRUE}, if \code{query} and \code{vc} have different lengths, and to \code{FALSE} otherwise.}
 }

@@ -14,6 +14,24 @@ offlineKco <- function() {
   )
 }
 
+test_that("frequency caches from before dispersion remain reusable and unchanged", {
+  kco <- offlineKco()
+  file <- tempfile(fileext = ".rds")
+  on.exit(unlink(file), add = TRUE)
+  kept <- tibble::tibble(query = "word", vc = "", totalResults = 7, total = 100)
+  attr(kept, RKorAPClient:::cacheAsAttribute) <- list(
+    scoreVersion = "1.4.0", packageVersion = "1.4.1",
+    parameters = list(query = "word", vc = "", conf.level = .95, as.alternatives = FALSE),
+    dots = list(), apiUrl = kco@apiUrl, indexRevision = "older-index")
+  saveRDS(kept, file)
+  before <- readBin(file, "raw", n = file.info(file)$size)
+  testthat::local_mocked_bindings(corpusQuery = function(...) stop("must reuse saved results"),
+    .package = "RKorAPClient")
+  expect_silent(result <- frequencyQuery(kco, "word", cacheAs = file))
+  expect_equal(result$totalResults, 7)
+  expect_identical(readBin(file, "raw", n = file.info(file)$size), before)
+})
+
 test_that("blessCacheAs makes an old file usable again", {
   kco <- offlineKco()
   file <- tempfile(fileext = ".rds")
@@ -223,4 +241,16 @@ test_that("verbosity is not part of what a cache file records", {
   expect_silent(
     corpusStats(kco, vc = "pubDate since 2020", as.df = TRUE, verbose = TRUE, cacheAs = file)
   )
+})
+
+test_that("cache records ignore only options explicitly named by their caller", {
+  kco <- offlineKco()
+  otherAnalysis <- function(kco, as.alternatives = FALSE, seed = 7) {
+    RKorAPClient:::cacheAsRecord(environment(), list(), kco)
+  }
+  record <- otherAnalysis(kco)
+  expect_equal(record$parameters$seed, 7)
+  expect_equal(record$parameters$as.alternatives, FALSE)
+  expect_null(RKorAPClient:::cacheAsRejectionReason(record, record))
+  expect_match(RKorAPClient:::cacheAsRejectionReason(record, otherAnalysis(kco, seed = 8)), "seed")
 })

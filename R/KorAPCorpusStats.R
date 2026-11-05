@@ -145,7 +145,7 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
     res <- apiCall(kco, url)
     webUIRequestUrl <- paste0(kco@KorAPUrl, sprintf("?q=<base/s=t>&cq=%s", url_encode(enc2utf8(vc))))
     if (is.null(res)) {
-      res <- data.frame(documents = NA, tokens = NA, sentences = NA, paragraphs = NA)
+      res <- data.frame(documents = NA_real_, tokens = NA_real_, sentences = NA_real_, paragraphs = NA_real_)
     }
     log_info(verbose, ": ", format_count(res$tokens), " tokens\n")
     if (as.df) {

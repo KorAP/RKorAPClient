@@ -12,6 +12,7 @@ cacheAsInfo(cacheAs)
 \value{
 a list with the elements \code{scoreVersion}, \code{packageVersion},
 \code{parameters}, \code{dots},
+\code{ignoredParameters} (inactive options, when recorded),
 \code{apiUrl} and \code{indexRevision}, or \code{NULL} for a file written by a version
 before 1.4.0, which recorded none of this
 }

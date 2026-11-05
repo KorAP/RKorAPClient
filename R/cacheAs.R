@@ -105,20 +105,22 @@ cacheAsFileName <- function(cacheAs) {
 #' @param frame environment of the calling query function
 #' @param dots its `...` arguments, or `NULL` where it has none
 #' @param kco [KorAPConnection()] object
+#' @param ignore Formal arguments belonging to an inactive optional analysis.
 #' @return list to store with, and compare against, a cache file
 #' @noRd
-cacheAsRecord <- function(frame, dots, kco) {
+cacheAsRecord <- function(frame, dots, kco, ignore = character()) {
   parameterNames <- setdiff(
     names(formals(sys.function(sys.parent()))),
     # verbose says how loud the computation is, not what it computes
-    c("kco", "cacheAs", "verbose", "...")
+    c("kco", "cacheAs", "verbose", "...", ignore)
   )
   list(
     # what has to match on the next call
     scoreVersion = cacheAsScoreVersion,
     # recorded so that a file can say where its numbers come from
     packageVersion = as.character(utils::packageVersion("RKorAPClient")),
-    parameters = mget(parameterNames, envir = frame),
+    parameters = cacheAsParameters(mget(parameterNames, envir = frame)),
+    ignoredParameters = ignore,
     dots = dots,
     # reusing one cache file for two KorAP instances is a mistake worth catching
     apiUrl = kco@apiUrl,
@@ -126,6 +128,25 @@ cacheAsRecord <- function(frame, dots, kco) {
     # should not invalidate a deliberately kept result
     indexRevision = kco@indexRevision
   )
+}
+
+# Compare automatically generated partitions by their data and grouping rule
+# rather than closure environments.
+cacheAsParameters <- function(parameters) {
+  lapply(parameters, cacheAsParameter)
+}
+
+cacheAsParameter <- function(value) {
+  if (inherits(value, "KorAPCorpusPartition")) {
+    spec <- attr(value, "partition")
+    if (isTRUE(spec$automatic)) {
+      spec$classify <- NULL
+      attr(value, "partition") <- spec
+    }
+    return(value)
+  }
+  if (is.list(value) && !is.object(value)) return(lapply(value, cacheAsParameter))
+  value
 }
 
 #' Why a cache file cannot be used for the current call
@@ -160,6 +181,12 @@ cacheAsRejectionReason <- function(stored, current) {
   if (is.null(stored$parameters)) {
     return(NULL)
   }
+
+  # The current caller explicitly identifies inactive options. Ignore these in
+  # older records too, including records written before that annotation existed.
+  stored$parameters <- cacheAsParameters(stored$parameters[
+    setdiff(names(stored$parameters), current$ignoredParameters)])
+  current$parameters <- cacheAsParameters(current$parameters)
 
   differing <- character(0)
   for (name in union(names(stored$parameters), names(current$parameters))) {
@@ -248,6 +275,7 @@ blessCacheAs <- function(cacheAs) {
 #' @param cacheAs path to the file, with or without its `.rds` extension
 #' @return a list with the elements `scoreVersion`, `packageVersion`,
 #'   `parameters`, `dots`,
+#'   `ignoredParameters` (inactive options, when recorded),
 #'   `apiUrl` and `indexRevision`, or `NULL` for a file written by a version
 #'   before 1.4.0, which recorded none of this
 #'

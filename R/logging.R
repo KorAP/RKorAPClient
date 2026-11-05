@@ -329,3 +329,11 @@ format_count <- function(n) {
   # "d" would coerce to integer, and a corpus can hold more than 2^31 tokens
   formatC(n, format = "f", digits = 0, big.mark = ",")
 }
+
+# Failed queries and incomplete pages must be distinguishable from unrelated
+# dependency warnings by analyses that require complete data.
+warnIncompleteResults <- function(..., call. = FALSE) {
+  warning(structure(list(message = paste0(...),
+                         call = if (call.) sys.call(-1L) else NULL),
+                    class = c("korapIncompleteResults", "warning", "condition")))
+}

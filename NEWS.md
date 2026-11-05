@@ -1,5 +1,33 @@
 # RKorAPClient (development version)
 
+- Added experimental metadata-based dispersion analysis with replaceable DP,
+  corrected DPnorm, Juilland's D, Carroll's D2, Rosengren's S and range.
+  `dispersionAnalysis()` accepts
+  counts or `corpusQuery()` results; `dispersionQuery()` and
+  `frequencyQuery(dispersionBy = ...)` provide query wrappers. `corpusPartition()`
+  discovers metadata groups and token sizes independently of the search terms,
+  retaining groups without hits and reporting incomplete metadata coverage.
+- Added `fetchSamplePages(maxHits = ..., seed = ...)` for explicit, reproducible
+  selection of complete result pages. It samples pages rather than independent
+  hits and warns that clustering can strongly bias dispersion estimates. Without
+  a fetch, dispersion uses exact part counts; after a fetch it reuses the recorded
+  pages or complete unjoined metadata. Comparisons show sample coverage and warn
+  about unequal inclusion probabilities. `maxHits = Inf` fetches all hits.
+- Named query vectors retain fetchable states with `as.df = FALSE`. Their
+  dispersion comparisons share partitions and print measures side by side.
+  The demo compares Nutzer*innen and Nutzer:innen across sources, publication
+  countries and calendar years in 2023-2025 using complete results. A single
+  README-guided prompting scenario covers the page-sampling alternative.
+- Added `corpusTitle` to the default match metadata. Source grouping combines
+  annual titles, and compact filters avoid repeating metadata conditions in
+  group-discovery requests. The Stern corpus-size demo also accepts annual
+  corpus titles in current DeReKo.
+- `fetchAll()` restarts retrieval from the beginning and replaces previously
+  collected matches, including page samples. With preserved metadata,
+  single-valued columns remain ordinary vectors and only multivalued columns
+  remain lists. Continuation calls inherit the recorded preservation mode;
+  changing modes requires restarting with `fetchAll()`.
+
 - **requests that hit the rate limit of the KorAP server are retried**: KorAP limits the number of requests per access token and answers `429 Too Many Requests` beyond that, which made `fetchAll()` of large result sets fail after some thousand pages. RKorAPClient now waits as long as the server's `Retry-After` header asks, and tries again, as it does for `503 Service Unavailable`
 - **`fetchNext()`, `fetchAll()` and `fetchRest()` no longer mistake a failed page for the end of the results**: they warn that the collected matches are incomplete and keep `nextStartIndex` and `hasMoreMatches` at the failed page, so that `fetchRest()` can continue from there. Before, the result looked complete
 - error messages that the server labels as JSON, but sends as plain text, like `Rate limit exceeded`, are shown as they are, instead of a JSON parsing error

@@ -94,6 +94,177 @@ expand_grid(
 
 `frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals. The relative frequencies and confidence limits are proportions, not values per million. Use `ipm()` when a plotting workflow needs values per million, as in the ggplot2 example above. When using `hc_freq_by_year_ci()`, pass the `frequencyQuery()` result directly: that helper performs the conversion itself (or converts to percentages with `as.alternatives = TRUE`). Calling `ipm()` first would scale the confidence limits twice.
 
+### Dispersion across metadata
+
+[![Lifecycle: experimental](man/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+`dispersionAnalysis()` is experimental: its interface and result structure may
+change in future releases.
+
+Research question: **Are Nutzer*innen and Nutzer:innen similarly dispersed
+across press sources, publication countries and publication years in 2023-2025,
+accounting for the token counts in each group?**
+Search both variants, fetch their metadata, then compare their dispersion:
+
+```r
+kco <- KorAPConnection()
+queries <- c("Nutzer*innen" = "[orth='Nutzer*innen']",
+             "Nutzer:innen" = "[orth='Nutzer:innen']")
+hits <- corpusQuery(kco, queries,
+  vc = "pubDate since 2023 & pubDate until 2025 & textType=/Zeit.*/ & pubPlaceKey=/.+/",
+  fields = c("corpusTitle", "pubPlaceKey", "pubDate")) |>
+  fetchSamplePages(maxHits = Inf, seed = 7)
+d <- dispersionAnalysis(hits, by = c("source", "pubPlaceKey", "year"))
+d  # measures as rows; one column per spelling
+```
+
+`maxHits = Inf` fetches all hits, so this comparison uses exact distributions.
+For exploratory page-sample estimates, replace the fetch step with
+`fetchSamplePages(maxHits = 2000, seed = 7)`. Clustering within pages can strongly
+bias dispersion scores, even when extrapolated hit counts are unbiased. The
+printout shows hits used, pages used/available and inclusion probabilities for
+each variant when any scores are estimated. Different inclusion probabilities
+trigger a warning; use complete data or exact part counts for comparisons.
+
+The country-presence filter `pubPlaceKey=/.+/` is a temporary workaround for
+missing location metadata in HAZ23-HAZ25. All three analyses therefore use
+texts with a publication-country key. Remove this filter once the metadata
+have been repaired.
+
+The library discovers the sources and their token sizes, including sources
+without hits. No source lists, corpus-size calculations or classification
+functions are needed in the analysis script. `by = "source"` groups annual
+DeReKo corpus titles into sources automatically. To specify the metadata field
+and suffix rule explicitly, use:
+
+```r
+dispersionAnalysis(hits, by = "corpusTitle", regex = " [0-9]{4}$")
+```
+
+Here `regex` removes the matching suffix; it does not select which sources to
+include. Other metadata fields work without a regex. `by = "year"` groups
+publication dates into years, and `by = "region"` uses `pubPlaceKey`. A vector
+such as the one above reuses the same hit sample for all three dimensions.
+
+Years are discrete calendar-year groups, with the token count of each year as
+its size. Years containing corpus texts but no query hits remain included.
+These measures ignore year order and time gaps: they describe evenness across
+years, rather than an increasing or decreasing trend. A trend test would be a
+separate analysis. Compare the spellings within each dimension; source, country
+and year scores describe different partitions.
+
+`fetchSamplePages()` selects complete pages without replacement, up to `maxHits`
+hits per query. It warns that hits within pages retain Lucene index order:
+these are page samples, not independent random hits. If all results fit within
+`maxHits`, they are fetched completely. The seed, selected pages and inclusion
+probability are recorded. `dispersionAnalysis()` reuses those exact pages; missing
+metadata are added for the same pages without drawing again. `fetchAll()` is
+the explicit alternative for complete results.
+
+Without an explicit fetch, `dispersionAnalysis()` requests exact counts per metadata
+group. With an explicit fetch, it reuses the recorded pages or complete,
+unjoined metadata containing all requested fields. `exactFrequencies = TRUE`
+requests exact part counts even after a sample; `exactFrequencies = FALSE`
+explicitly permits implicit page sampling, controlled by `searchHitsSampleLimit`
+and `seed`. Metadata whose
+multiple values were joined by a default `fetchAll()` are not reused for
+automatic grouping; use `fetchAll(preserveMetadataValues = TRUE)` to retain
+them. Multiple queries share the same complete source basis, including
+zero-hit sources for each variant.
+
+Preserved metadata with at most one value per hit remain ordinary vectors;
+missing values are `NA`. Only genuinely multivalued columns remain lists.
+Subsequent `fetchNext()` and `fetchRest()` calls inherit the recorded fetch
+mode. To change modes, restart with `fetchAll(preserveMetadataValues = ...)`.
+
+The first call also discovers metadata groups independently of the hits, so
+that zero-hit sources are retained. This uses representative metadata records,
+not a corpus download. Known groups from all fetched variants seed the shared
+discovery. Discovery and size requests can take time, especially
+for metadata with many categories; the complete partition is cached per
+server, index revision, virtual corpus and grouping rule.
+
+The defaults are DP, DPnorm, Juilland's D, Carroll's D2, Rosengren's S and range.
+Smaller DP/DPnorm and larger D/D2/S indicate more even distributions, but the
+measures need not give the same ranking. Their suitability depends on the
+research question; none distinguishes productive usage from quotation or
+establishes social acceptance. The result prints the measures without hiding
+them behind technical columns. Detailed counts remain in `d$distribution`,
+and sampling information remains in `d$sampling`.
+
+#### Interpreting the measures
+
+Start with the research question: **reach across sources** and **evenness after
+allowing for source sizes** are different properties. A more frequent variant
+can reach more sources while still being concentrated in a few of them.
+
+| Measure | What it describes | How to read it |
+|---|---|---|
+| range | Number of corpus parts with at least one hit | Larger means broader observed reach. It does not account for part sizes or how many hits each part contains, and depends on the total hit count. |
+| DP | Difference between each part's share of hits and its share of corpus tokens | Smaller means closer to the corpus's token distribution; 0 is an exact match. |
+| DPnorm | DP rescaled by its maximum for the given part sizes | Smaller means closer; 0 is an exact match and 1 is maximum concentration under this normalization. |
+| Juilland's D | Variation in the hit frequencies per token across parts | Larger means more even; 1 means the same relative frequency in every part. |
+| Carroll's D2 | Entropy of the relative frequencies across parts | Larger means more even; 1 means the same relative frequency in every part. |
+| Rosengren's S | Similarity between the distribution of hits and corpus tokens | Larger means closer; 1 is an exact match. |
+
+DP has a concrete interpretation: **DP = 0.20 means that 20% of the hit
+distribution would have to be reallocated between parts to match their shares
+of corpus tokens**, keeping the total number of hits fixed. This is a
+hypothetical redistribution of hit mass, allowing fractional counts; it is not
+the percentage of sources using a spelling or of people accepting it. This
+interpretation applies to DP, not directly to its rescaled value DPnorm.
+
+Compare variants within the same virtual corpus and partition. Source, country
+and year partitions answer different questions; their scores are not on a
+common substantive scale. There is no universal cutoff for "well dispersed",
+and these descriptive scores are not a significance test. Disagreement between
+measures should be reported rather than resolved by counting wins or averaging
+ranks: the result would depend on the chosen measures, closely related measures
+would receive repeated votes, and ranks discard the size of differences.
+
+Use the counts and token sizes in `d$distribution` to examine which sources
+drive the result. The share of hits in the largest one or two sources is an
+intuitive companion description; compare it with those sources' token shares.
+A variant can be less dominated by its largest source but more dominated by its
+largest two. The scores alone do not distinguish house style, quotation,
+syndicated material or discussion of the spelling itself. Such explanations
+require inspecting the concordances. With sampled results, also check coverage
+in `d$sampling`; page clustering can strongly bias the scores.
+
+The measures are implemented independently from the published formulas, using
+the unequal-part-size versions described in
+[Gries (2020), *Analyzing dispersion*](https://doi.org/10.1007/978-3-030-46216-1_5).
+See also [Gries' companion resources](https://www.stgries.info/research/dispersion/links.html).
+His script is neither bundled nor loaded. The underlying references are:
+
+- DP: [Gries (2008), *Dispersions and adjusted frequencies in corpora*](https://doi.org/10.1075/ijcl.13.4.02gri), International Journal of Corpus Linguistics, 13(4), 403–437.
+- DPnorm correction: [Lijffijt & Gries (2012)](https://doi.org/10.1075/ijcl.17.1.08lij), International Journal of Corpus Linguistics, 17(1), 147–149.
+- D: Juilland & Chang-Rodríguez (1964), *Frequency dictionary of Spanish words*. Mouton.
+- D2: Carroll (1970), *An alternative to Juilland's usage coefficient for lexical frequencies, and a proposal for a standard frequency index (SFI)*, Computer Studies in the Humanities and Verbal Behavior, 3(2), 61–65.
+- S: Rosengren (1971), *The quantitative concept of language and its relation to the structure of frequency dictionaries*, Études de linguistique appliquée (Nouvelle Série), 1, 103–127.
+
+The functions are replaceable, just as with collocation scores:
+
+```r
+myMeasures <- list(
+  DP = dispersionDP,
+  evenness = function(frequencies, sizes) 1 - dispersionDP(frequencies, sizes)
+)
+dispersionAnalysis(hits, by = "source", scoreFunctions = myMeasures)
+```
+
+`dispersionAnalysis(frequencies, sizes, scoreFunctions = myMeasures)` also works locally
+on your own counts. `dispersionQuery(kco, query, by = "source", vc = ...)` is a
+convenience wrapper around the query-result workflow. For custom partitions,
+`corpusPartition()` and its named `parts`/`classify` interface remain available.
+`frequencyQuery(dispersionBy = ...)` can attach dispersion analyses to frequency
+results. `cacheAs` keeps results for reproducibility.
+
+Samples contain pages rather than independent hits. Sample-based measures can
+be strongly biased by page clustering; range is only a lower bound on occupied parts.
+No dispersion confidence interval is implied. Run `demo("dispersion")` for the
+research question and a short complete two-variant comparison.
+
 ### Interactive time-series plots using [highcharter](http://jkunst.com/highcharter/)
 
 For an **interactive frequency plot over time with confidence intervals**, pass the result of `frequencyQuery()` directly to `hc_freq_by_year_ci()`. This helper is provided by RKorAPClient and returns an interactive HTML widget, with tooltips and clickable data points that open the corresponding KorAP search results. No additional plotting package needs to be loaded. By default, it shows frequencies per million tokens; the example below uses `as.alternatives = TRUE` to show percentages instead.

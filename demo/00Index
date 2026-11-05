@@ -19,3 +19,4 @@ adjectiveCollocates             Shows adjective collocates of 'Gendern'.
 relativeTextpositionBoxplot     Plot the relative text positions of a some adverbs as highcharter boxplot.
 retrieveTitlesFromDeliko				Retrieves and shows all titles from novels of a chosen genre in the DeLiKo@DNB German fiction corpus.
 corpus_size_by_year             Plot corpus sizes by year for Stern magazine
+dispersion                      Compare source, country and year dispersion using replaceable measures and complete metadata

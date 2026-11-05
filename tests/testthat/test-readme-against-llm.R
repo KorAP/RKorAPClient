@@ -416,8 +416,46 @@ test_interactive_frequency_task <- function(model) {
   })
 }
 
+# One short additional task; callable on its own to avoid rerunning every
+# documentation prompt while changing the dispersion example.
+test_dispersion_task <- function(model) {
+  test_that(paste(model, "can compare spelling dispersion with README guidance"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found")
+
+    prompt <- create_readme_prompt(paste(
+      "Write a short RKorAPClient script comparing Nutzer*innen with Nutzer:innen",
+      "across press sources, publication countries and publication years in",
+      "2023-2025, accounting for the token count of each group.",
+      "Make the metadata retrieval a visible step, using at most 2000 hits per",
+      "spelling from sampled complete result pages, with a reproducible seed.",
+      "Print the dispersion measures side by side for the two spellings."
+    ))
+    code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 1000))
+    expect_true(test_code_syntax(code), "Generated code should be valid R")
+    parsed <- parse(text = code)
+    symbols <- all.names(parsed, functions = TRUE, unique = TRUE)
+    expect_true(all(c("corpusQuery", "fetchSamplePages", "dispersionAnalysis") %in% symbols),
+      "Use the documented query, explicit page fetch and dispersion workflow")
+    expect_match(code, "Nutzer")
+    expect_match(code, ":innen")
+    expect_match(code, "source")
+    expect_match(code, "maxHits\\s*=\\s*2000")
+    expect_match(code, "pubPlaceKey")
+    expect_match(code, "2023")
+    expect_match(code, "2025")
+    expect_match(code, "year")
+    cat("Generated dispersion comparison code:\n", code, "\n")
+    execution <- run_code_if_enabled(code, "dispersion comparison")
+    if (!is.na(execution)) expect_true(execution, "Generated comparison should execute")
+  })
+}
+
 for (model in llmModels()) {
   test_interactive_frequency_task(model)
+  test_dispersion_task(model)
 
   test_that(paste(model, "can solve frequency query task with README guidance"), {
     # Skip if offline

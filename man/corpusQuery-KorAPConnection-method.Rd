@@ -18,8 +18,8 @@
   KorAPUrl,
   metadataOnly = TRUE,
   ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
-  fields = c("corpusSigle", "textSigle", "pubDate", "pubPlace", "availability",
-    "textClass", "dmozDomain", "wikiDomain", "snippet", "tokens"),
+  fields = c("corpusSigle", "corpusTitle", "textSigle", "pubDate", "pubPlace",
+    "availability", "textClass", "dmozDomain", "wikiDomain", "snippet", "tokens"),
   accessRewriteFatal = TRUE,
   verbose = kco@verbose,
   expand = length(vc) != length(query),
@@ -76,7 +76,7 @@ Note that you cannot overrule the maximum context size set in the KorAP server i
 as this is typically legally motivated.}
 }
 \value{
-Depending on the \code{as.df} parameter, a tibble or a \code{\link[=KorAPQuery]{KorAPQuery()}} object that, among other information, contains the total number of results in \verb{@totalResults}. The resulting object can be used to fetch all query results (with \code{\link[=fetchAll]{fetchAll()}}) or the next page of results (with \code{\link[=fetchNext]{fetchNext()}}).
+Depending on the \code{as.df} parameter, a tibble or a \code{\link[=KorAPQuery]{KorAPQuery()}} object that, among other information, contains the total number of results in \verb{@totalResults}. Multiple queries return a summary table. With \code{as.df = FALSE}, it also retains query states for \code{\link[=fetchAll]{fetchAll()}}, \code{\link[=fetchNext]{fetchNext()}}, \code{\link[=fetchSamplePages]{fetchSamplePages()}} and \code{\link[=dispersionAnalysis]{dispersionAnalysis()}}. Names of the query vector label the comparison columns. With \code{as.df = TRUE}, only the summary is retained.
 A corresponding URL to be used within a web browser is contained in \verb{@webUIRequestUrl}
 Please make sure to check \verb{$collection$rewrites} to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 }

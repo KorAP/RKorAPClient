@@ -44,7 +44,7 @@ KorAPQuery <- setClass("KorAPQuery", slots = c(
 setMethod(
   "initialize", "KorAPQuery",
   function(.Object, korapConnection = NULL, request = NULL, vc = "", totalResults = 0, nextStartIndex = 0, fields = c(
-             "corpusSigle", "textSigle", "pubDate", "pubPlace",
+             "corpusSigle", "corpusTitle", "textSigle", "pubDate", "pubPlace",
              "availability", "textClass", "dmozDomain", "wikiDomain",
              "snippet", "tokens"
            ),
@@ -149,7 +149,7 @@ utils::globalVariables(c("."))
 #' anyway, as its result comes from the local cache (see the `cache` parameter
 #' of [KorAPConnection()]). Queries that are fast anyway do not get faster,
 #' because selecting the sample takes some time itself.
-#' @return Depending on the `as.df` parameter, a tibble or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. The resulting object can be used to fetch all query results (with [fetchAll()]) or the next page of results (with [fetchNext()]).
+#' @return Depending on the `as.df` parameter, a tibble or a [KorAPQuery()] object that, among other information, contains the total number of results in `@totalResults`. Multiple queries return a summary table. With `as.df = FALSE`, it also retains query states for [fetchAll()], [fetchNext()], [fetchSamplePages()] and [dispersionAnalysis()]. Names of the query vector label the comparison columns. With `as.df = TRUE`, only the summary is retained.
 #' A corresponding URL to be used within a web browser is contained in `@webUIRequestUrl`
 #' Please make sure to check `$collection$rewrites` to see if any unforeseen access rewrites of the query's virtual corpus had to be performed.
 #'
@@ -222,6 +222,7 @@ setMethod(
            ql = if (missing(KorAPUrl)) "poliqarp" else httr2::url_parse(KorAPUrl)$query$ql,
            fields = c(
              "corpusSigle",
+             "corpusTitle",
              "textSigle",
              "pubDate",
              "pubPlace",
@@ -248,6 +249,12 @@ setMethod(
 
       # the whole grid is known up front, so the progress rows can be aligned
       total_queries <- nrow(grid)
+      queryObjects <- vector("list", total_queries)
+      queryLabels <- names(query)
+      if (is.null(queryLabels)) queryLabels <- rep("", length(query))
+      missingLabels <- is.na(queryLabels) | !nzchar(queryLabels)
+      queryLabels[missingLabels] <- unname(query[missingLabels])
+      queryLabels <- if (expand) rep(queryLabels, each = length(vc)) else rep(queryLabels, length.out = total_queries)
       vcDisplay <- factor_common_prefix(
         if ("label" %in% names(grid)) grid$label else ifelse(grid$vc == "", "(all)", grid$vc)
       )
@@ -319,9 +326,9 @@ setMethod(
           format_remaining(durations, statuses == "cached", total_queries)
         )
         if (status == "failed") {
-          warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
+          warnIncompleteResults("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.")
         } else if (status == "incomplete") {
-          warning(
+          warnIncompleteResults(
             "The query \u201c", query, "\u201d was cut short by the KorAP server ",
             "(timeExceeded); the reported results are incomplete.",
             call. = FALSE
@@ -336,6 +343,13 @@ setMethod(
           webUIRequestUrl = webUIRequestUrl,
           stringsAsFactors = FALSE
         )
+        if (!as.df) {
+          queryObjects[[current_query]] <<- KorAPQuery(
+            korapConnection = kco, request = request, vc = vc,
+            totalResults = totalResults, fields = query_fields,
+            requestUrl = requestUrl, webUIRequestUrl = webUIRequestUrl,
+            apiResponse = res, hasMoreMatches = totalResults > 0)
+        }
         if (!is.null(label)) {
           result <- tibble::add_column(result, label = label, .after = "vc")
         }
@@ -344,7 +358,12 @@ setMethod(
       })
 
       progress_summary(verbose && total_queries > 1, "queries", statuses, as.numeric(difftime(Sys.time(), start_time, units = "secs")))
-      results %>% bind_rows()
+      combined <- results %>% bind_rows()
+      if (!as.df) {
+        attr(combined, "korapQueries") <- queryObjects
+        attr(combined, "korapQueryLabels") <- queryLabels
+      }
+      combined
     } else {
       contentFields <- c("snippet", "tokens")
       if (metadataOnly) {
@@ -377,7 +396,7 @@ setMethod(
       queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
       if (is.null(res)) {
         log_info(verbose, ansi("failed", "red"), " after ", format_duration_short(queryDuration, precise = TRUE), "\n")
-        warning("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.", call. = FALSE)
+        warnIncompleteResults("The request for query \u201c", query, "\u201d failed; the reported results are unreliable.")
         totalResults <- 0
       } else {
         totalResults <- as.integer(res$meta$totalResults)
@@ -388,7 +407,7 @@ setMethod(
           "\n"
         )
         if (!is.null(res$meta$timeExceeded)) {
-          warning(
+          warnIncompleteResults(
             "The query \u201c", query, "\u201d was cut short by the KorAP server ",
             "(timeExceeded); the reported results are incomplete.",
             call. = FALSE
@@ -435,6 +454,19 @@ repair_data_structure <- function(x) {
   }
 }
 
+# Keep ordinary scalar metadata convenient, without flattening genuine arrays.
+simplifyPreservedMetadata <- function(matches, fields) {
+  for (field in intersect(setdiff(fields, c("snippet", "tokens")), names(matches))) {
+    column <- matches[[field]]
+    if (is.list(column) && length(column) && all(lengths(column) <= 1L)) {
+      matches[[field]] <- unlist(lapply(column, function(value) {
+        if (length(value)) value else NA
+      }), use.names = FALSE)
+    }
+  }
+  matches
+}
+
 #' Fetch the next bunch of results of a KorAP query.
 #'
 #' **`fetchNext`** fetches the next bunch of results of a KorAP query.
@@ -446,7 +478,17 @@ repair_data_structure <- function(x) {
 #' @param maxFetch maximum number of query results to fetch
 #' @param verbose print progress information if true
 #' @param randomizePageOrder fetch result pages in pseudo random order if true. Use [set.seed()] to set seed for reproducible results.
+#' @param preserveMetadataValues Preserve list-valued metadata from the fields
+#'   API instead of joining multiple values with spaces. Useful when an analysis
+#'   needs to distinguish multivalued categories. Defaults to the mode recorded
+#'   by a previous fetch, or `FALSE` for an unfetched query. To change modes,
+#'   restart retrieval with [fetchAll()].
+#' @param ... Further fetch arguments applied to each query in a multi-query result.
 #' @return The `kqo` input object with updated slots `collectedMatches`, `apiResponse`, `nextStartIndex`, `hasMoreMatches`
+#'   With `preserveMetadataValues = TRUE`, metadata columns with at most one
+#'   value per match are atomic vectors (missing values become `NA`). Truly
+#'   multivalued columns remain lists; a later page may introduce multiple values
+#'   and promote a previously scalar column to a list.
 #'
 #' @examples
 #' \dontrun{
@@ -471,7 +513,22 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
                                               offset = kqo@nextStartIndex,
                                               maxFetch = maxResultsPerPage,
                                               verbose = kqo@korapConnection@verbose,
-                                              randomizePageOrder = FALSE) {
+                                              randomizePageOrder = FALSE,
+                                              preserveMetadataValues = NULL) {
+  if (!is.null(attr(kqo, "korapSampling"))) {
+    stop("A page sample is not a sequential prefix. Use fetchSamplePages() to draw again or fetchAll() to retrieve all hits.", call. = FALSE)
+  }
+  if (is.null(preserveMetadataValues)) {
+    preserveMetadataValues <- identical(attr(kqo, "korapMetadataValues"), "preserved")
+  }
+  if (!is.logical(preserveMetadataValues) || length(preserveMetadataValues) != 1L ||
+      is.na(preserveMetadataValues)) {
+    stop("preserveMetadataValues must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (!is.null(kqo@collectedMatches) && nrow(kqo@collectedMatches) > 0 &&
+      preserveMetadataValues != identical(attr(kqo, "korapMetadataValues"), "preserved")) {
+    stop("Cannot change preserveMetadataValues while appending results. Restart with fetchAll() and set preserveMetadataValues explicitly.", call. = FALSE)
+  }
   # https://stackoverflow.com/questions/8096313/no-visible-binding-for-global-variable-note-in-r-cmd-check
   results <- key <- name <- tmp_positions <- 0
 
@@ -565,7 +622,9 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     if ("fields" %in% colnames(res$matches) && (is.na(use_korap_api) || as.numeric(use_korap_api) >= 1.0)) {
       log_info(verbose, "Using fields API: ")
       currentMatches <- res$matches$fields %>%
-        purrr::map(~ mutate(.x, value = repair_data_structure(value))) %>%
+        purrr::map(~ if (preserveMetadataValues) {
+          mutate(.x, value = lapply(value, function(v) unlist(v, use.names = FALSE)))
+        } else mutate(.x, value = repair_data_structure(value))) %>%
         tibble::enframe() %>%
         tidyr::unnest(cols = value) %>%
         tidyr::pivot_wider(names_from = key, id_cols = name, names_repair = "unique") %>%
@@ -594,6 +653,17 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
         matchEnd = as.integer(stringr::word(tmp_positions, 2)) - 1
       ) %>%
       select(-tmp_positions)
+
+    if (preserveMetadataValues) {
+      currentMatches <- simplifyPreservedMetadata(currentMatches, kqo@fields)
+      for (field in intersect(setdiff(kqo@fields, c("snippet", "tokens")),
+                              intersect(names(collectedMatches), names(currentMatches)))) {
+        if (is.list(collectedMatches[[field]]) || is.list(currentMatches[[field]])) {
+          collectedMatches[[field]] <- as.list(collectedMatches[[field]])
+          currentMatches[[field]] <- as.list(currentMatches[[field]])
+        }
+      }
+    }
 
     if (!is.list(collectedMatches)) {
       collectedMatches <- currentMatches
@@ -717,7 +787,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     }
   }
   if (!is.null(failed_offset)) {
-    warning(
+    warnIncompleteResults(
       "Fetching the query results from offset ", failed_offset, " failed, so the collected matches are incomplete. ",
       "Call fetchRest() to fetch the remaining ones.",
       call. = FALSE
@@ -727,7 +797,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
   } else {
     nextStartIndex <- min(res$meta$startIndex + res$meta$itemsPerPage, kqo@totalResults)
   }
-  KorAPQuery(
+  if (preserveMetadataValues) collectedMatches <- simplifyPreservedMetadata(collectedMatches, kqo@fields)
+  result <- KorAPQuery(
     nextStartIndex = nextStartIndex,
     korapConnection = kqo@korapConnection,
     fields = kqo@fields,
@@ -740,6 +811,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
     apiResponse = res,
     collectedMatches = collectedMatches
   )
+  attr(result, "korapMetadataValues") <- if (preserveMetadataValues) "preserved" else "joined"
+  result
 })
 
 #' Fetch all results of a KorAP query.
@@ -779,6 +852,8 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 #' @aliases fetchAll
 #' @export
 setMethod("fetchAll", "KorAPQuery", function(kqo, verbose = kqo@korapConnection@verbose, ...) {
+  attr(kqo, "korapSampling") <- NULL
+  kqo@collectedMatches <- NULL
   return(fetchNext(kqo, offset = 0, maxFetch = NA, verbose = verbose, ...))
 })
 
@@ -1431,6 +1506,16 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #' @param cacheAs path to an RDS file to keep the result in. If the file exists and records the same call, it is read back instead of contacting the server; otherwise the query is run and its result stored there. Unlike the connection's `cache`, this file belongs to the caller, which is what keeps an analysis reproducible once the corpus has grown or the scores have changed. Defaults to \code{NULL} (no file).
 #' @inheritSection corpusQuery,KorAPConnection-method Slow queries
 #' @param ... further arguments passed to or from other methods (see [corpusQuery()]), most notably `expand`, a logical that decides if `query` and `vc` parameters are expanded to all of their combinations. It defaults to `TRUE`, if `query` and `vc` have different lengths, and to `FALSE` otherwise.
+#' @param dispersionBy Optional [corpusPartition()] table or named list of tables.
+#'   Adds a `dispersion` list column computed by [dispersionQuery()]. Each
+#'   partition's base corpus must match the frequency row's `vc`.
+#' @param dispersionFunctions Named list of replaceable dispersion functions;
+#'   see [defaultDispersionFunctions()].
+#' @param dispersionExactFrequencies Use exact part counts for the optional
+#'   dispersion analysis; `FALSE` uses metadata sampling.
+#' @param searchHitsSampleLimit Maximum number of metadata hits to download for
+#'   the optional dispersion analysis; see [dispersionQuery()].
+#' @param seed Seed for optional dispersion sampling.
 #' @export
 #'
 #' @return A tibble, with each row containing the following result columns for query and vc combinations:
@@ -1447,11 +1532,16 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 setMethod(
   "frequencyQuery", "KorAPConnection",
   function(kco, query, vc = "", conf.level = 0.95, as.alternatives = FALSE,
-           cacheAs = NULL, ...) {
+           cacheAs = NULL, dispersionBy = NULL,
+           dispersionFunctions = defaultDispersionFunctions(),
+           dispersionExactFrequencies = TRUE, searchHitsSampleLimit = 20000,
+           seed = 7, ...) {
     cacheRecord <- NULL
     if (!is.null(cacheAs)) {
       cacheAs <- cacheAsFileName(cacheAs)
-      cacheRecord <- cacheAsRecord(environment(), list(...), kco)
+      inactive <- if (is.null(dispersionBy)) c("dispersionBy", "dispersionFunctions",
+        "dispersionExactFrequencies", "searchHitsSampleLimit", "seed") else character()
+      cacheRecord <- cacheAsRecord(environment(), list(...), kco, ignore = inactive)
       cached <- readCacheAs(cacheAs, kco, cacheRecord, "frequency query")
       if (!is.null(cached)) {
         return(cached)
@@ -1467,6 +1557,23 @@ setMethod(
         mutate(total = corpusStats(kco, vc = vc, as.df = TRUE)$tokens)
     }) |>
       ci(conf.level = conf.level)
+
+    if (!is.null(dispersionBy)) {
+      partitions <- if (inherits(dispersionBy, "KorAPCorpusPartition")) list(dispersionBy) else dispersionBy
+      dots <- list(...)
+      result$dispersion <- lapply(seq_len(nrow(result)), function(i) {
+        if (!is.list(partitions) || !length(partitions) ||
+            !all(vapply(partitions, function(part) identical(attr(part, "partition")$baseVc,
+                                                           unname(result$vc[i])), logical(1)))) {
+          stop("dispersionBy partitions must use the frequency row's vc as their base corpus.", call. = FALSE)
+        }
+        dispersionQuery(kco, query = result$query[i], partitions = dispersionBy,
+          scoreFunctions = dispersionFunctions,
+          exactFrequencies = dispersionExactFrequencies,
+          searchHitsSampleLimit = searchHitsSampleLimit, seed = seed,
+          ql = if (is.null(dots$ql)) "poliqarp" else dots$ql)
+      })
+    }
 
     if (!is.null(cacheAs)) {
       writeCacheAs(cacheAs, kco, cacheRecord, "frequency query", result)
