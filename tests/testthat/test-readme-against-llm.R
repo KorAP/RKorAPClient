@@ -331,12 +331,12 @@ run_code_if_enabled <- function(code, test_name) {
 # A generated script that also calls ipm() may run without an error, but its
 # confidence bands are then wrong. Inspect parsed names so comments mentioning
 # a pitfall do not count as code that actually uses it.
-interactive_frequency_code_issues <- function(code) {
+interactive_frequency_code_issues <- function(code, helper = "hc_freq_by_year_ci") {
   parsed <- tryCatch(parse(text = code), error = function(e) NULL)
   if (is.null(parsed)) return("invalid R syntax")
 
   symbols <- all.names(parsed, functions = TRUE, unique = TRUE)
-  required <- c("KorAPConnection", "frequencyQuery", "hc_freq_by_year_ci")
+  required <- c("KorAPConnection", "frequencyQuery", helper)
   missing <- setdiff(required, symbols)
   issues <- if (length(missing)) paste0("missing ", missing) else character(0)
   if ("ipm" %in% symbols) {
@@ -416,6 +416,114 @@ test_interactive_frequency_task <- function(model) {
   })
 }
 
+test_that("interactive bar checks require the bar helper and unconverted results", {
+  good <- paste(
+    "library(RKorAPClient)",
+    'KorAPConnection("https://korap.dnb.de") |>',
+    'frequencyQuery("Berlin", vc = c(Bookprize = "award=buchpreis", DeLiKo = "")) |>',
+    "hc_freq_bar_ci()", sep = "\n")
+  check <- function(code) interactive_frequency_code_issues(code, helper = "hc_freq_bar_ci")
+  expect_length(check(good), 0)
+  expect_true(any(grepl("missing hc_freq_bar_ci", check(
+    sub("hc_freq_bar_ci", "hc_freq_by_year_ci", good, fixed = TRUE)))))
+  expect_true(any(grepl("scales confidence", check(
+    sub("hc_freq_bar_ci()", "ipm() |> hc_freq_bar_ci()", good, fixed = TRUE)))))
+})
+
+test_interactive_bar_task <- function(model) {
+  test_that(paste(model, "can compare corpus frequencies with the README bar helper"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found")
+    prompt <- create_readme_prompt(paste(
+      "Write a short script using RKorAPClient to compare the relative frequency",
+      "of Berlin in the virtual book-prize corpus (award=buchpreis) and the whole",
+      "DeLiKo corpus at https://korap.dnb.de. Show an interactive bar chart with",
+      "confidence intervals, frequencies per million tokens and clickable",
+      "concordance links. Use the plotting helper built into RKorAPClient."
+    ))
+    code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 1000))
+    expect_true(test_code_syntax(code), "Generated code should be valid R")
+    issues <- interactive_frequency_code_issues(code, helper = "hc_freq_bar_ci")
+    expect_true(length(issues) == 0, info = paste(issues, collapse = "; "))
+    expect_match(code, "korap.dnb.de", fixed = TRUE)
+    expect_match(code, "Berlin", fixed = TRUE)
+    expect_match(code, "buchpreis", fixed = TRUE)
+    cat("Generated frequency comparison code:\n", code, "\n")
+    execution <- run_code_if_enabled(code, "interactive frequency bars")
+    if (!is.na(execution)) expect_true(execution, "Generated bar chart should execute")
+  })
+}
+
+static_frequency_bar_code_issues <- function(code) {
+  parsed <- tryCatch(parse(text = code), error = function(e) NULL)
+  if (is.null(parsed)) return("invalid R syntax")
+  symbols <- all.names(parsed, functions = TRUE, unique = TRUE)
+  required <- c("KorAPConnection", "frequencyQuery", "ipm", "ggplot", "geom_freq_bar_ci")
+  calls <- character()
+  walk <- function(x) {
+    if (!is.call(x)) return(invisible(NULL))
+    head <- x[[1]]
+    if (is.name(head)) calls <<- c(calls, as.character(head))
+    else if (is.call(head) && as.character(head[[1]]) %in% c("::", ":::"))
+      calls <<- c(calls, as.character(head[[3]]))
+    for (i in seq_along(x)[-1]) {
+      element <- tryCatch(x[[i]], error = function(e) NULL)
+      if (!is.null(element)) walk(element)
+    }
+  }
+  for (x in parsed) walk(x)
+  missing <- setdiff(required, calls)
+  issues <- if (length(missing)) paste0("missing ", missing) else character()
+  if ("percent" %in% symbols) issues <- c(issues, "percentages are not frequencies per million")
+  if ("hc_freq_bar_ci" %in% symbols) issues <- c(issues, "use the static ggplot helper")
+  if ("auth" %in% symbols) issues <- c(issues, "frequency queries do not require auth()")
+  issues
+}
+
+test_that("static frequency bar checks use the ggplot layer and explicit IPM conversion", {
+  good <- paste(
+    "library(RKorAPClient)", "library(ggplot2)",
+    'KorAPConnection("https://korap.dnb.de") |>',
+    'frequencyQuery("Berlin", vc = c(Bookprize = "award=buchpreis", DeLiKo = "")) |>',
+    "ipm() |> ggplot(aes(label, ipm)) + geom_freq_bar_ci()", sep = "\n")
+  expect_length(static_frequency_bar_code_issues(good), 0)
+  expect_true(any(grepl("missing ipm", static_frequency_bar_code_issues(
+    sub("ipm()", "identity()", good, fixed = TRUE)))))
+  expect_true(any(grepl("missing geom_freq_bar_ci", static_frequency_bar_code_issues(
+    sub("geom_freq_bar_ci", "geom_col", good, fixed = TRUE)))))
+  expect_true(any(grepl("percentages", static_frequency_bar_code_issues(
+    sub("ipm()", "percent()", good, fixed = TRUE)))))
+})
+
+test_static_bar_task <- function(model) {
+  test_that(paste(model, "can build a print-ready frequency comparison from the README"), {
+    skip_if_offline()
+    skip_if_no_api_key(model)
+    if (usesTidyllm(model)) skip_if_not_installed("tidyllm")
+    skip_if_not(!is.null(find_readme_path()), "Readme.md not found")
+    prompt <- create_readme_prompt(paste(
+      "Write a short R script comparing the frequency per million tokens of",
+      "Berlin in DeLiKo's virtual book-prize corpus (award=buchpreis) and the",
+      "whole corpus at https://korap.dnb.de. Use RKorAPClient and ggplot2 to",
+      "return a static bar chart with confidence intervals suitable for print.",
+      "Use the plotting layer supplied by RKorAPClient. Return the plot object;",
+      "do not save files."
+    ))
+    code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 1000))
+    expect_true(test_code_syntax(code), "Generated code should be valid R")
+    issues <- static_frequency_bar_code_issues(code)
+    expect_true(length(issues) == 0, info = paste(issues, collapse = "; "))
+    expect_match(code, "korap.dnb.de", fixed = TRUE)
+    expect_match(code, "Berlin", fixed = TRUE)
+    expect_match(code, "buchpreis", fixed = TRUE)
+    cat("Generated static frequency comparison code:\n", code, "\n")
+    execution <- run_code_if_enabled(code, "static frequency bars")
+    if (!is.na(execution)) expect_true(execution, "Generated static plot should execute")
+  })
+}
+
 # One short additional task; callable on its own to avoid rerunning every
 # documentation prompt while changing the dispersion example.
 test_dispersion_task <- function(model) {
@@ -458,6 +566,8 @@ test_dispersion_task <- function(model) {
 
 for (model in llmModels()) {
   test_interactive_frequency_task(model)
+  test_interactive_bar_task(model)
+  test_static_bar_task(model)
   test_dispersion_task(model)
 
   test_that(paste(model, "can solve frequency query task with README guidance"), {

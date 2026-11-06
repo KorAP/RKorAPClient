@@ -75,11 +75,13 @@ Collate:
     'dispersion-scores.R'
     'dispersionQuery.R'
     'fetchSamplePages.R'
+    'geom_freq_bar_ci.R'
     'hc_add_onclick_korap_search.R'
     'hc_dispersion.R'
+    'hc_freq_bar_ci.R'
     'hc_freq_by_year_ci.R'
     'misc.R'
     'reexports.R'
     'textMetadata.R'
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1

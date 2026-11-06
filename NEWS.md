@@ -1,5 +1,16 @@
 # RKorAPClient (development version)
 
+- Added `geom_freq_bar_ci()`, a ggplot2 counterpart to the interactive
+  frequency-bar helper. It combines bars and confidence intervals with shared
+  grouping positions and supports normal ggplot printing and export workflows.
+
+
+- Added `hc_freq_bar_ci()` for interactive frequency comparisons across virtual
+  corpora and queries, with linked concordances and confidence intervals.
+  Horizontal bars or columns use instances per million tokens or percentages
+  of alternatives. Missing comparisons and undefined frequencies remain gaps.
+
+
 - Added experimental metadata-based dispersion analysis with replaceable DP,
   corrected DPnorm, Juilland's D, Carroll's D2, Rosengren's S and range.
   `dispersionAnalysis()` accepts

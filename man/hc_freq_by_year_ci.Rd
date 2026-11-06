@@ -60,6 +60,7 @@ expand_grid(
 \seealso{
 Other highcharter-helpers:
 \code{\link[=hc_add_onclick_korap_search]{hc_add_onclick_korap_search()}},
-\code{\link[=hc_dispersion]{hc_dispersion()}}
+\code{\link[=hc_dispersion]{hc_dispersion()}},
+\code{\link[=hc_freq_bar_ci]{hc_freq_bar_ci()}}
 }
 \concept{highcharter-helpers}

@@ -302,6 +302,77 @@ KorAPConnection(verbose = TRUE) |>
 
 [![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
 
+### Interactive frequency comparisons with confidence intervals
+
+For an **interactive bar chart comparing frequencies between corpora or queries**,
+pass the unconverted `frequencyQuery()` result to `hc_freq_bar_ci()`. Like
+`hc_freq_by_year_ci()`, this helper converts frequencies and confidence limits
+to instances per million tokens automatically. Do not call `ipm()` or `percent()`
+first. No additional plotting package needs to be loaded, and plotting stored
+results makes no further requests to KorAP. Click a bar to open its concordances.
+
+```r
+library(RKorAPClient)
+kco <- KorAPConnection("https://korap.dnb.de")
+frequencyQuery(kco, "Berlin",
+  vc = c(Buchpreis = "award=buchpreis", DeLiKo = "")) |>
+  hc_freq_bar_ci()
+```
+
+Named virtual corpora supply the category labels. A single query is compared
+across corpora; multiple queries in one corpus are compared across queries:
+
+```r
+frequencyQuery(kco, c("Iowa", "Berlin"), vc = "award=buchpreis") |>
+  hc_freq_bar_ci(horizontal = FALSE)
+```
+
+With multiple queries and multiple corpora, the chart groups queries within
+each corpus. Set `expand = TRUE` in `frequencyQuery()` to request every
+query/corpus combination, including when the two vectors have equal lengths.
+Missing combinations and undefined frequencies remain gaps, while a zero-hit
+query in a non-empty corpus retains its confidence interval. Supplied
+confidence limits are preserved, including a custom `conf.level`.
+
+For percentages of mutually exclusive, exhaustive alternatives, set
+`as.alternatives = TRUE` in **both** `frequencyQuery()` and `hc_freq_bar_ci()`.
+The helper retains the original denominators when only some result rows are
+displayed. Use `highcharter` functions to customize the returned widget.
+Run `demo("writtenVsSpoken_highcharts")` for the spoken/written comparison.
+
+### Frequency bar charts for print using ggplot2
+
+For a static figure suitable for print, use `geom_freq_bar_ci()`, the bar-chart
+counterpart of `geom_freq_by_year_ci()`. It combines columns and aligned error
+bars in a normal ggplot. **Convert the frequencies and confidence limits with
+`ipm()` once before plotting**; this ggplot layer does not perform the automatic
+conversion used by `hc_freq_bar_ci()`.
+
+```r
+library(RKorAPClient)
+library(ggplot2)
+
+p <- KorAPConnection("https://korap.dnb.de") |>
+  frequencyQuery("Berlin",
+    vc = c(Buchpreis = "award=buchpreis", DeLiKo = "")) |>
+  ipm() |>
+  ggplot(aes(x = label, y = ipm)) +
+  geom_freq_bar_ci() +
+  labs(x = NULL, y = "Instances per million tokens") +
+  theme_bw()
+
+p
+ggsave("berlin.pdf", plot = p, width = 6, height = 4)
+```
+
+Map `fill` and `group` to the query variable for grouped comparisons. Bars and
+intervals use the same dodge width. Explicit groups retain their positions
+when colours or fills are overridden for monochrome printing. Use
+`coord_flip()` for horizontal bars and ordinary ggplot themes, scales, facets
+and exports. For alternatives, use `as.alternatives = TRUE` in
+`frequencyQuery()` and `percent()` instead of `ipm()` before plotting.
+The layer preserves supplied confidence limits and does not query KorAP.
+
 ### Use other corpora than DeReKo as basis
 
 Set the first (`KorAPUrl`) argument of the `KorAPConnection` function to the URL of the KorAP instance, providing the desired corpus, e.g. to 
