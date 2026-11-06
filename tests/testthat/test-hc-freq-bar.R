@@ -19,7 +19,7 @@ test_that("frequency bars preserve counts, denominators, intervals and links wit
     corpusStats = function(...) stop("must not query"), .package = "RKorAPClient")
   h <- hc_freq_bar_ci(d)
   expect_s3_class(h, "highchart")
-  expect_equal(h$x$hc_opts$xAxis$categories, c("Book prize", "DeLiKo"))
+  expect_equal(unlist(h$x$hc_opts$xAxis$categories), c("Book prize", "DeLiKo"))
   expect_equal(frequencyBarValues(h, 1), c(100, 20))
   expect_equal(frequencyBarValues(h, 2, "low"), d$conf.low * 1e6)
   expect_equal(frequencyBarValues(h, 2, "high"), d$conf.high * 1e6)
@@ -37,7 +37,7 @@ test_that("queries within a corpus are categories and column options are passed 
                         label = rep("Book prize", 2))
   h <- hc_freq_bar_ci(d, horizontal = FALSE, ylabel = "per million",
     color = "#123456", dataLabels = list(enabled = TRUE))
-  expect_equal(h$x$hc_opts$xAxis$categories, c("Iowa", "Berlin"))
+  expect_equal(unlist(h$x$hc_opts$xAxis$categories), c("Iowa", "Berlin"))
   expect_false(h$x$hc_opts$chart$inverted)
   expect_equal(h$x$hc_opts$series[[1]]$type, "column")
   expect_true(h$x$hc_opts$series[[1]]$dataLabels$enabled)
@@ -51,7 +51,7 @@ test_that("query groups and their intervals align despite reordered and missing 
     vc = c("", "award=buchpreis", "award=buchpreis"), hits = c(20, 30, 10),
     total = c(1e6, 1e5, 1e5), label = c("DeLiKo", "Book prize", "Book prize"))
   h <- hc_freq_bar_ci(d)
-  expect_equal(h$x$hc_opts$xAxis$categories, c("DeLiKo", "Book prize"))
+  expect_equal(unlist(h$x$hc_opts$xAxis$categories), c("DeLiKo", "Book prize"))
   expect_equal(h$x$hc_opts$series[[1]]$name, "Berlin")
   expect_equal(h$x$hc_opts$series[[3]]$name, "Paris")
   expect_equal(frequencyBarValues(h, 1), c(20, 100))
@@ -69,6 +69,8 @@ test_that("alternative percentages retain supplied denominators even for a displ
                         total = c(100, 100), label = NULL)
   h <- hc_freq_bar_ci(d, as.alternatives = TRUE)
   expect_equal(frequencyBarValues(h, 1), c(30, 70))
+  expect_match(h$x$hc_opts$series[[1]]$data[[1]]$tooltipText, "Total frequency of alternatives: 100", fixed = TRUE)
+  expect_false(grepl("Corpus size", h$x$hc_opts$series[[1]]$data[[1]]$tooltipText, fixed = TRUE))
   expect_equal(frequencyBarValues(h, 2, "high"), d$conf.high * 100)
   expect_equal(h$x$hc_opts$yAxis$max, 100)
   expect_equal(frequencyBarValues(hc_freq_bar_ci(d[1, ], as.alternatives = TRUE), 1), 30)
@@ -115,10 +117,50 @@ test_that("labels are escaped and only web concordance links are attached", {
   d$webUIRequestUrl[1] <- "javascript:alert(1)"
   h <- hc_freq_bar_ci(d)
   expect_equal(h$x$hc_opts$title$text, "&lt;script&gt;&amp;")
-  expect_equal(h$x$hc_opts$xAxis$categories[1], "&lt;img src=x&gt;")
+  expect_equal(h$x$hc_opts$xAxis$categories[[1]], "<img src=x>")
+  expect_equal(h$x$hc_opts$series[[1]]$data[[1]]$tooltipLabel, "&lt;img src=x&gt;")
   expect_null(h$x$hc_opts$series[[1]]$data[[1]]$webUIRequestUrl)
   expect_equal(h$x$hc_opts$series[[1]]$data[[2]]$webUIRequestUrl, d$webUIRequestUrl[2])
   d$label <- NULL
   h <- hc_freq_bar_ci(d)
-  expect_equal(h$x$hc_opts$xAxis$categories[2], "(all)")
+  expect_equal(h$x$hc_opts$xAxis$categories[[2]], "(all)")
+})
+
+test_that("single corpus categories stay JSON arrays and restricted corpora never become all", {
+  d <- frequencyBarData()[1, ]
+  h <- hc_freq_bar_ci(d)
+  json <- jsonlite::fromJSON(htmlwidgets:::toJSON(h$x), simplifyVector = FALSE)
+  expect_identical(json$hc_opts$xAxis$categories, list("Book prize"))
+  d$label <- NULL
+  d$vc <- "pubDate in 2023 & pubPlaceKey=AT"
+  expect_identical(hc_freq_bar_ci(d)$x$hc_opts$xAxis$categories, as.list(d$vc))
+  d$vc <- ""
+  expect_identical(hc_freq_bar_ci(d)$x$hc_opts$xAxis$categories, list("(all)"))
+})
+
+test_that("logarithmic bars explicitly omit zero frequencies and non-positive intervals", {
+  d <- frequencyBarData(hits = c(3, 0))
+  h <- hc_freq_bar_ci(d, log = TRUE)
+  expect_identical(h$x$hc_opts$yAxis$type, "logarithmic")
+  expect_null(h$x$hc_opts$yAxis$min)
+  expect_equal(frequencyBarValues(h, 1), c(30, NA_real_))
+  expect_true(all(is.na(c(h$x$hc_opts$series[[2]]$data[[2]]$low, h$x$hc_opts$series[[2]]$data[[2]]$high))))
+  expect_match(h$x$hc_opts$caption$text, "intervals touching zero are omitted", fixed = TRUE)
+  d$conf.low[1] <- 0
+  expect_true(is.na(hc_freq_bar_ci(d, log = TRUE)$x$hc_opts$series[[2]]$data[[1]]$low))
+  expect_error(hc_freq_bar_ci(frequencyBarData(hits = c(0, 0)), log = TRUE), "positive frequency")
+})
+
+test_that("tooltips retain rare nonzero frequencies and exported names remain literal", {
+  d <- frequencyBarData(query = "<s> & \"quote\"", vc = "", hits = 3, total = 5e10, label = "Rare")
+  h <- hc_freq_bar_ci(d)
+  tooltip <- h$x$hc_opts$series[[1]]$data[[1]]$tooltipText
+  expect_match(tooltip, "0.00006", fixed = TRUE)
+  expect_false(grepl("Confidence interval: 0\u20130 ", tooltip, fixed = TRUE))
+  d <- rbind(d, transform(d, query = "other"))
+  h <- hc_freq_bar_ci(d)
+  expect_identical(h$x$hc_opts$xAxis$categories[[1]], "<s> & \"quote\"")
+  expect_match(as.character(h$x$hc_opts$xAxis$labels$formatter), "&lt;", fixed = TRUE)
+  expect_gt(hc_freq_bar_ci(frequencyBarData(query = rep("one", 60), vc = as.character(1:60),
+    hits = rep(1, 60), total = rep(100, 60), label = as.character(1:60)))$height, 1500)
 })

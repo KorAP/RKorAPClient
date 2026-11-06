@@ -18,7 +18,8 @@ The input highchart object with added on-click events.
 Adds on-click events to data points of highcharts that were constructed with
 \code{\link[=frequencyQuery]{frequencyQuery()}} or \code{\link[=collocationScoreQuery]{collocationScoreQuery()}}. Clicks on data points
 then launch KorAP web UI queries for the given query term and virtual corpus in
-a separate tab.
+a separate tab that is reused for subsequent clicks. Only HTTP(S) links
+are opened; points without a valid link are not clickable.
 }
 \examples{
 \dontrun{

@@ -1,11 +1,40 @@
 # RKorAPClient (development version)
 
-- Added `geom_freq_bar_ci()`, a ggplot2 counterpart to the interactive
+- Frequency and dispersion bars show the corpus or subcorpus in their tooltip
+  headers. The default highcharter theme no longer masks the helpers' palettes;
+  year plots retain their historical D3 palette. Custom themes still take priority.
+
+- Frequency-bar and time-series helpers for highcharter and ggplot2 accept
+  `showCI = FALSE` to omit confidence intervals, including interval tooltip
+  lines. The default remains `TRUE`; disabling intervals does not require
+  confidence-limit columns and preserves the observed frequencies.
+
+- Chart tooltips use absolute and relative frequency, corpus size and confidence
+  interval terminology, with IPM as the frequency unit. Generated text and number
+  formatting follow German/English browser preferences; set
+  `options(rkorap.chart.language = "de")` or `"en"` to fix the language.
+  Generic footer instructions are omitted. Confidence intervals use subdued grey
+  styling, and repeated concordance clicks open the named KorAP tab directly.
+
+- Plotting helpers now share Highcharts themes, palettes, escaped display labels
+  and a reusable concordance tab. Colour and tooltip customization remain
+  available through highcharter. Singleton categories serialize as arrays,
+  restricted corpora keep meaningful labels, rare frequencies retain significant
+  digits, and year partitions show all years by default.
+- Interactive helpers respect `options(highcharter.theme = ...)` and themes
+  applied with `hc_add_theme()`, including IDS themes. Fonts, query palettes,
+  data-label colours and interval colours are inherited from the theme.
+- `frequencyQuery()` retains named-query labels and the denominator mode used
+  by interactive plots. Conflicting plotting modes are rejected. The experimental
+  frequency-bar helpers support explicit logarithmic-axis handling in highcharter
+  and horizontal interval orientation in ggplot2.
+
+- Added experimental `geom_freq_bar_ci()`, a ggplot2 counterpart to the interactive
   frequency-bar helper. It combines bars and confidence intervals with shared
   grouping positions and supports normal ggplot printing and export workflows.
 
 
-- Added `hc_freq_bar_ci()` for interactive frequency comparisons across virtual
+- Added experimental `hc_freq_bar_ci()` for interactive frequency comparisons across virtual
   corpora and queries, with linked concordances and confidence intervals.
   Horizontal bars or columns use instances per million tokens or percentages
   of alternatives. Missing comparisons and undefined frequencies remain gaps.

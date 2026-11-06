@@ -45,6 +45,7 @@ Imports:
     urltools,
     xml2
 Suggests:
+    chromote,
     lifecycle,
     testthat,
     tidyllm,
@@ -68,6 +69,7 @@ Collate:
     'KorAPQuery.R'
     'association-scores.R'
     'cacheAs.R'
+    'chart-helpers.R'
     'ci.R'
     'collocationAnalysis.R'
     'collocationScoreQuery.R'

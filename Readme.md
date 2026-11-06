@@ -130,11 +130,38 @@ one partition and a common virtual corpus per chart.
 For large partitions, `top` retains the parts with the largest hit shares across
 any variant and combines the rest into a labelled remainder. All shares still
 use the complete listed population; dispersion scores are unchanged. `top = Inf`
-shows every part. Tooltips show counts and frequencies per million tokens;
+shows every part. Tooltips distinguish shares of total frequency from relative
+frequencies per million tokens and report absolute frequencies and subcorpus sizes;
 click an individual variant bar for its concordance. The corpus reference and
 combined remainder have no concordance link. Estimates and zero-hit variants
 are explicitly identified. The six dispersion scores remain in the table,
 since their scales and directions differ. See the [Highcharts license notes](#highcharts).
+
+Calendar-year partitions show all years in chronological order by default;
+an explicit `top` can still limit them. The Highcharts helpers share theme
+handling and concordance-click behavior. Bar charts use the package palette;
+year plots retain their historical D3 palette. Explicit themes take priority.
+Use `highcharter::hc_colors()`
+and `highcharter::hc_tooltip()` to customize the resulting chart; the grey
+corpus-token reference in `hc_dispersion()` retains its neutral colour.
+
+Themes from `idsThemeR` work through the normal highcharter interface:
+
+```r
+hc_dispersion(d, partition = "pubPlaceKey") |>
+  highcharter::hc_add_theme(idsThemeR::hc_theme_ids_dark())
+# Or set options(highcharter.theme = idsThemeR::hc_theme_ids_light())
+# before constructing charts; all three interactive helpers respect it.
+```
+
+Generated chart text and numbers automatically follow the browser's German or
+English language preferences (English is the fallback). Query names and custom
+labels stay as supplied. For reproducible exports, set
+`options(rkorap.chart.language = "de")` or `"en"`; the default `"auto"` uses
+the browser. Relative frequencies use **IPM** (instances per million tokens).
+Confidence intervals and bands use subdued neutral greys by default, keeping
+the observed frequencies visually prominent. Themes and explicit colour settings
+can override these defaults.
 
 `maxHits = Inf` fetches all hits, so this comparison uses exact distributions.
 For exploratory page-sample estimates, replace the fetch step with
@@ -335,10 +362,20 @@ query in a non-empty corpus retains its confidence interval. Supplied
 confidence limits are preserved, including a custom `conf.level`.
 
 For percentages of mutually exclusive, exhaustive alternatives, set
-`as.alternatives = TRUE` in **both** `frequencyQuery()` and `hc_freq_bar_ci()`.
-The helper retains the original denominators when only some result rows are
-displayed. Use `highcharter` functions to customize the returned widget.
+`as.alternatives = TRUE` in `frequencyQuery()`. The Highcharts helpers inherit
+this recorded mode and reject a conflicting plotting argument. They retain
+the original denominators when only some result rows are displayed. For older
+tables without the recorded mode, specify it in the plotting call as well.
+Use `hc_freq_bar_ci(log = TRUE)` for a logarithmic axis: zero frequencies and
+intervals touching zero cannot be represented and are explicitly omitted.
+Use `highcharter` functions to customize the returned widget.
 Run `demo("writtenVsSpoken_highcharts")` for the spoken/written comparison.
+
+Use `showCI = FALSE` to omit confidence intervals from frequency plots and
+their tooltips. The option is available in `hc_freq_bar_ci()`,
+`hc_freq_by_year_ci()`, `geom_freq_bar_ci()` and `geom_freq_by_year_ci()`;
+its default is `TRUE`. Observed frequencies are retained, and confidence-limit
+columns are not required when intervals are disabled.
 
 ### Frequency bar charts for print using ggplot2
 
@@ -368,10 +405,13 @@ ggsave("berlin.pdf", plot = p, width = 6, height = 4)
 Map `fill` and `group` to the query variable for grouped comparisons. Bars and
 intervals use the same dodge width. Explicit groups retain their positions
 when colours or fills are overridden for monochrome printing. Use
-`coord_flip()` for horizontal bars and ordinary ggplot themes, scales, facets
-and exports. For alternatives, use `as.alternatives = TRUE` in
+`coord_flip()` for horizontal bars, or map `aes(x = ipm, y = label)` with
+`geom_freq_bar_ci(orientation = "y")`. Ordinary ggplot themes, scales, facets
+and exports work as usual. For alternatives, use `as.alternatives = TRUE` in
 `frequencyQuery()` and `percent()` instead of `ipm()` before plotting.
 The layer preserves supplied confidence limits and does not query KorAP.
+Add `idsThemeR::theme_ids()` and `idsThemeR::scale_fill_ids()` for IDS styling;
+mapped colours can use `idsThemeR::scale_colour_ids()`.
 
 ### Use other corpora than DeReKo as basis
 

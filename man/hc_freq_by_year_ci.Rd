@@ -6,20 +6,26 @@
 \usage{
 hc_freq_by_year_ci(
   df,
-  as.alternatives = FALSE,
-  ylabel = if (as.alternatives) "\%" else "ipm",
+  as.alternatives = NULL,
+  ylabel = if (as.alternatives) "\%" else "IPM",
   smooth = FALSE,
+  showCI = TRUE,
   ...
 )
 }
 \arguments{
 \item{df}{data frame like the value of a \code{\link[=frequencyQuery]{frequencyQuery()}}}
 
-\item{as.alternatives}{boolean decides whether queries should be treated as mutually exclusive and exhaustive wrt. to some meaningful class (e.g. spelling variants of a certain word form).}
+\item{as.alternatives}{NULL (default) inherits the denominator mode from
+\code{\link[=frequencyQuery]{frequencyQuery()}}. An explicit conflicting mode is rejected. Older tables
+without a recorded mode default to FALSE.}
 
-\item{ylabel}{defaults to \verb{\%} if \code{as.alternatives} is \code{TRUE} and to \code{ipm} otherwise.}
+\item{ylabel}{defaults to \verb{\%} if \code{as.alternatives} is \code{TRUE} and to \code{IPM} (instances per million tokens) otherwise.}
 
 \item{smooth}{boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.}
+
+\item{showCI}{Show confidence bands (default TRUE). FALSE omits bands and
+confidence-interval tooltip lines; interval columns are not required.}
 
 \item{...}{additional arguments passed to \code{\link[highcharter:hc_add_series]{highcharter::hc_add_series()}}}
 }
@@ -31,6 +37,15 @@ Convenience function for plotting typical frequency by year graphs with confiden
 
 \strong{Warning:} This function may be moved to a new package.
 }
+\section{Display language}{
+
+Generated chart text and number formatting follow the browser's preferred
+German or English language, falling back to English. Query names and custom
+labels are retained. Set \code{options(rkorap.chart.language = "de")} or \code{"en"}
+before creating charts to fix the language for exports; \code{"auto"} restores
+browser selection. IPM means instances per million tokens.
+}
+
 \examples{
 \dontrun{
 

@@ -207,6 +207,8 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' **Warning:** This function may be moved to a new package.
 #'
 #' @param mapping	Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.
+#' @param showCI Show confidence bands (default TRUE). FALSE retains only the
+#'   frequency curves and points and does not require interval bounds.
 #' @param ...	 Other arguments passed to geom_ribbon, geom_line, and geom_click_point.
 #'
 #' @rdname misc-functions
@@ -227,14 +229,14 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_point theme element_text scale_x_continuous
 #'
 #' @export
-geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high), ...) {
-  list(
-    geom_ribbon(mapping,
-                alpha = .3, linetype = 0, show.legend = FALSE, ...),
+geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high), showCI = TRUE, ...) {
+  validateShowCI(showCI)
+  layers <- list(
     geom_line(...),
     geom_click_point(aes(url=webUIRequestUrl), ...),
     theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position.inside = c(0.8, 0.2)),
     scale_x_continuous(breaks = function(x) seq(ceiling(x[1]), floor(x[2]), by = 1 + floor(((x[2]-x[1])/30)))))
+  if (showCI) c(list(geom_ribbon(mapping, alpha = .3, linetype = 0, show.legend = FALSE, ...)), layers) else layers
 }
 
 #'

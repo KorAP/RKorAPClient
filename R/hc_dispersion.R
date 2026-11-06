@@ -10,7 +10,8 @@
 #' @param partition Name of one partition in the result. May be omitted when
 #'   the result contains only one partition. Variants must use the same parts,
 #'   token sizes, virtual-corpus definitions, KorAP instance and index revision.
-#' @param top Number of parts to show individually, default 12. Parts are ranked
+#' @param top Number of parts to show individually. NULL (default) shows all
+#'   calendar years for year/date partitions, and 12 parts otherwise. Parts are ranked
 #'   by the largest hit share across the variants, with token size breaking ties.
 #'   Remaining parts are combined into an additional labelled bar group.
 #'   `Inf` shows all parts. For `year`, `pubDate` and `creationDate` partitions,
@@ -24,7 +25,8 @@
 #' distribution and is identified in the caption without drawing hit-share bars.
 #'
 #' Grey bars show corpus-token shares; coloured bars show the query variants.
-#' Tooltips include counts and frequencies per million tokens. Click individual
+#' Tooltips distinguish shares of total frequency from relative frequencies
+#' per million tokens, and show absolute frequencies and subcorpus sizes. Click individual
 #' variant bars to open their stored concordance links. Corpus-token bars and
 #' combined remainder bars have no concordance link.
 #'
@@ -32,6 +34,7 @@
 #' in tooltips. Page clustering can strongly bias these shares. The chart does
 #' not provide confidence intervals or an overall ranking of dispersion scores.
 #' The interface and display may change in future releases.
+#' @inheritSection hc_freq_bar_ci Display language
 #' @family highcharter-helpers
 #' @export
 #' @examples
@@ -43,7 +46,7 @@
 #'   dispersionAnalysis(by = "source")
 #' hc_dispersion(d, top = 12)
 #' }
-hc_dispersion <- function(df, partition = NULL, top = 12) {
+hc_dispersion <- function(df, partition = NULL, top = NULL) {
   required <- c("partition", "query", "distribution", "estimated", "sampling")
   if (!is.data.frame(df) || !nrow(df) || !all(required %in% names(df))) {
     stop("Use a query-based dispersionAnalysis() or dispersionQuery() result with distribution data.", call. = FALSE)
@@ -56,6 +59,8 @@ hc_dispersion <- function(df, partition = NULL, top = 12) {
   }
   dispersionScalarString(partition, "partition")
   if (!partition %in% available) stop("Unknown partition. Choose from: ", paste(available, collapse = ", "), ".", call. = FALSE)
+  calendar <- partition %in% c("year", "pubDate", "creationDate")
+  if (is.null(top)) top <- if (calendar) Inf else 12
   if (!is.numeric(top) || length(top) != 1L || is.na(top) || top <= 0 ||
       (is.finite(top) && top != floor(top))) stop("top must be a positive integer or Inf.", call. = FALSE)
   rows <- df[df$partition == partition, , drop = FALSE]
@@ -100,7 +105,7 @@ hc_dispersion <- function(df, partition = NULL, top = 12) {
   largest <- apply(shares, 1, function(v) if (all(is.na(v))) 0 else max(v, na.rm = TRUE))
   order <- order(-largest, -reference$tokens, reference$part)
   shown <- head(order, min(top, length(order)))
-  if (partition %in% c("year", "pubDate", "creationDate") &&
+  if (calendar &&
       all(grepl("^[0-9]{4}$", reference$part))) {
     shown <- shown[order(reference$part[shown])]
   }
@@ -121,17 +126,38 @@ hc_dispersion <- function(df, partition = NULL, top = 12) {
   }, character(1))
   points <- function(values, frequencies = NULL, sampleCounts = NULL, variant = NULL) {
     lapply(seq_along(buckets), function(i) {
-      point <- list(x = i - 1L, name = dispersionChartText(categories[i]), y = values[i],
+      point <- list(x = i - 1L, name = categories[i], tooltipLabel = chartText(categories[i]), y = values[i],
                     tokens = tokens[i], tokenTotal = sum(tokens), note = notes[i])
+      point$tooltipText <- paste0("Share of corpus tokens: <b>", chartNumber(values[i]),
+        "%</b><br/>Subcorpus size (tokens): ", chartNumber(tokens[i], TRUE),
+        "<br/>Corpus size (tokens): ", chartNumber(sum(tokens), TRUE), notes[i])
+      point$korapTooltipType <- "corpus"
+      point$korapCombinedParts <- if (nzchar(notes[i])) length(remaining) else 0L
       if (!is.null(variant)) {
         point$frequency <- frequencies[i]
-        point$totalInParts <- totals[variant]
+        point$totalInParts <- unname(totals[variant])
         point$observed <- sampleCounts[i]
+        point$korapTooltipType <- "dispersion"
+        point$korapEstimated <- rows$estimated[variant]
+        point$korapProbability <- probabilities[variant]
         point$perMillion <- frequencies[i] / tokens[i] * 1e6
         if (length(buckets[[i]]) == 1L && !nzchar(notes[i])) {
           urls <- parts[[variant]]$webUIRequestUrl
-          if (!is.null(urls)) point$webUIRequestUrl <- dispersionChartUrl(urls[buckets[[i]]])
+          if (!is.null(urls)) point$webUIRequestUrl <- chartUrl(urls[buckets[[i]]])
         }
+        point$tooltipText <- paste0("<b>", chartText(labels[variant]), "</b><br/>",
+          if (rows$estimated[variant]) "Estimated share of total frequency: " else "Share of total frequency: ",
+          "<b>", chartNumber(values[i]), "%</b><br/>",
+          if (rows$estimated[variant]) "Estimated absolute frequency: " else "Absolute frequency: ",
+          chartNumber(point$frequency, !rows$estimated[variant]),
+          if (rows$estimated[variant]) "<br/>Estimated total frequency: " else "<br/>Total frequency: ",
+          chartNumber(point$totalInParts, !rows$estimated[variant]),
+          if (rows$estimated[variant]) paste0("<br/>Absolute frequency in sample: ", chartNumber(point$observed, TRUE)) else "",
+          "<br/>Subcorpus size (tokens): ", chartNumber(point$tokens, TRUE),
+          if (rows$estimated[variant]) "<br/>Estimated relative frequency: " else "<br/>Relative frequency: ",
+          chartNumber(point$perMillion), " IPM",
+          if (rows$estimated[variant]) paste0("<br/>Page inclusion probability: ", chartNumber(probabilities[variant] * 100), "%") else "",
+          notes[i])
       }
       point
     })
@@ -141,7 +167,7 @@ hc_dispersion <- function(df, partition = NULL, top = 12) {
       any(s$excludedTokens > 0, na.rm = TRUE), logical(1)))
   zeroExact <- totals == 0 & !rows$estimated
   zeroSample <- totals == 0 & rows$estimated
-  caption <- paste0("Shares within listed parts. Click individual query bars for concordances.",
+  caption <- trimws(paste0(
     if (length(remaining)) paste0(" ", length(shown), " of ", nrow(reference),
       " parts shown individually; scores still use all parts.") else "",
     if (any(rows$estimated)) " Page-sample estimates can be biased by clustering." else "",
@@ -150,55 +176,43 @@ hc_dispersion <- function(df, partition = NULL, top = 12) {
     if (any(zeroExact)) paste0(" No hits within listed parts for ",
       paste(labels[zeroExact], collapse = ", "), "; no hit-share bars.") else "",
     if (any(zeroSample)) paste0(" No observed sample hits within listed parts for ",
-      paste(labels[zeroSample], collapse = ", "), "; hit shares are undefined.") else "")
+      paste(labels[zeroSample], collapse = ", "), "; hit shares are undefined.") else ""))
   titles <- c(source = "source", corpusTitle = "corpus title", pubPlaceKey = "publication country",
               region = "region", year = "publication year", pubDate = "publication year",
               creationDate = "creation year")
   title <- if (partition %in% names(titles)) unname(titles[partition]) else partition
   height <- max(380, 170 + length(buckets) * (20 * (nrow(rows) + 1) + 16))
-  hc <- highcharter::highchart(height = height) |>
-    highcharter::hc_chart(type = "bar", height = height, spacingRight = 65,
-      style = list(fontFamily = "sans-serif")) |>
-    highcharter::hc_title(text = dispersionChartText(paste("Distribution by", title))) |>
-    highcharter::hc_xAxis(categories = dispersionChartText(categories), title = list(text = NULL),
-      labels = list(style = list(fontSize = "12px", width = "210px", textOverflow = "ellipsis"))) |>
+  hc <- korapHighchart(height = height, series = nrow(rows)) |>
+    highcharter::hc_chart(type = "bar", height = height, spacingRight = 65) |>
+    highcharter::hc_title(text = chartText(paste("Distribution by", title))) |>
+    highcharter::hc_xAxis(categories = as.list(categories), title = list(text = NULL),
+      labels = list(formatter = chartLabelFormatter("value"), style = list(width = "210px", textOverflow = "ellipsis"))) |>
     highcharter::hc_yAxis(min = 0, max = 100, tickInterval = 20,
       title = list(text = "Share within listed parts (%)"),
       labels = list(format = "{value}%", overflow = "allow")) |>
-    highcharter::hc_legend(align = "left", verticalAlign = "top", maxHeight = 80,
-      itemStyle = list(fontSize = "12px")) |>
-    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.key}</b><br/>") |>
+    highcharter::hc_legend(align = "left", verticalAlign = "top", maxHeight = 80) |>
+    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.point.tooltipLabel}</b><br/>", pointFormat = "{point.tooltipText}") |>
     highcharter::hc_plotOptions(series = list(animation = FALSE, borderWidth = 0,
       groupPadding = .16, pointPadding = .06,
       dataLabels = list(enabled = TRUE, format = "{point.y:.1f}%", crop = FALSE, overflow = "allow", allowOverlap = TRUE,
-        style = list(fontSize = "12px", color = "#333333", textOutline = "none")),
-      point = list(events = list(
-        click = highcharter::JS("function () { var u = this.webUIRequestUrl; if (typeof u === 'string' && (u.toLowerCase().indexOf('https://') === 0 || u.toLowerCase().indexOf('http://') === 0)) window.open(u, 'korap', 'noopener'); }"),
-        mouseOver = highcharter::JS("function () { this.series.chart.container.style.cursor = this.webUIRequestUrl ? 'pointer' : 'default'; }"),
-        mouseOut = highcharter::JS("function () { this.series.chart.container.style.cursor = 'default'; }")
-      )))) |>
-    highcharter::hc_caption(text = dispersionChartText(caption), style = list(fontSize = "12px")) |>
-    highcharter::hc_exporting(enabled = TRUE) |>
-    highcharter::hc_credits(enabled = TRUE, text = "KorAP R Client Package", href = "https://github.com/KorAP/RKorAPClient/") |>
+        style = list(textOutline = "none")))) |>
+    highcharter::hc_caption(text = if (nzchar(caption)) chartText(caption) else NULL) |>
     highcharter::hc_responsive(rules = list(list(condition = list(maxWidth = 520),
       chartOptions = list(xAxis = list(labels = list(style = list(width = "110px"))))))) |>
     highcharter::hc_add_series(name = "Corpus tokens", color = "#B8B8B8",
-      data = points(tokens / sum(tokens) * 100),
-      tooltip = list(pointFormat = "{series.name}: <b>{point.y:.2f}%</b><br/>Tokens: {point.tokens:,.0f} / {point.tokenTotal:,.0f}{point.note}"))
-  colors <- c("#1F77B4", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00", "#0072B2", "#000000")
-  if (nrow(rows) > length(colors)) colors <- grDevices::hcl.colors(nrow(rows), "Dark 3")
+      data = points(tokens / sum(tokens) * 100))
   for (j in seq_len(nrow(rows))) {
     frequencies <- grouped(counts[, j])
     values <- if (totals[j] > 0) frequencies / totals[j] * 100 else rep(NA_real_, length(buckets))
-    tooltip <- paste0("{series.name}: <b>{point.y:.2f}%</b><br/>",
-      if (rows$estimated[j]) "Estimated hits: {point.frequency:,.2f} / {point.totalInParts:,.2f}<br/>Observed sample hits: {point.observed:,.0f}" else "Hits: {point.frequency:,.0f} / {point.totalInParts:,.0f}",
-      "<br/>Frequency per million tokens: {point.perMillion:,.3f}",
-      if (rows$estimated[j]) paste0("<br/>Page inclusion probability: ", format(probabilities[j] * 100, digits = 4), "%") else "",
-      "{point.note}")
-    hc <- highcharter::hc_add_series(hc, name = dispersionChartText(labels[j]), color = colors[j],
-      data = points(values, frequencies, grouped(observed[, j]), j), tooltip = list(pointFormat = tooltip))
+    hc <- highcharter::hc_add_series(hc, name = labels[j], colorIndex = j - 1L,
+      data = points(values, frequencies, grouped(observed[, j]), j))
   }
-  hc
+  chartLocalize(hc, list(kind = "dispersion", partition = partition,
+    title = chartText(paste("Distribution by", title)), defaultY = "Share within listed parts (%)",
+    caption = if (nzchar(caption)) chartText(caption) else NULL,
+    remaining = length(remaining), shown = length(shown), parts = nrow(reference),
+    estimated = any(rows$estimated), unequal = length(unique(probabilities)) > 1L,
+    excluded = excluded, zeroExact = as.list(labels[zeroExact]), zeroSample = as.list(labels[zeroSample])))
 }
 
 dispersionChartDistribution <- function(part) {
@@ -214,18 +228,4 @@ dispersionChartDistribution <- function(part) {
   }
   if (any(part$tokens == 0 & (part$frequency > 0 | part$observed > 0))) stop("Hits occur in a zero-sized corpus part.", call. = FALSE)
   part
-}
-
-dispersionChartText <- function(x) {
-  x <- unname(as.character(x))
-  x <- gsub("&", "&amp;", x, fixed = TRUE)
-  x <- gsub("<", "&lt;", x, fixed = TRUE)
-  x <- gsub(">", "&gt;", x, fixed = TRUE)
-  x <- gsub('"', "&quot;", x, fixed = TRUE)
-  gsub("'", "&#39;", x, fixed = TRUE)
-}
-
-dispersionChartUrl <- function(url) {
-  if (is.character(url) && length(url) == 1L && !is.na(url) &&
-      grepl("^https?://[^[:space:]<>\"']+$", url, ignore.case = TRUE)) unname(url) else NULL
 }

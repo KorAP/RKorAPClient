@@ -31,7 +31,7 @@ test_that("top parts use a common order and conserve counts and denominators in 
   d <- chartDispersionResult(list(star = c(7, 0, 3), colon = c(1, 8, 1)),
     tokens = c(70, 20, 10), labels = c("a", "b", "c"))
   chart <- hc_dispersion(d, top = 1)
-  expect_equal(chart$x$hc_opts$xAxis$categories, c("b", "Remaining 2 parts"))
+  expect_equal(unlist(chart$x$hc_opts$xAxis$categories), c("b", "Remaining 2 parts"))
   expect_equal(chartSeriesValues(chart, 1), c(20, 80))
   expect_equal(chartSeriesValues(chart, 2), c(0, 100))
   expect_equal(chartSeriesValues(chart, 3), c(80, 20))
@@ -100,8 +100,8 @@ test_that("sampling and exclusions remain visible without inventing uncertainty"
   expect_match(chart$x$hc_opts$caption$text, "Page-sample estimates", fixed = TRUE)
   expect_match(chart$x$hc_opts$caption$text, "unequal page coverage", fixed = TRUE)
   expect_match(chart$x$hc_opts$caption$text, "outside the listed parts is excluded", fixed = TRUE)
-  expect_match(chart$x$hc_opts$series[[3]]$tooltip$pointFormat, "Estimated hits", fixed = TRUE)
-  expect_match(chart$x$hc_opts$series[[3]]$tooltip$pointFormat, "25%", fixed = TRUE)
+  expect_match(chart$x$hc_opts$series[[3]]$data[[1]]$tooltipText, "Estimated absolute frequency", fixed = TRUE)
+  expect_match(chart$x$hc_opts$series[[3]]$data[[1]]$tooltipText, "25%", fixed = TRUE)
   expect_equal(chartSeriesValues(chart, 3), c(100 / 3, 200 / 3))
   d$estimated[2] <- FALSE
   expect_error(hc_dispersion(d), "sampling indicators are inconsistent")
@@ -114,8 +114,9 @@ test_that("chart labels are escaped and non-web concordance URLs are not clickab
   d$distribution[[1]]$webUIRequestUrl[1] <- "javascript:alert(1)"
   names(d$distribution[[2]]$webUIRequestUrl) <- c("a", "b")
   chart <- hc_dispersion(d)
-  expect_equal(chart$x$hc_opts$xAxis$categories[1], "&lt;img src=x&gt;")
-  expect_equal(chart$x$hc_opts$series[[2]]$name, "&lt;script&gt;&amp;&quot;")
+  expect_equal(chart$x$hc_opts$xAxis$categories[[1]], "<img src=x>")
+  expect_equal(chart$x$hc_opts$series[[2]]$data[[1]]$tooltipLabel, "&lt;img src=x&gt;")
+  expect_equal(chart$x$hc_opts$series[[2]]$name, "<script>&\"")
   expect_null(chart$x$hc_opts$series[[2]]$data[[1]]$webUIRequestUrl)
   expect_equal(chart$x$hc_opts$series[[3]]$data[[1]]$webUIRequestUrl,
     unname(d$distribution[[2]]$webUIRequestUrl[1]))
@@ -126,7 +127,35 @@ test_that("the chart handles additional variants and keeps calendar years ordere
     tokens = c(50, 30, 20), labels = c("2023", "2024", "2025"))
   d$partition <- "year"
   chart <- hc_dispersion(d)
-  expect_equal(chart$x$hc_opts$xAxis$categories, c("2023", "2024", "2025"))
+  expect_equal(unlist(chart$x$hc_opts$xAxis$categories), c("2023", "2024", "2025"))
   expect_equal(length(chart$x$hc_opts$series), 4)
   expect_equal(chartSeriesValues(chart, 4), c(0, 0, 100))
+})
+
+test_that("calendar partitions show every year by default and singleton labels serialize as arrays", {
+  years <- as.character(1990:2025)
+  d <- chartDispersionResult(list(one = seq_along(years)), rep(100, length(years)), years)
+  d$partition <- "year"
+  chart <- hc_dispersion(d)
+  expect_identical(unlist(chart$x$hc_opts$xAxis$categories), years)
+  expect_length(hc_dispersion(d, top = 12)$x$hc_opts$xAxis$categories, 13)
+  d <- chartDispersionResult(list(one = 2), 100, "2023")
+  json <- jsonlite::fromJSON(htmlwidgets:::toJSON(hc_dispersion(d)$x), simplifyVector = FALSE)
+  expect_identical(json$hc_opts$xAxis$categories, list("2023"))
+  expect_identical(json$hc_opts$series[[2]]$data[[1]]$totalInParts, 2L)
+})
+
+test_that("dispersion styling is overridable and export names stay literal", {
+  d <- chartDispersionResult()
+  d$variant[1] <- "<s> & \"quote\""
+  h <- hc_dispersion(d) |>
+    highcharter::hc_colors(c("red", "blue")) |>
+    highcharter::hc_tooltip(pointFormat = "custom {point.frequency}")
+  expect_identical(h$x$hc_opts$series[[2]]$name, d$variant[1])
+  expect_null(h$x$hc_opts$series[[2]][["color"]])
+  expect_identical(h$x$hc_opts$series[[2]]$colorIndex, 0L)
+  expect_null(h$x$hc_opts$series[[2]]$tooltip)
+  expect_identical(h$x$hc_opts$tooltip$pointFormat, "custom {point.frequency}")
+  expect_identical(h$x$hc_opts$colors, c("red", "blue"))
+  expect_match(as.character(h$x$hc_opts$legend$labelFormatter), "&lt;", fixed = TRUE)
 })

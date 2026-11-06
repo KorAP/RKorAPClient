@@ -6,7 +6,8 @@
 #' Adds on-click events to data points of highcharts that were constructed with
 #' [frequencyQuery()] or [collocationScoreQuery()]. Clicks on data points
 #' then launch KorAP web UI queries for the given query term and virtual corpus in
-#' a separate tab.
+#' a separate tab that is reused for subsequent clicks. Only HTTP(S) links
+#' are opened; points without a valid link are not clickable.
 #'
 #' @family highcharter-helpers
 #'
@@ -29,16 +30,13 @@
 #' }
 #'
 hc_add_onclick_korap_search <- function(hc) {
-  js <- JS("function() { window.open(this.webUIRequestUrl, 'korap'); }")
-  point_events <- list(events = list(click = js))
-  onclick_hc_options <- list(cursor = 'pointer', point = point_events)
-  hc_plotOptions(
-    hc,
-    series = list(enabled = TRUE),
-    line = onclick_hc_options,
-    spline = onclick_hc_options,
-    column = onclick_hc_options,
-    bar = onclick_hc_options,
-    scatter = onclick_hc_options,
-    pie = onclick_hc_options)
+  valid <- "typeof this.webUIRequestUrl === 'string' && /^https?:\\/\\/[^\\s<>\"']+$/i.test(this.webUIRequestUrl)"
+  click <- highcharter::JS(paste0("function () { if (!(", valid, ")) return; ",
+    "var w = window.open(this.webUIRequestUrl, 'korap'); ",
+    "if (w) { try { w.focus(); } catch (e) {} } }"))
+  highcharter::hc_plotOptions(hc, series = list(point = list(events = list(
+    click = click,
+    mouseOver = highcharter::JS(paste0("function () { this.series.chart.container.style.cursor = (", valid, ") ? 'pointer' : 'default'; }")),
+    mouseOut = highcharter::JS("function () { this.series.chart.container.style.cursor = 'default'; }")
+  ))))
 }

@@ -4,7 +4,7 @@
 \alias{hc_dispersion}
 \title{Plot interactive distributions underlying a dispersion analysis}
 \usage{
-hc_dispersion(df, partition = NULL, top = 12)
+hc_dispersion(df, partition = NULL, top = NULL)
 }
 \arguments{
 \item{df}{A query-based \code{\link[=dispersionAnalysis]{dispersionAnalysis()}} or \code{\link[=dispersionQuery]{dispersionQuery()}} result.}
@@ -13,7 +13,8 @@ hc_dispersion(df, partition = NULL, top = 12)
 the result contains only one partition. Variants must use the same parts,
 token sizes, virtual-corpus definitions, KorAP instance and index revision.}
 
-\item{top}{Number of parts to show individually, default 12. Parts are ranked
+\item{top}{Number of parts to show individually. NULL (default) shows all
+calendar years for year/date partitions, and 12 parts otherwise. Parts are ranked
 by the largest hit share across the variants, with token size breaking ties.
 Remaining parts are combined into an additional labelled bar group.
 \code{Inf} shows all parts. For \code{year}, \code{pubDate} and \code{creationDate} partitions,
@@ -36,7 +37,8 @@ parts without hits are retained. A zero-hit variant has no defined hit-share
 distribution and is identified in the caption without drawing hit-share bars.
 
 Grey bars show corpus-token shares; coloured bars show the query variants.
-Tooltips include counts and frequencies per million tokens. Click individual
+Tooltips distinguish shares of total frequency from relative frequencies
+per million tokens, and show absolute frequencies and subcorpus sizes. Click individual
 variant bars to open their stored concordance links. Corpus-token bars and
 combined remainder bars have no concordance link.
 
@@ -45,6 +47,15 @@ in tooltips. Page clustering can strongly bias these shares. The chart does
 not provide confidence intervals or an overall ranking of dispersion scores.
 The interface and display may change in future releases.
 }
+\section{Display language}{
+
+Generated chart text and number formatting follow the browser's preferred
+German or English language, falling back to English. Query names and custom
+labels are retained. Set \code{options(rkorap.chart.language = "de")} or \code{"en"}
+before creating charts to fix the language for exports; \code{"auto"} restores
+browser selection. IPM means instances per million tokens.
+}
+
 \examples{
 \dontrun{
 d <- KorAPConnection() |>

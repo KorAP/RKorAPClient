@@ -5,7 +5,7 @@
 \title{Plot frequency bars with confidence intervals using ggplot2}
 \usage{
 geom_freq_bar_ci(
-  mapping = ggplot2::aes(ymin = conf.low, ymax = conf.high),
+  mapping = NULL,
   data = NULL,
   position = "dodge",
   width = 0.9,
@@ -13,12 +13,14 @@ geom_freq_bar_ci(
   errorbar.colour = NULL,
   errorbar.params = list(),
   na.rm = FALSE,
+  orientation = "x",
+  showCI = TRUE,
   ...
 )
 }
 \arguments{
 \item{mapping}{Error-bar bounds, created with \code{\link[ggplot2:aes]{ggplot2::aes()}}. Defaults to
-ymin = conf.low and ymax = conf.high. Set x, y, fill and group in the
+ymin = conf.low and ymax = conf.high (xmin and xmax for orientation = "y"). Set x, y, fill and group in the
 main \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} mapping so both layers inherit them.}
 
 \item{data}{Optional data shared by both layers; otherwise they inherit the
@@ -34,20 +36,30 @@ is set to the bar width.}
 \item{errorbar.width}{Width of the error-bar caps, default 0.25.}
 
 \item{errorbar.colour}{Optional fixed error-bar colour. The default NULL
-inherits the plot's colour mapping, or uses black if none is mapped.}
+inherits the plot's colour mapping, or uses a neutral grey if none is mapped.
+With ggplot2 4, the default grey adapts to the theme's background.}
 
 \item{errorbar.params}{Named list of additional error-bar appearance options,
 for example list(linewidth = 0.4, alpha = 0.8).}
 
 \item{na.rm}{Remove missing values without a warning, passed to both layers.}
 
+\item{orientation}{"x" (default) for a categorical x axis and vertical
+intervals; "y" for a categorical y axis and horizontal intervals. Both
+layers use the same orientation. An implicit horizontal mapping is rejected.}
+
+\item{showCI}{Show confidence intervals (default TRUE). FALSE adds only the
+bar layer and does not require interval bounds.}
+
 \item{...}{Additional appearance options passed to \code{\link[ggplot2:geom_col]{ggplot2::geom_col()}},
 such as fill, colour, alpha or linewidth.}
 }
 \value{
-A list of two ggplot2 layers, added to a plot with +.
+A list of ggplot2 layers, added to a plot with +.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Add a column layer and aligned confidence-interval error bars to a ggplot.
 Like \code{\link[=geom_freq_by_year_ci]{geom_freq_by_year_ci()}}, this helper uses the values already mapped
 in the plot: convert a \code{\link[=frequencyQuery]{frequencyQuery()}} result with \code{\link[=ipm]{ipm()}} first, or with
@@ -61,7 +73,8 @@ Stacked bars are not supported because independently calculated confidence
 limits cannot be stacked. Missing observations are not converted to zeros;
 use explicit missing rows to reserve slots for absent query/corpus pairs.
 
-Use \code{\link[ggplot2:coord_flip]{ggplot2::coord_flip()}} for horizontal bars. Themes, facets, scales and
+Use orientation = "y" with aes(x = ipm, y = label), or use
+\code{\link[ggplot2:coord_flip]{ggplot2::coord_flip()}} with the default mapping for horizontal bars. Themes, facets, scales and
 \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} work as usual, including PDF and SVG output.
 }
 \examples{

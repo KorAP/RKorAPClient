@@ -54,6 +54,8 @@ the optional dispersion analysis; see \code{\link[=dispersionQuery]{dispersionQu
 A tibble, with each row containing the following result columns for query and vc combinations:
 \itemize{
 \item \strong{query}: the query string used for the frequency analysis.
+\item \strong{variant}: query-vector names, when supplied, for display labels.
+\item \strong{as.alternatives}: denominator mode, retained for plotting helpers.
 \item \strong{totalResults}: absolute frequency of query matches in the vc.
 \item \strong{vc}: virtual corpus used for the query.
 \item \strong{queryDuration}: client-side duration of the request in seconds.

@@ -1520,6 +1520,8 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
 #'
 #' @return A tibble, with each row containing the following result columns for query and vc combinations:
 #'   - **query**: the query string used for the frequency analysis.
+#'   - **variant**: query-vector names, when supplied, for display labels.
+#'   - **as.alternatives**: denominator mode, retained for plotting helpers.
 #'   - **totalResults**: absolute frequency of query matches in the vc.
 #'   - **vc**: virtual corpus used for the query.
 #'   - **queryDuration**: client-side duration of the request in seconds.
@@ -1544,6 +1546,10 @@ setMethod(
       cacheRecord <- cacheAsRecord(environment(), list(...), kco, ignore = inactive)
       cached <- readCacheAs(cacheAs, kco, cacheRecord, "frequency query")
       if (!is.null(cached)) {
+        saved <- attr(cached, cacheAsAttribute)$parameters
+        if (!is.null(saved$as.alternatives)) {
+          cached <- frequencyResultMetadata(cached, saved$query, saved$as.alternatives)
+        }
         return(cached)
       }
     }
@@ -1557,6 +1563,7 @@ setMethod(
         mutate(total = corpusStats(kco, vc = vc, as.df = TRUE)$tokens)
     }) |>
       ci(conf.level = conf.level)
+    result <- frequencyResultMetadata(result, query, as.alternatives)
 
     if (!is.null(dispersionBy)) {
       partitions <- if (inherits(dispersionBy, "KorAPCorpusPartition")) list(dispersionBy) else dispersionBy

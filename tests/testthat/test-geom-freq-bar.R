@@ -30,7 +30,7 @@ test_that("grouped bars and intervals share their dodge positions", {
   expect_equal(b[[1]]$group, b[[2]]$group)
   expect_equal(b[[1]]$y, d$ipm)
   expect_equal(b[[2]]$ymax, d$conf.high)
-  expect_true(all(b[[2]]$colour == "black"))
+  expect_true(all(b[[2]]$colour == "#737373"))
   expect_gt(length(unique(as.numeric(b[[1]]$x))), length(unique(d$label)))
 
   position <- ggplot2::position_dodge()
@@ -109,9 +109,33 @@ test_that("unsafe interval positions and inconsistent layer arguments are reject
   expect_error(geom_freq_bar_ci(errorbar.width = -1), "non-negative")
   expect_error(geom_freq_bar_ci(errorbar.params = list(.5)), "named list")
   expect_error(geom_freq_bar_ci(errorbar.params = list(position = "identity")), "shared")
-  expect_error(geom_freq_bar_ci(orientation = "y"), "shared")
+  expect_error(geom_freq_bar_ci(orientation = "invalid"), "arg")
   d <- ggFrequencyBarData()[1, ]
   b <- ggplot2::ggplot_build(ggplot2::ggplot(d, ggplot2::aes(query, ipm)) +
     geom_freq_bar_ci(position = "identity"))$data
   expect_equal(as.numeric(b[[1]]$x), as.numeric(b[[2]]$x))
+})
+
+test_that("horizontal mappings require and honor a shared explicit orientation", {
+  d <- ggFrequencyBarData()
+  g <- ggplot2::ggplot(d, ggplot2::aes(ipm, label, fill = query))
+  expect_error(ggplot2::ggplot_build(g + geom_freq_bar_ci()), "orientation = 'y'", fixed = TRUE)
+  b <- ggplot2::ggplot_build(g + geom_freq_bar_ci(orientation = "y"))$data
+  expect_equal(b[[1]]$x, d$ipm)
+  expect_equal(b[[2]]$xmin, d$conf.low)
+  expect_equal(b[[2]]$xmax, d$conf.high)
+  expect_equal(as.numeric(b[[1]]$y), as.numeric(b[[2]]$y))
+  expect_true(all(b[[1]]$flipped_aes))
+  expect_true(all(b[[2]]$flipped_aes))
+})
+
+test_that("unmapped confidence intervals use theme-aware greys and explicit colours take precedence", {
+  skip_if_not("element_geom" %in% getNamespaceExports("ggplot2"))
+  d <- ggFrequencyBarData()
+  g <- ggplot2::ggplot(d, ggplot2::aes(query, ipm)) + geom_freq_bar_ci() +
+    ggplot2::theme(geom = ggplot2::element_geom(paper = "#2a2a2a", ink = "white"))
+  expect_true(all(ggplot2::ggplot_build(g)$data[[2]]$colour == "#808083"))
+  g <- ggplot2::ggplot(d, ggplot2::aes(query, ipm)) + geom_freq_bar_ci(errorbar.colour = "purple") +
+    ggplot2::theme(geom = ggplot2::element_geom(paper = "#2a2a2a", ink = "white"))
+  expect_true(all(ggplot2::ggplot_build(g)$data[[2]]$colour == "purple"))
 })

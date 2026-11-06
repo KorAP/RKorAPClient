@@ -6,9 +6,11 @@
 \usage{
 hc_freq_bar_ci(
   df,
-  as.alternatives = FALSE,
-  ylabel = if (as.alternatives) "\%" else "ipm",
+  as.alternatives = NULL,
+  ylabel = if (as.alternatives) "\%" else "IPM",
   horizontal = TRUE,
+  log = FALSE,
+  showCI = TRUE,
   ...
 )
 }
@@ -16,13 +18,22 @@ hc_freq_bar_ci(
 \item{df}{Unconverted data frame returned by \code{\link[=frequencyQuery]{frequencyQuery()}}. Do not call
 \code{\link[=ipm]{ipm()}} or \code{\link[=percent]{percent()}} first.}
 
-\item{as.alternatives}{Use percentages of alternatives. Also set
-as.alternatives = TRUE in \code{\link[=frequencyQuery]{frequencyQuery()}}; the plotting function retains
-its denominators and does not recalculate them from the displayed rows.}
+\item{as.alternatives}{Denominator mode. NULL (default) inherits the mode
+recorded by \code{\link[=frequencyQuery]{frequencyQuery()}}. An explicit conflicting mode is rejected.
+For older or manually constructed tables without a recorded mode, the
+default is FALSE. Denominators are never recalculated from displayed rows.}
 
-\item{ylabel}{Value-axis label, default "ipm" or "\%" for alternatives.}
+\item{ylabel}{Value-axis label, default "IPM" (instances per million tokens)
+or "\%" for alternatives.}
 
 \item{horizontal}{Draw horizontal bars (default). FALSE draws columns.}
+
+\item{log}{Use a logarithmic value axis. Non-positive frequencies and
+intervals touching zero are omitted, with a note in the caption. Use this
+argument rather than changing only the axis type with hc_yAxis().}
+
+\item{showCI}{Show confidence intervals (default TRUE). FALSE omits error
+bars and confidence-interval tooltip lines; interval columns are not required.}
 
 \item{...}{Additional bar-series options passed to
 \code{\link[highcharter:hc_add_series]{highcharter::hc_add_series()}}, such as dataLabels, color or borderWidth.
@@ -32,6 +43,8 @@ The data, type, id and linkedTo options are managed by this helper.}
 A highchart htmlwidget, customizable with highcharter functions.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Compare relative frequencies from a \code{\link[=frequencyQuery]{frequencyQuery()}} result. Frequencies
 and confidence limits are converted to instances per million tokens, or to
 percentages for alternatives. The function uses the stored results without
@@ -50,9 +63,19 @@ zero counts. Zero hits in a non-empty corpus remain visible with their
 confidence interval. Error bars use the confidence limits supplied in df,
 including the confidence level chosen in frequencyQuery().
 
-Tooltips show hit counts, denominators and confidence limits. Clicking a
+Tooltips show absolute and relative frequencies, corpus size (or the total
+frequency of alternatives) and confidence intervals. Clicking a
 bar opens its stored KorAP concordance link, when available.
 }
+\section{Display language}{
+
+Generated chart text and number formatting follow the browser's preferred
+German or English language, falling back to English. Query names and custom
+labels are retained. Set \code{options(rkorap.chart.language = "de")} or \code{"en"}
+before creating charts to fix the language for exports; \code{"auto"} restores
+browser selection. IPM means instances per million tokens.
+}
+
 \examples{
 \dontrun{
 kco <- KorAPConnection("https://korap.dnb.de")
