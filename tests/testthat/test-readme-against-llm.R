@@ -431,13 +431,16 @@ test_dispersion_task <- function(model) {
       "2023-2025, accounting for the token count of each group.",
       "Make the metadata retrieval a visible step, using at most 2000 hits per",
       "spelling from sampled complete result pages, with a reproducible seed.",
-      "Print the dispersion measures side by side for the two spellings."
+      "Print the dispersion measures side by side for the two spellings.",
+      "Also plot their hit shares against corpus-token shares by source and by",
+      "publication country, using the library's interactive chart helper on the",
+      "stored result without making additional corpus queries."
     ))
     code <- extract_r_code(call_llm_api(prompt, model, max_tokens = 1000))
     expect_true(test_code_syntax(code), "Generated code should be valid R")
     parsed <- parse(text = code)
     symbols <- all.names(parsed, functions = TRUE, unique = TRUE)
-    expect_true(all(c("corpusQuery", "fetchSamplePages", "dispersionAnalysis") %in% symbols),
+    expect_true(all(c("corpusQuery", "fetchSamplePages", "dispersionAnalysis", "hc_dispersion") %in% symbols),
       "Use the documented query, explicit page fetch and dispersion workflow")
     expect_match(code, "Nutzer")
     expect_match(code, ":innen")

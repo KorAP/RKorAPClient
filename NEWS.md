@@ -13,6 +13,10 @@
   a fetch, dispersion uses exact part counts; after a fetch it reuses the recorded
   pages or complete unjoined metadata. Comparisons show sample coverage and warn
   about unequal inclusion probabilities. `maxHits = Inf` fetches all hits.
+- Added experimental `hc_dispersion()` to plot stored hit shares alongside
+  corpus-token shares for any partition, without additional queries. It groups
+  remaining parts explicitly, retains full-population denominators, identifies
+  estimates and zero-hit variants, and links individual bars to concordances.
 - Named query vectors retain fetchable states with `as.df = FALSE`. Their
   dispersion comparisons share partitions and print measures side by side.
   The demo compares Nutzer*innen and Nutzer:innen across sources, publication

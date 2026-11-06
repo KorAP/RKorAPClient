@@ -15,6 +15,8 @@ result <- corpusQuery(kco, queries,
   fetchSamplePages(maxHits = Inf, seed = 7) |>
   dispersionAnalysis(by = c("source", "pubPlaceKey", "year"))
 print(result)
+print(hc_dispersion(result, partition = "source", top = 12))
+print(hc_dispersion(result, partition = "pubPlaceKey"))
 
 # Inf fetches every hit for an exact comparison. A finite maxHits gives page
 # estimates, which can be strongly biased by clustering within result pages.

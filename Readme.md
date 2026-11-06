@@ -116,7 +116,25 @@ hits <- corpusQuery(kco, queries,
   fetchSamplePages(maxHits = Inf, seed = 7)
 d <- dispersionAnalysis(hits, by = c("source", "pubPlaceKey", "year"))
 d  # measures as rows; one column per spelling
+hc_dispersion(d, partition = "source", top = 12)
+hc_dispersion(d, partition = "pubPlaceKey")
 ```
+
+`hc_dispersion()` plots the stored distributions without another query. Coloured
+bars show each variant's share of hits; grey bars show the corresponding share
+of corpus tokens. Each series uses hits or tokens within the listed parts as
+its denominator. The helper works with any partition in a query-based dispersion
+result, including custom partitions and more than two query variants. Choose
+one partition and a common virtual corpus per chart.
+
+For large partitions, `top` retains the parts with the largest hit shares across
+any variant and combines the rest into a labelled remainder. All shares still
+use the complete listed population; dispersion scores are unchanged. `top = Inf`
+shows every part. Tooltips show counts and frequencies per million tokens;
+click an individual variant bar for its concordance. The corpus reference and
+combined remainder have no concordance link. Estimates and zero-hit variants
+are explicitly identified. The six dispersion scores remain in the table,
+since their scales and directions differ. See the [Highcharts license notes](#highcharts).
 
 `maxHits = Inf` fetches all hits, so this comparison uses exact distributions.
 For exploratory page-sample estimates, replace the fetch step with
