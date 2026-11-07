@@ -17,6 +17,8 @@ Highcharts tooltip. It checks corpus headers, escaped labels, German labels for
 combined subcorpora and the shared year tooltip. It also checks rendered series
 colours under highcharter's unmodified startup theme. These assertions complement
 the R-option and JavaScript-model tests; they do not emulate tooltip formatting.
+For multi-query year plots, text positions must place each query on a new line
+after the preceding block, in German and English, with and without intervals.
 
 Keep the default-theme checks in a fresh R session without setting
 `highcharter.theme`: setting a test theme would hide regressions caused by

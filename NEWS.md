@@ -1,5 +1,8 @@
 # RKorAPClient (development version)
 
+- Shared year-plot tooltips separate query blocks with line breaks and show
+  each query's series colour, including when confidence intervals are hidden.
+
 - Frequency and dispersion bars show the corpus or subcorpus in their tooltip
   headers. The default highcharter theme no longer masks the helpers' palettes;
   year plots retain their historical D3 palette. Custom themes still take priority.

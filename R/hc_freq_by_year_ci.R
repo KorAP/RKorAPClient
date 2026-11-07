@@ -89,7 +89,8 @@ hc_freq_by_year_ci <- function(df, as.alternatives = NULL,
     ) %>%
     hc_xAxis(allowDecimals = FALSE) %>%
     hc_tooltip(headerFormat = "<b>{point.x}</b><br/>",
-      pointFormat = "{point.tooltipText}", crosshairs = TRUE, shared = TRUE) %>%
+      pointFormat = '<span style="color:{series.color}">\u25CF</span> {point.tooltipText}<br/>',
+      crosshairs = TRUE, shared = TRUE) %>%
     hc_add_series_korap_frequencies(df, smooth, as.alternatives, ylabel = ylabel, showCI = showCI, ...)
   chartLocalize(hc, list(kind = "year", caption = NULL))
 }

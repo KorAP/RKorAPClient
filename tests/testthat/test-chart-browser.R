@@ -95,4 +95,41 @@ test_that("rendered tooltips include corpus headers and use the intended palette
   if (identical(getOption("highcharter.theme"), startup)) {
     expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].graph.attr('stroke')"), "#FF7F0E")
   }
+
+  lemmas <- c("zutiefst", "präzise", "entscheidend", "unterstreichen", "zeigen")
+  multi <- suppressWarnings(ci(data.frame(query = rep(lemmas, each = 2),
+    condition = rep(lemmas, each = 2), year = rep(2019:2020, 5),
+    vc = rep(c("pubDate in 2019", "pubDate in 2020"), 5),
+    totalResults = rep(c(5126, 9457, 57183, 17530, 453473), each = 2), total = 751802824)))
+  for (language in c("de", "en")) for (showCI in c(TRUE, FALSE)) {
+    options(rkorap.chart.language = language)
+    render(hc_freq_by_year_ci(multi, smooth = TRUE, showCI = showCI))
+    layout <- evaluate("(() => {
+      const chart = Highcharts.charts.find(Boolean);
+      const series = chart.series.filter(s => s.name !== 'ci');
+      chart.tooltip.refresh(series.map(s => s.points[1]));
+      const walker = document.createTreeWalker(chart.tooltip.label.element, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) {
+        const text = walker.currentNode.textContent.replace(/\\u200b/g, '').trim();
+        if (!text || text === '●') continue;
+        const range = document.createRange(); range.selectNodeContents(walker.currentNode);
+        nodes.push({text, top: range.getBoundingClientRect().top});
+      }
+      return series.map(s => {
+        const i = nodes.findIndex(n => n.text === s.name);
+        return {name: s.name, found: i >= 0, top: i >= 0 ? nodes[i].top : null,
+          previousTop: i > 0 ? nodes[i - 1].top : null,
+          previousText: i > 0 ? nodes[i - 1].text : null};
+      });
+    })()")
+    expect_length(layout, length(lemmas))
+    for (entry in layout) {
+      expect_true(entry$found, info = entry$name)
+      # Inspect real text positions: a missing <br/> put the next lemma on
+      # the same line as the previous interval (or corpus size without CIs).
+      expect_true(entry$top > entry$previousTop + 5,
+        info = paste(language, showCI, entry$name, "after", entry$previousText))
+    }
+  }
 })
