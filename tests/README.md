@@ -25,7 +25,11 @@ vcr uses httr2's mock interface directly, without another HTTP adapter.
 `test-http-transport.R` additionally exercises real retries and timeouts using
 local `webfakes` servers on automatically allocated ports. Processes are stopped
 after each test. These tests need loopback networking, but no internet; they are
-skipped on CRAN. CI runs them separately after the package check.
+skipped on CRAN. GitLab runs them and source-README consistency checks after
+the package check. GitHub runs those checks together with headless chart
+regressions in a separate `source-tests` workflow; the OS matrix runs the
+installed-package suite, including the ggplot spline tests. Standard check and
+coverage jobs explicitly disable live-server and model tests.
 
 ## Live integration tests
 
@@ -94,7 +98,7 @@ One development measurement took 11.09 seconds live (including recording),
 Run the chart tests, including rendering in Chrome or Chromium:
 
 ```sh
-RKORAP_BROWSER_TESTS=true Rscript -e 'devtools::test(filter = "chart|hc-|show-ci|geom-freq")'
+RKORAP_BROWSER_TESTS=true Rscript -e 'devtools::test(filter = "chart|hc-|show-ci|geom-freq|year-smoothing")'
 ```
 
 The browser test additionally needs the suggested `chromote` package and a local

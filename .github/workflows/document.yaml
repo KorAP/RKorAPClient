@@ -18,6 +18,9 @@ on:
 
 name: document
 
+permissions:
+  contents: read
+
 jobs:
   document:
     runs-on: ubuntu-latest
@@ -26,7 +29,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -61,3 +64,6 @@ jobs:
               call. = FALSE
             )
           }
+
+      - name: Check generated documentation is committed
+        run: git diff --exit-code -- NAMESPACE man

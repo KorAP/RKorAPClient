@@ -1,0 +1,57 @@
+# Source-only checks supplement the installed-package checks in the OS matrix.
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'R/**'
+      - 'tests/**'
+      - 'man/**'
+      - 'Readme.md'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - '.github/workflows/source-tests.yaml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'R/**'
+      - 'tests/**'
+      - 'man/**'
+      - 'Readme.md'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - '.github/workflows/source-tests.yaml'
+
+name: source-tests
+
+permissions:
+  contents: read
+
+jobs:
+  source-tests:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RKORAP_LLM_MODELS: ""
+      RKORAP_LIVE_TESTS: ""
+      RKORAP_BROWSER_TESTS: "true"
+      NOT_CRAN: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::devtools
+          needs: check
+      - name: Run source, local HTTP and rendered-chart checks
+        shell: Rscript {0}
+        run: |
+          chrome <- chromote::find_chrome()
+          if (is.null(chrome) || !nzchar(chrome)) {
+            stop("Chrome is required for the rendered-chart checks.")
+          }
+          devtools::test(
+            filter = "^(readme-consistency|http-transport|chart-browser)$",
+            stop_on_failure = TRUE
+          )
