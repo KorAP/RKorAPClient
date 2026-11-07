@@ -113,6 +113,13 @@ expand_grid(
 
 `frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals. The relative frequencies and confidence limits are proportions, not values per million. Use `ipm()` when a plotting workflow needs values per million, as in the ggplot2 example above. When using `hc_freq_by_year_ci()`, pass the `frequencyQuery()` result directly: that helper performs the conversion itself (or converts to percentages with `as.alternatives = TRUE`). Calling `ipm()` first would scale the confidence limits twice.
 
+For curved connections between annual observations, use
+`geom_freq_by_year_ci(smooth = TRUE)` (from version 1.5.0). The measured years
+remain visible as points; the curve and confidence-band boundaries are
+interpolated for display only. Missing years leave gaps. This is not a trend
+analysis, and the band does not provide confidence intervals for unobserved
+dates. Interpolation follows the plot scales, including logarithmic axes.
+
 ### Dispersion across metadata
 
 Available from version 1.5.0 (currently the development version).

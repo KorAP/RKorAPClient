@@ -209,7 +209,25 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @param mapping	Set of aesthetic mappings created by aes() or aes_(). If specified and inherit.aes = TRUE (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.
 #' @param showCI Show confidence bands (default TRUE). FALSE retains only the
 #'   frequency curves and points and does not require interval bounds.
-#' @param ...	 Other arguments passed to geom_ribbon, geom_line, and geom_click_point.
+#' @param smooth Draw curved connections between annual observations (default
+#'   FALSE). Uses natural cubic spline interpolation within each group and
+#'   facet, on the plot's transformed scales. Missing values and missing calendar
+#'   years break the curves. Points remain at the observed years.
+#' @param ... Other arguments passed to geom_ribbon, geom_line, and geom_click_point.
+#' @details
+#' With `smooth = TRUE`, map numeric calendar years to x and frequency to y.
+#' Interpolation is only a display aid, not a fitted trend or a trend test.
+#' Confidence-band boundaries are interpolated between the supplied annual
+#' limits; they are not confidence intervals for unobserved dates. Observed
+#' annual values and limits are retained. As with other ggplot2 statistics,
+#' interpolation follows the axis scales, including logarithmic scales.
+#' Cubic curves can overshoot between annual values; use straight connections
+#' when the exact shape matters. Negative interpolated frequencies are clipped
+#' at zero (on a log axis, zero is outside the displayed range).
+#' Each group needs at most one observation per year; use colour, fill or group
+#' to distinguish expressions or corpora. No extrapolation is performed.
+#' The interpolation used by Highcharts may give a different curve between
+#' the same annual observations.
 #'
 #' @rdname misc-functions
 #'
@@ -229,15 +247,80 @@ globalVariables(c("conf.high", "conf.low", "onRender", "webUIRequestUrl"))
 #' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_point theme element_text scale_x_continuous
 #'
 #' @export
-geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high), showCI = TRUE, ...) {
+geom_freq_by_year_ci <- function(mapping = aes(ymin=conf.low, ymax=conf.high),
+                                 showCI = TRUE, smooth = FALSE, ...) {
   validateShowCI(showCI)
+  if (!is.logical(smooth) || length(smooth) != 1L || is.na(smooth)) {
+    stop("smooth must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (smooth && "stat" %in% names(list(...))) {
+    stop("stat cannot be overridden when smooth = TRUE.", call. = FALSE)
+  }
+  line <- if (smooth) geom_line(stat = StatFrequencySpline, ...) else geom_line(...)
   layers <- list(
-    geom_line(...),
+    line,
     geom_click_point(aes(url=webUIRequestUrl), ...),
     theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position.inside = c(0.8, 0.2)),
     scale_x_continuous(breaks = function(x) seq(ceiling(x[1]), floor(x[2]), by = 1 + floor(((x[2]-x[1])/30)))))
-  if (showCI) c(list(geom_ribbon(mapping, alpha = .3, linetype = 0, show.legend = FALSE, ...)), layers) else layers
+  if (!showCI) return(layers)
+  band <- if (smooth) {
+    geom_ribbon(mapping, stat = StatFrequencySpline, alpha = .3, linetype = 0, show.legend = FALSE, ...)
+  } else geom_ribbon(mapping, alpha = .3, linetype = 0, show.legend = FALSE, ...)
+  c(list(band), layers)
 }
+
+# Interpolate after aesthetic mapping and scale transformation, so ordinary
+# grouping, facets, custom bounds and log axes work without inspecting user data.
+StatFrequencySpline <- ggplot2::ggproto("StatFrequencySpline", ggplot2::Stat,
+  required_aes = "x",
+  optional_aes = c("y", "ymin", "ymax"),
+  setup_params = function(data, params) {
+    if (!"y" %in% names(data) || inherits(data$x, "mapped_discrete")) {
+      stop("smooth = TRUE needs numeric years on x and frequency on y.", call. = FALSE)
+    }
+    completeX <- data[is.finite(data$x), c("PANEL", "group", "x"), drop = FALSE]
+    if (anyDuplicated(completeX)) {
+      stop("Each group needs one observation per year; map colour, fill or group to separate series.", call. = FALSE)
+    }
+    params
+  },
+  compute_group = function(data, scales) {
+    columns <- intersect(c("y", "ymin", "ymax"), names(data))
+    zero <- suppressWarnings(scales$y$transform(0))
+    one <- suppressWarnings(scales$y$transform(1))
+    data <- data[order(data$x), , drop = FALSE]
+    valid <- Reduce(`&`, lapply(data[columns], is.finite))
+    # Keep gaps explicit instead of joining the observations on either side.
+    starts <- c(TRUE, diff(data$x) > 1 | !head(valid, -1L) | !tail(valid, -1L))
+    runs <- split(which(valid), cumsum(starts)[valid])
+    result <- lapply(seq_along(runs), function(i) {
+      d <- data[runs[[i]], , drop = FALSE]
+      if (nrow(d) < 2L) return(NULL) # The separate point layer retains singletons.
+      x <- sort(unique(c(d$x, seq(min(d$x), max(d$x), length.out = 200L))))
+      values <- lapply(d[columns], function(y) {
+        value <- stats::spline(d$x, y, xout = x, method = "natural")$y
+        if (!is.na(zero) && !is.na(one)) {
+          value <- if (one >= zero) pmax(zero, value) else pmin(zero, value)
+        }
+        value
+      })
+      out <- data.frame(x = x, values)
+      if (all(c("ymin", "ymax") %in% columns)) {
+        # Separate boundary curves can cross; keep the displayed band enclosing
+        # the centre curve, without changing valid limits at the observed years.
+        lower <- pmin(out$ymin, out$ymax, out$y)
+        out$ymax <- pmax(out$ymin, out$ymax, out$y)
+        out$ymin <- lower
+      }
+      out$group <- data$group[1] + i / (nrow(data) + 1)
+      out
+    })
+    if (!length(result) || all(vapply(result, is.null, logical(1)))) {
+      return(data[FALSE, c("x", columns), drop = FALSE])
+    }
+    do.call(rbind, result)
+  }
+)
 
 #'
 #' @importFrom ggplot2 ggproto aes GeomPoint

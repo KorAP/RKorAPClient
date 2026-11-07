@@ -17,7 +17,10 @@
 #'   [frequencyQuery()]. An explicit conflicting mode is rejected. Older tables
 #'   without a recorded mode default to FALSE.
 #' @param ylabel defaults to `%` if `as.alternatives` is `TRUE` and to `IPM` (instances per million tokens) otherwise.
-#' @param smooth boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.
+#' @param smooth Draw curved connections using Highcharts' spline and
+#'   areasplinerange types (default FALSE). This only changes the display;
+#'   observations remain at the measured years. The interpolated band does not
+#'   supply confidence intervals for dates between observations or a trend test.
 #' @param showCI Show confidence bands (default TRUE). FALSE omits bands and
 #'   confidence-interval tooltip lines; interval columns are not required.
 #' @param ... additional arguments passed to [highcharter::hc_add_series()]

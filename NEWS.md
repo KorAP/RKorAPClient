@@ -1,5 +1,10 @@
 # RKorAPClient (development version)
 
+- **Draw curved time series in ggplot2** with
+  `geom_freq_by_year_ci(smooth = TRUE)`. Annual observations stay visible as
+  points; the connecting curve and confidence-band boundaries are interpolated
+  for display. This does not estimate a time trend or add observations.
+
 - **Compare how widely expressions are used**, beyond their overall frequency.
   The experimental `dispersionAnalysis()` compares their distribution across
   sources, publication countries or years, taking the size of each group into

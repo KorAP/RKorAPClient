@@ -22,7 +22,10 @@ without a recorded mode default to FALSE.}
 
 \item{ylabel}{defaults to \verb{\%} if \code{as.alternatives} is \code{TRUE} and to \code{IPM} (instances per million tokens) otherwise.}
 
-\item{smooth}{boolean decides whether the graph is smoothed using the highcharts plot types spline and areasplinerange.}
+\item{smooth}{Draw curved connections using Highcharts' spline and
+areasplinerange types (default FALSE). This only changes the display;
+observations remain at the measured years. The interpolated band does not
+supply confidence intervals for dates between observations or a trend test.}
 
 \item{showCI}{Show confidence bands (default TRUE). FALSE omits bands and
 confidence-interval tooltip lines; interval columns are not required.}
