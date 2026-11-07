@@ -11,7 +11,8 @@
   json = TRUE,
   getHeaders = FALSE,
   cache = kco@cache,
-  timeout = kco@timeout
+  timeout = kco@timeout,
+  verbose = kco@verbose
 )
 }
 \arguments{
@@ -22,6 +23,12 @@
 \item{json}{logical that determines if JSON result is expected}
 
 \item{getHeaders}{logical that determines if headers and content should be returned (as a list)}
+
+\item{cache}{whether to use the local response cache}
+
+\item{timeout}{request timeout in seconds}
+
+\item{verbose}{whether to report cancellation in the progress output}
 }
 \description{
 Internal API call method

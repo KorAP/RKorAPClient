@@ -301,7 +301,7 @@ setMethod(
 
         progress_row_start(verbose, layout, current_query, query, vcDisplay$labels[current_query])
         queryStart <- Sys.time()
-        res <- apiCall(kco, paste0(requestUrl, "&count=0"))
+        res <- apiCall(kco, paste0(requestUrl, "&count=0"), verbose = verbose)
         queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
         if (is.null(res)) {
           status <- "failed"
@@ -392,7 +392,7 @@ setMethod(
       )
       log_info(verbose, "Searching \"", query, "\"", if (vc != "") paste0(" in \"", vc, "\""), ": ")
       queryStart <- Sys.time()
-      res <- apiCall(kco, paste0(requestUrl, "&count=0"))
+      res <- apiCall(kco, paste0(requestUrl, "&count=0"), verbose = verbose)
       queryDuration <- as.numeric(difftime(Sys.time(), queryStart, units = "secs"))
       if (is.null(res)) {
         log_info(verbose, ansi("failed", "red"), " after ", format_duration_short(queryDuration, precise = TRUE), "\n")
@@ -609,7 +609,7 @@ setMethod("fetchNext", "KorAPQuery", function(kqo,
 
     # Rebuild the URL with all parameters
     query <- httr2::url_modify(kqo@requestUrl, query = existing_query)
-    res <- apiCall(kqo@korapConnection, query)
+    res <- apiCall(kqo@korapConnection, query, verbose = verbose)
     if (is.null(res)) {
       failed_offset <- currentOffset
       break
@@ -1299,7 +1299,7 @@ setMethod("fetchAnnotations", "KorAPQuery", function(kqo,
     }
 
     tryCatch({
-      res <- apiCall(kco, req)
+      res <- apiCall(kco, req, verbose = verbose)
 
       if (!is.null(res)) {
         # Store the raw annotation snippet (respect overwrite flag)

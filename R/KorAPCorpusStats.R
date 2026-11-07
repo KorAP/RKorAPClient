@@ -142,7 +142,7 @@ setMethod("corpusStats", "KorAPConnection", function(kco,
         URLencode(enc2utf8(vc), reserved = TRUE)
       )
     log_info(verbose, "Getting size of virtual corpus \"", vc, "\"", sep = "")
-    res <- apiCall(kco, url)
+    res <- apiCall(kco, url, verbose = verbose)
     webUIRequestUrl <- paste0(kco@KorAPUrl, sprintf("?q=<base/s=t>&cq=%s", url_encode(enc2utf8(vc))))
     if (is.null(res)) {
       res <- data.frame(documents = NA_real_, tokens = NA_real_, sentences = NA_real_, paragraphs = NA_real_)

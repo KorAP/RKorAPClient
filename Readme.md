@@ -39,6 +39,20 @@ KorAPConnection()
 ```
 Explicit `verbose` arguments still take precedence over these settings.
 
+### Stopping a running search
+
+Use RStudio's Stop button, Escape or Ctrl+C, as supported by your R interface.
+The client propagates a normal R interrupt, stopping the running script rather
+than returning an incomplete result or continuing to the next query. During HTTP
+requests it temporarily disables the error debugger, so cancellation returns to
+the console even when debugging on errors is enabled. Your error-handler setting
+is restored afterwards, and ordinary request errors keep their usual handling.
+With `verbose = TRUE`, cancellation adds a short "Request cancelled by user."
+line to the progress output; with `verbose = FALSE`, it stays silent. This is
+informational output, not an R warning, and does not change the interrupt.
+Completed responses already in the local cache remain available for a later run.
+Cancelling a client request does not guarantee that the server stops its work.
+
 ### Local caching of API responses
 
 To speed up repeated analyses and to avoid unnecessary load on the KorAP servers, API responses are cached locally by default, in the cache directory that is standard for your operating system (see [R.cache](https://cran.r-project.org/package=R.cache)). Cached responses are invalidated automatically when the corpus index revision changes.

@@ -195,7 +195,7 @@ setMethod("initialize", "KorAPConnection", function(.Object,
     resp <- httr2::request(.Object@KorAPUrl) |>
       httr2::req_url_path_append(kustvakt_auth_path) |>
       httr2::req_error(is_error = \(resp) FALSE) |>
-      httr2::req_perform()
+      performRequest(verbose = .Object@verbose)
     .Object@authorizationSupported <- (httr2::resp_status(resp) == 200)
 
     .Object@indexRevision <- .Object@welcome[[1]][["x-index-revision"]]
@@ -347,7 +347,7 @@ setMethod("auth", "KorAPConnection", function(kco, app_id = generic_kor_app_id, 
       kco@oauthScope <- scope
       req <- request(kco@apiUrl) |>
         oauthRefresh(client, scope, kco) |>
-        req_perform()
+        performRequest(verbose = kco@verbose)
       log_info(kco@verbose, "Client authorized. Short lived access token will be refreshed automatically.")
     }
   } else {
@@ -410,6 +410,23 @@ setGeneric("apiCall", function(kco, ...) standardGeneric("apiCall"))
 maxApiTries <- 10
 maxRetryWaitSeconds <- 600
 
+# Perform a request without entering the error debugger on a user interrupt.
+# R's default interrupt action runs options(error), including when curl polls
+# for cancellation inside R_ToplevelExec. An interrupt handler alone cannot
+# prevent that first debugger entry. Scope the option to this request and let
+# native interrupts unwind normally, so callers can still catch them and an
+# interrupted script cannot continue with NULL or incomplete results.
+# Restore the user's error handler before ordinary errors are handled, too.
+performRequest <- function(req, verbose = FALSE) {
+  previous <- options(error = NULL)
+  on.exit(options(previous), add = TRUE)
+  withCallingHandlers(
+    httr2::req_perform(req),
+    error = function(e) options(previous),
+    interrupt = function(e) log_info(verbose, "\nRequest cancelled by user.\n")
+  )
+}
+
 #' Seconds to wait before retrying a request, as the server asks
 #'
 #' Reads the Retry-After header of a 429 or 503 response. Kustvakt rounds it
@@ -443,11 +460,14 @@ utils::globalVariables(c("."))
 #' @param url request url
 #' @param json logical that determines if JSON result is expected
 #' @param getHeaders logical that determines if headers and content should be returned (as a list)
+#' @param cache whether to use the local response cache
+#' @param timeout request timeout in seconds
+#' @param verbose whether to report cancellation in the progress output
 #' @importFrom jsonlite fromJSON
 #' @importFrom curl has_internet
 #' @import httr2
 #' @export
-setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout = kco@timeout) {
+setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout = kco@timeout, verbose = kco@verbose) {
   result <- ""
 
   # Handle caching if enabled
@@ -488,7 +508,7 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
     req <- req |> httr2::req_auth_bearer_token(kco@accessToken)
   }
 
-  resp <- tryCatch(req |> httr2::req_perform(),
+  resp <- tryCatch(req |> performRequest(verbose = verbose),
     error = function(e) {
       if (is.null(e$resp)) {
         message(paste("Error: ", e$message, collapse = " "), if ("parent" %in% names(e)) paste0("\n", e$parent$message) else "")

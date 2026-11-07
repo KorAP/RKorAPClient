@@ -4,6 +4,12 @@
   headers. The default highcharter theme no longer masks the helpers' palettes;
   year plots retain their historical D3 palette. Custom themes still take priority.
 
+- Stopping an HTTP request with RStudio's Stop button or a keyboard interrupt
+  cancels the running script without entering the error debugger. Error-handler
+  settings are restored afterwards; ordinary request errors retain their handling.
+  With `verbose = TRUE`, a short cancellation notice is included in the progress
+  output without signalling an additional warning.
+
 - Frequency-bar and time-series helpers for highcharter and ggplot2 accept
   `showCI = FALSE` to omit confidence intervals, including interval tooltip
   lines. The default remains `TRUE`; disabling intervals does not require
