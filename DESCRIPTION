@@ -45,6 +45,7 @@ Imports:
     urltools,
     xml2
 Suggests:
+    callr,
     chromote,
     lifecycle,
     testthat,
@@ -60,7 +61,9 @@ Suggests:
     tidyverse,
     sf,
     geojsonsf,
-    viridisLite
+    viridisLite,
+    vcr (>= 2.0.0),
+    webfakes
 Collate: 
     'logging.R'
     'KorAPConnection.R'

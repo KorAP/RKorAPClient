@@ -16,10 +16,6 @@ test_that("KorAPConnection is printable", {
   expect_error(print(kco), NA)
 })
 
-test_that("Opening KorAPConnection prints some message.", {
-  expect_message(KorAPConnection(accessToken = NULL), "KorAP")
-})
-
 test_that("Opening KorAPConnection with invalid apiToken fails gracefully", {
   expect_message(
     KorAPConnection(accessToken = "test token", timeout = 3),

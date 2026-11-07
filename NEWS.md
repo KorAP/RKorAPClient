@@ -1,5 +1,11 @@
 # RKorAPClient (development version)
 
+- Added an offline HTTP test pilot for connection initialization, corpus sizes,
+  count queries, paginated fetching and isolated response caching using synthetic
+  vcr cassettes. Local webfakes tests cover real retries and timeouts. Selected live
+  checks are explicitly enabled with `RKORAP_LIVE_TESTS=true`; the remaining
+  legacy test suite has not yet been fully migrated.
+
 - Shared year-plot tooltips separate query blocks with line breaks and show
   each query's series colour, including when confidence intervals are hidden.
 

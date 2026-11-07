@@ -27,13 +27,6 @@ test_that("Cache depends on indexRevision (handling also NULL values)", {
   expect_output(frequencyQuery(kco, "Ameisenplage", "pubDate since 2014"), "cached")
 })
 
-test_that("corpusQuery returns results", {
-  skip_if_offline()
-  q <- KorAPConnection(accessToken = NULL) %>%
-    corpusQuery("Ameisenplage")
-  expect_gt(q@totalResults, 0)
-})
-
 test_that("corpusQuery can handle latin1 encoded umlauts in query and vc", {
   query <- "Ameisenb\xe4r"
   Encoding(query)="latin1"
