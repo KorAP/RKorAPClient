@@ -1,0 +1,102 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain",
+          "x-index-revision": "fixture-index-1"
+        },
+        "body": {
+          "string": "KorAP offline fixture"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html"
+        },
+        "body": {
+          "string": ""
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameisenplage&cq=pubDate%20since%202014&ql=poliqarp&fields=corpusSigle,corpusTitle,textSigle,pubDate,pubPlace,availability,textClass,dmozDomain,wikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 3\n  },\n  \"matches\": []\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=pubDate%20since%202014"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"documents\": 1000,\n  \"tokens\": 100000,\n  \"sentences\": 4000,\n  \"paragraphs\": 2000\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameisenplage&cq=pubDate%20since%202014&ql=poliqarp&fields=corpusSigle,corpusTitle,textSigle,pubDate,pubPlace,availability,textClass,dmozDomain,wikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 3\n  },\n  \"matches\": []\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=pubDate%20since%202014"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"documents\": 1000,\n  \"tokens\": 100000,\n  \"sentences\": 4000,\n  \"paragraphs\": 2000\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

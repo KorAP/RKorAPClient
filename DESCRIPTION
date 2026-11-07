@@ -63,7 +63,8 @@ Suggests:
     geojsonsf,
     viridisLite,
     vcr (>= 2.0.0),
-    webfakes
+    webfakes,
+    withr
 Collate: 
     'logging.R'
     'KorAPConnection.R'

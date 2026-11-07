@@ -1,0 +1,54 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain",
+          "x-index-revision": "fixture-index-1"
+        },
+        "body": {
+          "string": "KorAP offline fixture"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html"
+        },
+        "body": {
+          "string": ""
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5b%5bxx&ql=poliqarp&fields=corpusSigle,corpusTitle,textSigle,pubDate,pubPlace,availability,textClass,dmozDomain,wikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"errors\": [\n    [\n      302,\n      \"unbalanced brackets\"\n    ]\n  ]\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

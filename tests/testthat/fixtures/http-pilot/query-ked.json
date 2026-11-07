@@ -1,0 +1,70 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/instance/ked/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain",
+          "x-index-revision": "fixture-ked-1"
+        },
+        "body": {
+          "string": "Synthetic KED instance"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/instance/ked/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html"
+        },
+        "body": {
+          "string": ""
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/instance/ked/api/v1.0/search?q=einfache&ql=poliqarp&fields=textSigle,pubDate,pubPlace,availability,textClass,KED.cover1Herder,KED.cover2Herder,KED.cover3Herder,KED.cover4Herder,KED.cover5Herder,KED.nPara,KED.nPunct1kTks,KED.nSent,KED.nToks,KED.nToksSentMd,KED.nTyps,KED.rcpnt,KED.rcpntLabel,KED.strtgy,KED.strtgyLabel,KED.topic,KED.topicLabel,KED.txttyp,KED.txttypLabel&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 3\n  },\n  \"matches\": []\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/instance/ked/api/v1.0/search?q=einfache&ql=poliqarp&fields=textSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CKED.cover1Herder%2CKED.cover2Herder%2CKED.cover3Herder%2CKED.cover4Herder%2CKED.cover5Herder%2CKED.nPara%2CKED.nPunct1kTks%2CKED.nSent%2CKED.nToks%2CKED.nToksSentMd%2CKED.nTyps%2CKED.rcpnt%2CKED.rcpntLabel%2CKED.strtgy%2CKED.strtgyLabel%2CKED.topic%2CKED.topicLabel%2CKED.txttyp%2CKED.txttypLabel&access-rewrite-disabled=true&count=50&offset=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 3,\n    \"startIndex\": 0,\n    \"itemsPerPage\": 3\n  },\n  \"matches\": [\n    {\n      \"matchID\": \"match-TEST/2023/00001-p2001-2002\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00001\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        },\n        {\n          \"key\": \"KED.nToks\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"300\"\n          ]\n        },\n        {\n          \"key\": \"KED.nSent\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"12\"\n          ]\n        },\n        {\n          \"key\": \"KED.rcpnt\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic recipients\"\n          ]\n        }\n      ]\n    },\n    {\n      \"matchID\": \"match-TEST/2023/00002-p2002-2003\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00002\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        },\n        {\n          \"key\": \"KED.nToks\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"300\"\n          ]\n        },\n        {\n          \"key\": \"KED.nSent\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"12\"\n          ]\n        },\n        {\n          \"key\": \"KED.rcpnt\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic recipients\"\n          ]\n        }\n      ]\n    },\n    {\n      \"matchID\": \"match-TEST/2023/00003-p2003-2004\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00003\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        },\n        {\n          \"key\": \"KED.nToks\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"300\"\n          ]\n        },\n        {\n          \"key\": \"KED.nSent\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"12\"\n          ]\n        },\n        {\n          \"key\": \"KED.rcpnt\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic recipients\"\n          ]\n        }\n      ]\n    }\n  ]\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

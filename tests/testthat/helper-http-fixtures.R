@@ -80,3 +80,36 @@ checkKorapHttpWorkflow <- function(kco) {
   testthat::expect_identical(httr2::url_parse(df$webUIRequestUrl)$query$cq, vc)
   invisible(result)
 }
+
+checkKorapQueryEncodings <- function(kco) {
+  latinQuery <- "Ameisenb\xe4r"
+  latinVc <- "pubPlace=N\xfcrnberg"
+  Encoding(latinQuery) <- Encoding(latinVc) <- "latin1"
+  utfQuery <- enc2utf8(latinQuery)
+  utfVc <- enc2utf8(latinVc)
+  latin <- corpusQuery(kco, latinQuery, vc = latinVc)
+  utf <- corpusQuery(kco, utfQuery, vc = utfVc)
+  fromUrl <- corpusQuery(kco, KorAPUrl = utf@webUIRequestUrl)
+  testthat::expect_false(is.null(latin@apiResponse))
+  testthat::expect_false(is.null(utf@apiResponse))
+  testthat::expect_false(is.null(fromUrl@apiResponse))
+  totals <- c(latin@totalResults, utf@totalResults, fromUrl@totalResults)
+  testthat::expect_true(all(is.finite(totals) & totals >= 0))
+  testthat::expect_equal(totals, rep(totals[1], 3))
+  parameters <- httr2::url_parse(utf@webUIRequestUrl)$query
+  testthat::expect_identical(parameters$q, utfQuery)
+  testthat::expect_identical(parameters$cq, utfVc)
+  invisible(totals)
+}
+
+checkKorapCollocationScores <- function(kco) {
+  df <- collocationScoreQuery(kco, "Ameisenplage", "heimgesucht",
+    leftContextSize = 0, rightContextSize = 1)
+  testthat::expect_gt(df$logDice, 1)
+  # Preserve the former live regression against the individual score functions.
+  for (score in c("ll", "pmi", "mi2", "mi3", "logDice")) {
+    testthat::expect_equal(df[[score]], get(score, envir = asNamespace("RKorAPClient"))(
+      df$O1, df$O2, df$O, df$N, df$E, df$w))
+  }
+  invisible(df)
+}

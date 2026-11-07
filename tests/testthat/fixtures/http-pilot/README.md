@@ -18,6 +18,10 @@ a final single-hit page. Separate small cassettes cover connection errors,
 cache reuse, warnings and statistics. vcr consumes each matching interaction
 once within a cassette context. Per-scenario cassettes avoid scanning unrelated
 requests during matching.
+The `query-*` cassettes additionally contain synthetic corpus-query cases,
+including token contexts and extended KED metadata. `fetch-random.json` records
+the expected page requests for the fixed test seed. No generation step contacts
+a server.
 
 To regenerate the same files without accessing a server, run from the package root:
 

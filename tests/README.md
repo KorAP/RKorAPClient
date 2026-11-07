@@ -5,15 +5,16 @@
 Run the fixture and local-transport tests without contacting a KorAP server:
 
 ```sh
-RKORAP_LLM_MODELS="" Rscript -e 'devtools::test(filter = "http-fixtures|http-transport|^corpusStats$|^KorAPConnection$")'
+RKORAP_LLM_MODELS="" Rscript -e 'devtools::test(filter = "^(http-fixtures|http-transport|corpusStats|KorAPConnection|corpusQuery|fetch)$")'
 ```
 
-Install the suggested `vcr` (>= 2.0.0), `webfakes` and `callr` packages to run both
+Install the suggested `vcr` (>= 2.0.0), `webfakes`, `callr` and `withr` packages to run both
 parts. `test-http-fixtures.R` covers connection initialization, count queries,
 a two-page fetch, continuation and response caching. It uses synthetic response
 files with the real `apiCall()`, URL construction and JSON parsing. Connectivity
 probing is replaced only inside that context, the cache test uses a temporary
 directory, and an unexpected request fails without falling back to the internet.
+Following [httr2's testing guidance](https://httr2.r-lib.org/reference/with_mocked_responses.html),
 vcr uses httr2's mocking hook directly. Cassettes match HTTP method and URI, use
 JSON serialization and run with `record = "none"`; tests never record implicitly.
 The four formerly live `test-corpusStats.R` cases now use synthetic responses
@@ -22,6 +23,10 @@ too, checking exact sizes, both output formats, URL encoding and printing.
 cassettes, resolver/transport failures are injected at the curl boundary, and
 credential tests use the real keyring front end with an in-memory backend.
 Cache tests use temporary directories, including when clearing the cache.
+`test-corpusQuery.R` covers encoding, URL import, token contexts, extended KED
+metadata, large offsets, alternatives and frequency/collocation queries using
+synthetic responses. `test-fetch.R` uses a fixed, scoped seed for the legacy
+randomized-page regression. No corpus texts or credentials are recorded.
 
 `test-http-transport.R` uses temporary local `webfakes` servers on automatically
 allocated ports to exercise actual httr2 retries and curl timeouts. Server
@@ -45,6 +50,8 @@ basic count, maxFetch and corpus-statistics cases use this fixture/live split.
 to initialization, search, two-page fetching, positions and corpus sizes in both
 output formats. Exact synthetic counts, error responses and credential behavior
 remain offline-only checks.
+Shared assertions also cover Latin-1/UTF-8 queries, URL import and collocation
+scores; these run in both fixture tests and the opt-in live suite.
 
 This is the first migration step: **other legacy test files still contain live
 requests**. An unfiltered `devtools::test()` is not yet an offline-only suite.
@@ -57,25 +64,24 @@ Recording new live responses is never an automatic part of these tests.
 
 Pilot validation in the development environment:
 
-- 179 fixture assertions pass, including 83 for connection behavior, 24 for corpus
+- 281 fixture assertions pass, including 83 for connection behavior, 24 for corpus
   statistics, and shared workflow assertions. They also check that
   mock options and vcr configuration are restored after success and failure.
 - Seven local-transport assertions pass with external networking unavailable
   in a Linux network namespace.
-- The broader selected offline regression run passes 668 assertions, including
+- The broader selected offline regression run passes 770 assertions, including
   dispersion, chart, interrupt and retry tests.
-- A fresh installed-package run passes all 179 assertions with
+- A fresh installed-package run passes all 281 assertions with
   `NOT_CRAN=false` and no networking; local-server and live tests are skipped.
 
 These are observed timings, not a performance guarantee or a benchmark of the
 entire legacy suite. The live checks were not enabled for these offline runs.
 
-After splitting cassettes per scenario, the expanded 179-assertion fixture
-subset took 1.55 seconds on the first run and 0.90 seconds warm in CRAN mode.
-This excludes R startup and
-dependency installation; CRAN machines may differ. It is the time for this
-subset, not the whole package suite or the elapsed time of live tests.
-Local-server tests add no CRAN runtime.
+In CRAN-mode measurements, the expanded 281-assertion fixture subset took
+2.80 seconds on the first run and 2.04–2.19 seconds warm. This excludes R startup
+and dependency installation; CRAN machines may differ. It is the time for this
+subset, not the whole package suite. Local-server tests add no CRAN runtime.
+The four opt-in live tests passed 32 assertions in 85 seconds in a separate run.
 
 An explicit benchmark records one anonymous metadata-only query and two result
 pages in a temporary directory, then replays the same workflow three times and
