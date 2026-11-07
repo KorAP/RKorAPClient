@@ -8,8 +8,9 @@ library(ggplot2)
 # Define years to analyze
 years <- 1990:2024
 
-# Create virtual corpus definitions for each year, restricted to Stern
-vcs <- paste("corpusTitle=Stern & pubDate in", years)
+# Match both the bare source title and annual titles such as "Stern 2020".
+# Restrict the suffix to a year so "Stern Gesund leben" stays a separate source.
+vcs <- paste("corpusTitle=/Stern( [0-9]{4})?/ & pubDate in", years)
 
 # Connect to KorAP
 kco <- KorAPConnection(verbose = TRUE)
