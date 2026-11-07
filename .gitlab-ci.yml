@@ -2,6 +2,13 @@ include:
   - local: ci/install-rkorapclient-ci.yml
 
 build-rkorapclient-on-stable:
+  rules:
+    # Preserve the original default exclusion of merge-request pipelines.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $RKORAP_LIVE_TESTS == "true"'
+      when: never
+    - when: on_success
   extends: .install-rkorapclient
   image: rocker/tidyverse
   cache:
@@ -28,6 +35,13 @@ build-rkorapclient-on-stable:
 # package. A failure here is a hint that the documentation has become unclear
 # (or that a model had a bad day), not a broken build, hence allow_failure.
 readme-doc-prompting-tests:
+  rules:
+    # Preserve the original default exclusion of merge-request pipelines.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $RKORAP_LIVE_TESTS == "true"'
+      when: never
+    - when: on_success
   extends: .install-rkorapclient
   image: rocker/tidyverse
   allow_failure: true
@@ -52,3 +66,23 @@ readme-doc-prompting-tests:
     - R -q -e 'devtools::test(filter = "readme-against-llm")'
     - end_section docprompting
 
+
+# Opt-in scheduled server compatibility checks. Configure the interval and
+# RKORAP_LIVE_TESTS=true in GitLab's pipeline schedules after this is merged.
+live-korap-http-tests:
+  extends: .install-rkorapclient
+  image: rocker/tidyverse
+  allow_failure: true
+  cache:
+    key: rkorapclient-ubuntu-stable
+    paths:
+      - apt-cache/
+      - ccache/
+      - rlib/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $RKORAP_LIVE_TESTS == "true"'
+  script:
+    - export RKORAP_LIVE_TESTS=true
+    - export RKORAP_LLM_MODELS=""
+    - export NOT_CRAN=true
+    - R -q -e 'devtools::test(filter = "^live-http$")'

@@ -14,28 +14,28 @@ withKorapFixtureApi <- function(code, cassette = "connection") {
     },
     .package = "curl"
   )
-  previousMock <- getOption("httr2_mock")
-  on.exit(options(httr2_mock = previousMock), add = TRUE)
   vcr::local_vcr_configure(ignore_hosts = NULL, ignore_localhost = FALSE,
     turned_off = FALSE, re_record_interval = NULL)
   on.exit({
     # apiCall() intentionally handles HTTP failures, so a missing fixture must
     # also fail here instead of becoming an apparently legitimate NULL result.
-    testthat::expect_equal(length(state$missing), 0L, info = paste(state$missing, collapse = "\n"))
+    if (length(state$missing)) stop(paste("Unmatched fixture request:",
+      paste(state$missing, collapse = "\n")), call. = FALSE)
     testthat::expect_identical(state$transfers, 0L)
   }, add = TRUE)
-  vcr::use_cassette(cassette, {
-    mock <- getOption("httr2_mock")
-    options(httr2_mock = function(req) {
-      state$requests <- c(state$requests, req$url)
-      tryCatch(mock(req), error = function(e) {
-        state$missing <- c(state$missing, req$url)
-        stop(e)
-      })
+  perform <- RKorAPClient:::performRequest
+  testthat::local_mocked_bindings(performRequest = function(req, verbose = FALSE) {
+    state$requests <- c(state$requests, req$url)
+    withCallingHandlers(perform(req, verbose = verbose), error = function(e) {
+      if (inherits(e, "vcr_unhandled")) state$missing <- c(state$missing, req$url)
     })
-    result <- code(state)
-  }, dir = testthat::test_path("fixtures", "http-pilot"), record = "none",
-    match_requests_on = c("method", "uri"), serialize_with = "json")
+  }, .package = "RKorAPClient")
+  # Let the public httr2 interface restore any caller mock after vcr finishes.
+  httr2::with_mocked_responses(NULL, {
+    vcr::use_cassette(cassette, result <- code(state),
+      dir = testthat::test_path("fixtures", "http-pilot"), record = "none",
+      match_requests_on = c("method", "uri"), serialize_with = "json")
+  })
   result
 }
 
@@ -162,4 +162,15 @@ checkKorapContentWorkflow <- function(kco) {
   testthat::expect_true(all(c("collocate", "O", "E", "logDice") %in% names(scores)))
   testthat::expect_true(all(is.finite(c(scores$O, scores$E, scores$logDice))))
   invisible(scores)
+}
+
+checkKorapDefaultMetadata <- function(kco) {
+  q <- corpusQuery(kco, "Test", vc = "textType=/Zeit.*/ & pubDate in 2023")
+  testthat::expect_true(is.finite(q@totalResults) && q@totalResults > 0)
+  result <- fetchNext(q, maxFetch = 1)@collectedMatches
+  testthat::expect_equal(nrow(result), 1)
+  testthat::expect_true(all(c("corpusSigle", "corpusTitle", "textSigle", "pubDate",
+    "pubPlace", "availability", "dmozDomain", "wikiDomain") %in% names(result)))
+  testthat::expect_true(any(!is.na(result$dmozDomain) & nzchar(result$dmozDomain)))
+  testthat::expect_true(all(nzchar(result$textSigle)))
 }

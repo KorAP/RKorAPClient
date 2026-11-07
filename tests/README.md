@@ -14,8 +14,10 @@ Cassettes match method and URI and use `record = "none"`; unexpected requests
 fail instead of recording or contacting a server. External curl transfers are
 also rejected at suite teardown, including errors caught by client code.
 
-Caches use temporary directories. Credential tests use an in-memory keyring
-backend; environment variables and mocks are restored afterwards. No corpus
+The suite sets a temporary `R.cache.rootPath`, removes it at teardown and
+restores the previous option. This also isolates caches whose subdirectory
+looks like an absolute path. Credential tests use an in-memory keyring backend;
+environment variables and mocks are restored afterwards. No corpus
 texts or credentials are recorded. Following
 [httr2's testing guidance](https://httr2.r-lib.org/reference/with_mocked_responses.html),
 vcr uses httr2's mock interface directly, without another HTTP adapter.
@@ -33,10 +35,17 @@ RKORAP_LIVE_TESTS=true RKORAP_LLM_MODELS="" Rscript -e 'devtools::test(filter = 
 
 Five opt-in tests check initialization, query encodings, URL import, fetching,
 corpus sizes, text metadata, annotations and collocation analysis against KorAP.
-Shared positive assertions run offline and live; exact synthetic values and
+Shared positive assertions run offline and live, including a query that omits
+`fields` and verifies current topic-domain metadata. Exact synthetic values and
 simulated errors remain offline-only. The live tests use anonymous connections
 without response caching, and a Creative Commons subcorpus for text content.
 They are skipped by default and on CRAN, or when the server is unavailable.
+
+The GitLab `live-korap-http-tests` job is prepared for a dedicated scheduled
+pipeline with `RKORAP_LIVE_TESTS=true`, for example weekly. It permits failures
+without failing the pipeline and disables model tests. The ordinary check and
+model jobs are excluded from that dedicated pipeline. No schedule is created by
+the YAML file; its interval must be configured in GitLab after merging.
 
 Documentation-model tests are also opt-in. `RKORAP_LLM_MODELS=default` selects the
 default models; a comma-separated list selects specific models. These tests send
@@ -50,19 +59,23 @@ Neither standard tests nor package checks record new responses.
 
 Measured locally with vcr 2.1.0 and R 4.6.2:
 
-- Full developer suite: 1,909 assertions, 21.7 seconds, with external networking
-  unavailable and loopback enabled.
-- Full CRAN-mode suite: 1,902 assertions, 18.6 seconds, with no network interfaces;
-  no unmocked HTTP transfers occurred. Local-server, browser and live tests skip.
-- Built-package check: 1,781 assertions, 18.2 seconds; four additional README
-  consistency tests skip because the source README is excluded from the archive.
-- Five explicit live tests: 47 assertions, 86.4 seconds.
+- Full CRAN-mode source suite: 1,792 assertions, 18.8 seconds, with no network
+  interfaces. Temporary cache roots were removed, the original option restored
+  and the home cache unchanged. Local-server, browser and live tests skip.
+- Built-package `R CMD check --as-cran`: 1,671 assertions, about 35 seconds in
+  the test phase. Four source-README consistency tests additionally skip because
+  the README is excluded from the archive. The check has no errors or warnings;
+  one NOTE concerns the development version. The locally missing optional `sf`
+  package was not required; online incoming checks were disabled.
+- Six additional local-transport assertions run with loopback networking only.
+- The five live scenarios remain opt-in. The added default-metadata contract
+  also passed against the public KorAP server.
 
-The earlier 2–3 second measurement covered only a 281-assertion subset, not the
-full suite. The latest migration enables 57 formerly CRAN-skipped cases with
-320 assertions, taking 6.6 seconds within the measured CRAN run. This is added
-coverage, not a controlled before/after comparison of full-suite runtime.
+The earlier 2–3 second measurement covered only a subset, not the full suite.
 Timings exclude dependency installation and depend on the machine and server.
+Request guards now signal missing fixtures as errors rather than counting each
+successful guard as an assertion; assertion totals therefore differ from the
+previous migration report.
 
 A separate benchmark records an anonymous metadata query and two result pages
 in a temporary directory, replays the same workflow three times and compares all

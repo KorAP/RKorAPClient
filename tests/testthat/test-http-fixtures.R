@@ -81,27 +81,55 @@ test_that("fixture-based requests can use a fresh isolated real response cache",
 
 test_that("an unknown request never falls back to a real server", {
   skip_if_not_installed("vcr", minimum_version = "2.0.0")
-  previousMock <- getOption("httr2_mock")
-  on.exit(options(httr2_mock = previousMock), add = TRUE)
-  vcr::local_vcr_configure(ignore_hosts = NULL, ignore_localhost = FALSE,
-    turned_off = FALSE, re_record_interval = NULL)
-  vcr::use_cassette("connection", {
-    expect_error(httr2::req_perform(httr2::request("https://korap.example.invalid/missing")),
-      "Failed to find matching request", class = "vcr_unhandled")
-  }, dir = test_path("fixtures", "http-pilot"), record = "none",
-    match_requests_on = c("method", "uri"), serialize_with = "json")
+  httr2::with_mocked_responses(NULL, {
+    vcr::local_vcr_configure(ignore_hosts = NULL, ignore_localhost = FALSE,
+      turned_off = FALSE, re_record_interval = NULL)
+    vcr::use_cassette("connection", {
+      expect_error(httr2::req_perform(httr2::request("https://korap.example.invalid/missing")),
+        "Failed to find matching request", class = "vcr_unhandled")
+    }, dir = test_path("fixtures", "http-pilot"), record = "none",
+      match_requests_on = c("method", "uri"), serialize_with = "json")
+  })
 })
 
 test_that("fixture contexts restore the previous HTTP mock and vcr configuration", {
   skip_if_not_installed("vcr", minimum_version = "2.0.0")
-  sentinel <- function(req) stop("Previous mock must not handle fixture requests")
-  rlang::local_options(httr2_mock = sentinel)
+  sentinel <- function(req) stop("Previous mock restored")
+  request <- httr2::request("https://korap.example.invalid/probe")
   previousConfig <- vcr::vcr_configuration()
-  withKorapFixtureApi(function(state) suppressMessages(fixtureKorapConnection()))
-  expect_identical(getOption("httr2_mock"), sentinel)
-  expect_identical(vcr::vcr_configuration(), previousConfig)
-  expect_error(withKorapFixtureApi(function(state) stop("Fixture cleanup probe")),
-    "Fixture cleanup probe")
-  expect_identical(getOption("httr2_mock"), sentinel)
-  expect_identical(vcr::vcr_configuration(), previousConfig)
+  httr2::with_mocked_responses(sentinel, {
+    withKorapFixtureApi(function(state) suppressMessages(fixtureKorapConnection()))
+    expect_error(httr2::req_perform(request), "Previous mock restored")
+    expect_identical(vcr::vcr_configuration(), previousConfig)
+    expect_error(withKorapFixtureApi(function(state) stop("Fixture cleanup probe")),
+      "Fixture cleanup probe")
+    expect_error(httr2::req_perform(request), "Previous mock restored")
+    expect_identical(vcr::vcr_configuration(), previousConfig)
+  })
+})
+
+test_that("missing fixtures fail even when apiCall handles the request error", {
+  expect_error(suppressMessages(withKorapFixtureApi(function(state) {
+    kco <- fixtureKorapConnection()
+    apiCall(kco, paste0(kco@apiUrl, "unrecorded"), cache = FALSE)
+  })), "Unmatched fixture request")
+})
+
+test_that("the real response cache stays under the temporary suite root", {
+  root <- getOption("R.cache.rootPath")
+  expect_true(startsWith(root, tempdir()))
+  withWorkflowFixture("cache", function(state) {
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
+    query <- korapHttpTestQuery(kco)
+    path <- R.cache::getCachePath(dirs = RKorAPClient:::KorAPCacheSubDir())
+    expect_true(startsWith(normalizePath(path), paste0(normalizePath(root), "/")))
+    expect_true(length(list.files(path, recursive = TRUE)) > 0)
+    expect_equal(query@totalResults, 51)
+  })
+})
+
+test_that("default metadata include current topic-domain fields", {
+  withKorapFixtureApi(function(state) {
+    checkKorapDefaultMetadata(suppressMessages(fixtureKorapConnection()))
+  }, cassette = "default-metadata")
 })

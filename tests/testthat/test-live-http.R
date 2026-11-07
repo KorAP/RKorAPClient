@@ -11,6 +11,7 @@ liveKorapConnection <- function() {
 test_that("an explicitly enabled live KorAP workflow remains compatible", {
   kco <- liveKorapConnection()
   checkKorapHttpWorkflow(kco)
+  checkKorapDefaultMetadata(kco)
 })
 
 # Keep a real-server check alongside the offline partial-page regressions.

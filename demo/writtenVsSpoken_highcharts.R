@@ -9,7 +9,7 @@ highchart() |>
   hc_xAxis(categories = c("FOLK (gesprochen)", "DeReKo (geschrieben)")) |>
   hc_yAxis(
     min = 0,
-    title = list(text = "Treffer pro Million Wörter")
+    title = list(text = "Treffer pro Million W\u00f6rter")
   ) |>
   hc_add_series(
     data = df,

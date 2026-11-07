@@ -225,6 +225,11 @@ annotationComplex <- annotationCase('[orth="[wW]ir"] können alles [orth="ausser
 annotationMorph <- annotationCase("Ameisenplage", fields = defaultFields, words = "Ameisenplage", textOffset = 200L)
 annotationRegression <- annotationCase("aufgrund einer Ameisenplage", vc = "availability=/CC.*/",
   fields = defaultFields, count = 5L, words = c("aufgrund", "einer", "Ameisenplage"), pos = c("APPR", "ART", "NN"), textOffset = 300L)
+# Share the default-field check with the real-server suite: omit fields entirely.
+defaultVc <- "textType=/Zeit.*/ & pubDate in 2023"
+defaultCount <- countFixture("Test", defaultVc)
+defaultPage <- pageFixture("Test", defaultVc, n = 1L, total = 3L, count = 1L)
+
 # One cassette per scenario keeps vcr's sequential request matching cheap and
 # makes the required order and number of requests explicit.
 uris <- vapply(interactions, function(x) x$request$uri, character(1))
@@ -274,3 +279,5 @@ saveCassette("annotation-complex", c(common, annotationComplex$count, annotation
 saveCassette("annotation-morph", c(common, annotationMorph$count, annotationMorph$page, annotationMorph$annotations$marmot))
 saveCassette("annotation-regression", c(common, annotationRegression$count, annotationRegression$page,
   annotationRegression$annotations$marmot))
+
+saveCassette("default-metadata", c(common, defaultCount, defaultPage))
