@@ -10,7 +10,7 @@ test_that("corpusStats parses subcorpus sizes and encodes its request offline", 
     expect_identical(httr2::url_parse(tail(state$requests, 1))$query$cq, vc)
     expect_match(stats@webUIRequestUrl, "%26", fixed = TRUE)
     expect_identical(httr2::url_parse(stats@webUIRequestUrl)$query$cq, vc)
-  })
+  }, cassette = "statistics")
 })
 
 test_that("corpusStats returns the same parsed sizes as a data frame offline", {
@@ -24,7 +24,7 @@ test_that("corpusStats returns the same parsed sizes as a data frame offline", {
       use.names = FALSE), c(100, 25000, 1200, 400))
     expect_identical(stats$vc, vc)
     expect_match(stats$webUIRequestUrl, "%26", fixed = TRUE)
-  })
+  }, cassette = "statistics")
 })
 
 test_that("printing corpusStats for the whole corpus works offline", {
@@ -33,7 +33,7 @@ test_that("printing corpusStats for the whole corpus works offline", {
     expect_equal(stats@tokens, 250000)
     expect_identical(httr2::url_parse(tail(state$requests, 1))$query$cq, "")
     expect_output(print(stats), "The whole corpus.*250,000 tokens")
-  })
+  }, cassette = "statistics")
 })
 
 test_that("printing corpusStats for a subcorpus works offline", {
@@ -42,5 +42,5 @@ test_that("printing corpusStats for a subcorpus works offline", {
       "pubDate since 2020 & pubDate until 2021")
     expect_output(print(stats), "The virtual corpus described by")
     expect_output(print(stats), "25,000 tokens")
-  })
+  }, cassette = "statistics")
 })

@@ -1,0 +1,37 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/unauthorized"
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\"errors\":[[401,\"Invalid access token\"]]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/bad-gateway"
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "text/plain"
+        },
+        "body": {
+          "string": "Bad Gateway"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

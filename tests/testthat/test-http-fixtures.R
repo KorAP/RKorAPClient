@@ -13,14 +13,14 @@ test_that("a connection uses fixture welcome headers and the authorization probe
 test_that("count queries use actual request encoding and JSON parsing offline", {
   withKorapFixtureApi(function(state) {
     kco <- suppressMessages(fixtureKorapConnection())
-    q <- fixtureKorapQuery(kco)
+    q <- korapHttpTestQuery(kco)
     expect_s4_class(q, "KorAPQuery")
     expect_equal(q@totalResults, 51)
     expect_true(q@hasMoreMatches)
     expect_null(q@collectedMatches)
     query <- httr2::url_parse(tail(state$requests, 1))$query
     expect_identical(query$q, "[orth='Nutzer*innen']")
-    expect_identical(query$cq, "pubDate in 2023")
+    expect_identical(query$cq, "pubDate since 2023 & pubDate until 2025")
     expect_identical(query$fields, "textSigle,corpusTitle,pubDate")
     expect_identical(query$`access-rewrite-disabled`, "true")
     expect_identical(query$count, "0")
@@ -28,13 +28,19 @@ test_that("count queries use actual request encoding and JSON parsing offline", 
     empty <- corpusQuery(kco, "absent", fields = "textSigle")
     expect_equal(empty@totalResults, 0)
     expect_false(empty@hasMoreMatches)
-  })
+  }, cassette = "count")
+})
+
+test_that("the shared live-server contract also holds for synthetic responses", {
+  withKorapFixtureApi(function(state) {
+    checkKorapHttpWorkflow(suppressMessages(fixtureKorapConnection()))
+  }, cassette = "workflow")
 })
 
 test_that("a two-page fetch parses fields, match positions and continuation offline", {
   withKorapFixtureApi(function(state) {
     kco <- suppressMessages(fixtureKorapConnection())
-    q <- fixtureKorapQuery(kco)
+    q <- korapHttpTestQuery(kco)
     first <- fetchNext(q)
     expect_equal(nrow(first@collectedMatches), 50)
     expect_equal(first@nextStartIndex, 50)
@@ -54,7 +60,7 @@ test_that("a two-page fetch parses fields, match positions and continuation offl
     # fetchAll() takes the same pages and replaces a previously fetched prefix.
     all <- fetchAll(first)
     expect_equal(all@collectedMatches, result@collectedMatches)
-  })
+  }, cassette = "fetch")
 })
 
 test_that("fixture-based requests can use a fresh isolated real response cache", {
@@ -64,13 +70,13 @@ test_that("fixture-based requests can use a fresh isolated real response cache",
     .package = "RKorAPClient")
   withKorapFixtureApi(function(state) {
     kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
-    first <- fixtureKorapQuery(kco)
+    first <- korapHttpTestQuery(kco)
     before <- length(state$requests)
-    cached <- fixtureKorapQuery(kco)
+    cached <- korapHttpTestQuery(kco)
     expect_equal(cached@totalResults, first@totalResults)
     expect_identical(cached@apiResponse$meta$cached, "local")
     expect_length(state$requests, before)
-  })
+  }, cassette = "cache")
 })
 
 test_that("an unknown request never falls back to a real server", {
@@ -79,7 +85,7 @@ test_that("an unknown request never falls back to a real server", {
   on.exit(options(httr2_mock = previousMock), add = TRUE)
   vcr::local_vcr_configure(ignore_hosts = NULL, ignore_localhost = FALSE,
     turned_off = FALSE, re_record_interval = NULL)
-  vcr::use_cassette("http-pilot", {
+  vcr::use_cassette("connection", {
     expect_error(httr2::req_perform(httr2::request("https://korap.example.invalid/missing")),
       "Failed to find matching request", class = "vcr_unhandled")
   }, dir = test_path("fixtures", "http-pilot"), record = "none",
