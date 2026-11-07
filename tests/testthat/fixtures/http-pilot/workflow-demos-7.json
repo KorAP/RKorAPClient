@@ -1,0 +1,500 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "x-index-revision": "workflow-index-1",
+          "Content-Type": "text/plain",
+          "Content-Length": "31",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Synthetic KorAP workflow server"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "text/plain",
+          "Content-Length": "23",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Authorization supported"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Btt%2Fl%3DHeuschrecke%5D&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameise&cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2011"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2012"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textDomain+%21%3D+%2FWirtschaft.%2A%2F+%26+pubDate+in+2013"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "VCR-vcr/2.1.0"
+}

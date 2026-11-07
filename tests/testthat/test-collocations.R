@@ -1,19 +1,19 @@
 test_that("collocationScoreQuery works", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = TRUE)
-  df <- collocationScoreQuery(kco, "Ameisenplage", "heimgesucht", leftContextSize = 0, rightContextSize = 1)
-  expect_gt(df$logDice, 1)
-  expect_equal(df$ll, ll(df$O1, df$O2, df$O, df$N, df$E, df$w))
-  expect_equal(df$pmi, pmi(df$O1, df$O2, df$O, df$N, df$E, df$w))
-  expect_equal(df$mi2, mi2(df$O1, df$O2, df$O, df$N, df$E, df$w))
-  expect_equal(df$mi3, mi3(df$O1, df$O2, df$O, df$N, df$E, df$w))
-  expect_equal(df$logDice, logDice(df$O1, df$O2, df$O, df$N, df$E, df$w))
+  withWorkflowFixture("workflow-collocations-1", function(state) {
+
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = TRUE))
+    df <- collocationScoreQuery(kco, "Ameisenplage", "heimgesucht", leftContextSize = 0, rightContextSize = 1)
+    expect_gt(df$logDice, 1)
+    expect_equal(df$ll, ll(df$O1, df$O2, df$O, df$N, df$E, df$w))
+    expect_equal(df$pmi, pmi(df$O1, df$O2, df$O, df$N, df$E, df$w))
+    expect_equal(df$mi2, mi2(df$O1, df$O2, df$O, df$N, df$E, df$w))
+    expect_equal(df$mi3, mi3(df$O1, df$O2, df$O, df$N, df$E, df$w))
+    expect_equal(df$logDice, logDice(df$O1, df$O2, df$O, df$N, df$E, df$w))
+  })
 })
 
 test_that("collocationScoreQuery expands collocates and virtual corpora", {
-  kco <- methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.test/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.test/",
     KorAPUrl = "https://example.test/"
   )
 
@@ -59,9 +59,7 @@ test_that("collocationScoreQuery expands collocates and virtual corpora", {
 })
 
 test_that("collocationScoreQuery aligns observed frequencies with collocates", {
-  kco <- methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.test/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.test/",
     KorAPUrl = "https://example.test/"
   )
 
@@ -100,43 +98,37 @@ test_that("collocationScoreQuery aligns observed frequencies with collocates", {
 
 
 test_that("collocationAnalysis works and warns about missing token", {
-  skip_if_offline()
-  kco <- KorAPConnection(
-    accessToken = NULL,
-    verbose = TRUE
-  )
-  expect_warning(
-    df <-
-      collocationAnalysis(
-        kco,
-        "focus([tt/p=ADJA] {Newstickeritis})",
-        leftContextSize = 1,
-        rightContextSize = 0,
-      ),
-    "access token"
-  )
-  expect_true(all(df$O > df$E))
-  reine <- df[df$collocate == "reine", ]
-  expect_equal(nrow(reine), 1)
-  expect_gt(reine$logDice, -1)
+  withWorkflowFixture("workflow-collocations-4", function(state) {
+
+    kco <- suppressMessages(fixtureKorapConnection(verbose = TRUE))
+    expect_warning(
+      df <-
+        collocationAnalysis(
+          kco,
+          "focus([tt/p=ADJA] {Newstickeritis})",
+          leftContextSize = 1,
+          rightContextSize = 0,
+        ),
+      "access token"
+    )
+    expect_true(all(df$O > df$E))
+    reine <- df[df$collocate == "reine", ]
+    expect_equal(nrow(reine), 1)
+    expect_gt(reine$logDice, -1)
+  })
 })
 
 test_that("collocationAnalysis on unaccounted strings does not error out", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, verbose = TRUE)
-  expect_warning(
-    df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc = c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/"), maxRecurse = 2),
-    "access token"
-  )
-  testthat::expect_equal(nrow(df), 0)
+  withWorkflowFixture("workflow-collocations-5", function(state) {
+
+    kco <- suppressMessages(fixtureKorapConnection(verbose = TRUE))
+    expect_warning(
+      df <- collocationAnalysis(kco, "XXXXXXXXAmeisenplage", vc = c("corpusSigle=/WDD17/", "corpusSigle=/WUD17/"), maxRecurse = 2),
+      "access token"
+    )
+    testthat::expect_equal(nrow(df), 0)
+  })
 })
-
-# test_that("removeWithinSpanWorks", {
-#  expect_equal(
-#    removeWithinSpan("contains(<base/s=s>, (machen []{0,1} aufmerksam | aufmerksam []{0,1} machen))", "base/s=s"),
-#    "(machen []{0,1} aufmerksam | aufmerksam []{0,1} machen)")
-# })
-
 
 test_that("mergeDuplicateCollocatesWorksAsExpected", {
   ldf <- tibble::tibble(
@@ -768,159 +760,173 @@ test_that("inject_focus_into_query leaves existing focus segments unchanged", {
 # These tests were causing the test suite to hang and not terminate
 
 test_that("collocationAnalysis handles exactFrequencies parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-27", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "Test",
-      exactFrequencies = TRUE,
-      searchHitsSampleLimit = 5,
-      topCollocatesLimit = 5
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "Test",
+        exactFrequencies = TRUE,
+        searchHitsSampleLimit = 5,
+        topCollocatesLimit = 5
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis handles withinSpan parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-28", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "Test",
-      withinSpan = "base/s=s",
-      exactFrequencies = TRUE,
-      searchHitsSampleLimit = 5,
-      topCollocatesLimit = 5
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "Test",
+        withinSpan = "base/s=s",
+        exactFrequencies = TRUE,
+        searchHitsSampleLimit = 5,
+        topCollocatesLimit = 5
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis handles expand parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-29", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      c("Test", "der"),
-      expand = TRUE,
-      searchHitsSampleLimit = 2,
-      topCollocatesLimit = 2
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        c("Test", "der"),
+        expand = TRUE,
+        searchHitsSampleLimit = 2,
+        topCollocatesLimit = 2
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis honors named vc labels", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-30", function(state) {
 
-  named_vc <- c(
-    Western = "textType=/.*Western.*/ & pubDate in 2012",
-    Erotic = "textType=/.*(Erotik|Gay).*/ & pubDate in 2012",
-    Historic = "textType=/.*Historisch.*/ & pubDate in 2012"
-  )
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "[tt/l=treffen]",
-      vc = named_vc,
-      searchHitsSampleLimit = 2,
-      topCollocatesLimit = 2
-    ),
-    "access token"
-  )
+    named_vc <- c(
+      Western = "textType=/.*Western.*/ & pubDate in 2012",
+      Erotic = "textType=/.*(Erotik|Gay).*/ & pubDate in 2012",
+      Historic = "textType=/.*Historisch.*/ & pubDate in 2012"
+    )
 
-  if (nrow(result) > 0) {
-    expect_true("label" %in% colnames(result))
-    expect_setequal(unique(result$label), names(named_vc))
-  }
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "[tt/l=treffen]",
+        vc = named_vc,
+        searchHitsSampleLimit = 2,
+        topCollocatesLimit = 2
+      ),
+      "access token"
+    )
+
+    if (nrow(result) > 0) {
+      expect_true("label" %in% colnames(result))
+      expect_setequal(unique(result$label), names(named_vc))
+    }
+  })
 })
 
 test_that("collocationAnalysis handles stopwords parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-31", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "Test",
-      stopwords = c("der", "die", "und"),
-      searchHitsSampleLimit = 5,
-      topCollocatesLimit = 5
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "Test",
+        stopwords = c("der", "die", "und"),
+        searchHitsSampleLimit = 5,
+        topCollocatesLimit = 5
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis handles lemmatizeNodeQuery parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-32", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "laufen",
-      lemmatizeNodeQuery = TRUE,
-      searchHitsSampleLimit = 5,
-      topCollocatesLimit = 5
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "laufen",
+        lemmatizeNodeQuery = TRUE,
+        searchHitsSampleLimit = 5,
+        topCollocatesLimit = 5
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis handles addExamples parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-33", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "Test",
-      addExamples = TRUE,
-      searchHitsSampleLimit = 3,
-      topCollocatesLimit = 3
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
-  if (nrow(result) > 0) {
-    expect_true("example" %in% colnames(result))
-  }
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "Test",
+        addExamples = TRUE,
+        searchHitsSampleLimit = 3,
+        topCollocatesLimit = 3
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+    if (nrow(result) > 0) {
+      expect_true("example" %in% colnames(result))
+    }
+  })
 })
 
 test_that("collocationAnalysis handles maxRecurse parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-34", function(state) {
 
-  expect_warning(
-    result <- collocationAnalysis(
-      kco,
-      "Test",
-      maxRecurse = 1,
-      searchHitsSampleLimit = 2,
-      topCollocatesLimit = 2
-    ),
-    "access token"
-  )
-  expect_true(is.data.frame(result))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
+
+    expect_warning(
+      result <- collocationAnalysis(
+        kco,
+        "Test",
+        maxRecurse = 1,
+        searchHitsSampleLimit = 2,
+        topCollocatesLimit = 2
+      ),
+      "access token"
+    )
+    expect_true(is.data.frame(result))
+  })
 })
 
 test_that("collocationAnalysis returns cached result without contacting the server", {
-  kco <- methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.invalid/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/",
     authorizationSupported = FALSE,
     verbose = FALSE
@@ -952,9 +958,7 @@ test_that("collocationAnalysis returns cached result without contacting the serv
 })
 
 test_that("collocationAnalysis appends the .rds extension to cacheAs", {
-  kco <- methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.invalid/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/",
     verbose = FALSE
   )
@@ -984,38 +988,40 @@ test_that("collocationAnalysis appends the .rds extension to cacheAs", {
 })
 
 test_that("collocationAnalysis writes and reuses its cache file", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, cache = TRUE, verbose = FALSE)
+  withWorkflowFixture("workflow-collocations-37", function(state) {
 
-  cache_file <- tempfile(fileext = ".rds")
-  on.exit(unlink(cache_file), add = TRUE)
-  expect_false(file.exists(cache_file))
+    kco <- suppressMessages(fixtureKorapConnection(cache = TRUE, verbose = FALSE))
 
-  expect_warning(
-    first <- collocationAnalysis(
+    cache_file <- tempfile(fileext = ".rds")
+    on.exit(unlink(cache_file), add = TRUE)
+    expect_false(file.exists(cache_file))
+
+    expect_warning(
+      first <- collocationAnalysis(
+        kco,
+        "Ameisenplage",
+        searchHitsSampleLimit = 2,
+        topCollocatesLimit = 2,
+        cacheAs = cache_file
+      ),
+      "access token"
+    )
+
+    expect_true(file.exists(cache_file))
+    # the file records the analysis parameters, the returned value does not
+    cached <- readRDS(cache_file)
+    expect_false(is.null(attr(cached, RKorAPClient:::cacheAsAttribute)))
+    attr(cached, RKorAPClient:::cacheAsAttribute) <- NULL
+    expect_equal(cached, first)
+
+    # the second call is served from the cache and therefore issues no token warning
+    second <- collocationAnalysis(
       kco,
       "Ameisenplage",
       searchHitsSampleLimit = 2,
       topCollocatesLimit = 2,
       cacheAs = cache_file
-    ),
-    "access token"
-  )
-
-  expect_true(file.exists(cache_file))
-  # the file records the analysis parameters, the returned value does not
-  cached <- readRDS(cache_file)
-  expect_false(is.null(attr(cached, RKorAPClient:::cacheAsAttribute)))
-  attr(cached, RKorAPClient:::cacheAsAttribute) <- NULL
-  expect_equal(cached, first)
-
-  # the second call is served from the cache and therefore issues no token warning
-  second <- collocationAnalysis(
-    kco,
-    "Ameisenplage",
-    searchHitsSampleLimit = 2,
-    topCollocatesLimit = 2,
-    cacheAs = cache_file
-  )
-  expect_equal(second, first)
+    )
+    expect_equal(second, first)
+  })
 })

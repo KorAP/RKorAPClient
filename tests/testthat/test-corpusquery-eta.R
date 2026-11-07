@@ -1,145 +1,151 @@
 test_that("corpusQuery displays ETA with multiple queries", {
-  skip_if_offline() # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
+  withWorkflowFixture("workflow-corpusquery-eta-1", function(state) {
 
-  # Use simple queries to ensure they complete quickly
-  query <- c("Test", "der")
-  vc <- c("pubDate in 2020", "pubDate in 2021")
+    kco <- suppressMessages(fixtureKorapConnection(verbose = TRUE, cache = FALSE))
 
-  # Capture output from corpusQuery with multiple queries
-  temp_file <- tempfile()
-  sink(temp_file)
-  result <- corpusQuery(kco, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE, expand = TRUE)
-  cat("\n")
-  sink()
+    # Use simple queries to ensure they complete quickly
+    query <- c("Test", "der")
+    vc <- c("pubDate in 2020", "pubDate in 2021")
 
-  # Read the captured output
-  output <- readLines(temp_file)
-  unlink(temp_file)
+    # Capture output from corpusQuery with multiple queries
+    temp_file <- tempfile()
+    sink(temp_file)
+    result <- corpusQuery(kco, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE, expand = TRUE)
+    cat("\n")
+    sink()
 
-  # Echo the output to console for debugging
-  cat("\nCaptured output from corpusQuery with multiple queries:\n")
-  cat(paste(output, collapse = "\n"))
+    # Read the captured output
+    output <- readLines(temp_file)
+    unlink(temp_file)
 
-  # Combined output string for all tests - strip ANSI color codes
-  output_str <- paste(output, collapse = "\n")
-  # Remove ANSI escape sequences - the output seems to contain escaped sequences
-  output_str <- gsub("\\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
-  output_str <- gsub("\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
-  # Also remove literal ANSI sequences if they exist
-  output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    # Echo the output to console for debugging
+    cat("\nCaptured output from corpusQuery with multiple queries:\n")
+    cat(paste(output, collapse = "\n"))
 
-  # Test 1: Check that one progress row per query is shown, with its hits
-  expect_match(output_str, "Searching 4 queries", info = "Header not found in output")
-  expect_match(output_str, "\\[1/4\\]  Test\\s+.*[0-9,]+ hits", info = "Progress row not found in output")
+    # Combined output string for all tests - strip ANSI color codes
+    output_str <- paste(output, collapse = "\n")
+    # Remove ANSI escape sequences - the output seems to contain escaped sequences
+    output_str <- gsub("\\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    output_str <- gsub("\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    # Also remove literal ANSI sequences if they exist
+    output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
 
-  # the remaining time is left out when it would be under a second, as it is
-  # where the server answers from its cache, so it is tested offline below
+    # Test 1: Check that one progress row per query is shown, with its hits
+    expect_match(output_str, "Searching 4 queries", info = "Header not found in output")
+    expect_match(output_str, "\\[1/4\\]  Test\\s+.*[0-9,]+ hits", info = "Progress row not found in output")
 
-  # Test 3: Check that the summary is shown
-  expect_match(output_str, "4 queries in \\d+s", info = "Summary not found in output")
+    # the remaining time is left out when it would be under a second, as it is
+    # where the server answers from its cache, so it is tested offline below
 
-  # Test 4: Check that we get results for all query combinations
-  # Note: with expand=TRUE (default), we should get length(query) * length(vc) results
-  expect_equal(nrow(result), length(query) * length(vc),
-    info = paste("Should get results for all query/vc combinations. Got:", nrow(result), "Expected:", length(query) * length(vc))
-  )
+    # Test 3: Check that the summary is shown
+    expect_match(output_str, "4 queries in \\d+s", info = "Summary not found in output")
+
+    # Test 4: Check that we get results for all query combinations
+    # Note: with expand=TRUE (default), we should get length(query) * length(vc) results
+    expect_equal(nrow(result), length(query) * length(vc),
+      info = paste("Should get results for all query/vc combinations. Got:", nrow(result), "Expected:", length(query) * length(vc))
+    )
+  })
 })
 
 test_that("corpusQuery ETA works with frequencyQuery", {
-  skip_if_offline() # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
+  withWorkflowFixture("workflow-corpusquery-eta-2", function(state) {
 
-  # Test the exact pattern from the user's example (but smaller)
-  query <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
-  years <- c(2020:2021) # Just 2 years for testing
-  as.alternatives <- TRUE
-  vc <- "textType = /Zeit.*/ & pubDate in"
+    kco <- suppressMessages(fixtureKorapConnection(verbose = TRUE, cache = FALSE))
 
-  # Capture output from frequencyQuery which calls corpusQuery internally
-  temp_file <- tempfile()
-  sink(temp_file)
-  result <- frequencyQuery(kco, query, paste(vc, years), as.alternatives = as.alternatives)
-  cat("\n")
-  sink()
+    # Test the exact pattern from the user's example (but smaller)
+    query <- c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
+    years <- c(2020:2021) # Just 2 years for testing
+    as.alternatives <- TRUE
+    vc <- "textType = /Zeit.*/ & pubDate in"
 
-  # Read the captured output
-  output <- readLines(temp_file)
-  unlink(temp_file)
+    # Capture output from frequencyQuery which calls corpusQuery internally
+    temp_file <- tempfile()
+    sink(temp_file)
+    result <- frequencyQuery(kco, query, paste(vc, years), as.alternatives = as.alternatives)
+    cat("\n")
+    sink()
 
-  # Echo the output to console for debugging
-  cat("\nCaptured output from frequencyQuery with ETA:\n")
-  cat(paste(output, collapse = "\n"))
+    # Read the captured output
+    output <- readLines(temp_file)
+    unlink(temp_file)
 
-  # Combined output string for all tests - strip ANSI color codes
-  output_str <- paste(output, collapse = "\n")
-  # Remove ANSI escape sequences - the output seems to contain escaped sequences
-  output_str <- gsub("\\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
-  output_str <- gsub("\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
-  # Also remove literal ANSI sequences if they exist
-  output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    # Echo the output to console for debugging
+    cat("\nCaptured output from frequencyQuery with ETA:\n")
+    cat(paste(output, collapse = "\n"))
 
-  # Test 1: Check that multiple search queries are processed
-  expect_match(output_str, "\\[\\d+/\\d+\\].*[0-9,]+ hits", info = "Search results should be shown for multiple queries")
+    # Combined output string for all tests - strip ANSI color codes
+    output_str <- paste(output, collapse = "\n")
+    # Remove ANSI escape sequences - the output seems to contain escaped sequences
+    output_str <- gsub("\\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    output_str <- gsub("\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+    # Also remove literal ANSI sequences if they exist
+    output_str <- gsub("\\\033\\[[0-9;]*[a-zA-Z]", "", output_str)
+
+    # Test 1: Check that multiple search queries are processed
+    expect_match(output_str, "\\[\\d+/\\d+\\].*[0-9,]+ hits", info = "Search results should be shown for multiple queries")
 
 
-  # Test 3: Check that we get results
-  expect_true(nrow(result) > 0,
-    info = "Should get frequency query results"
-  )
+    # Test 3: Check that we get results
+    expect_true(nrow(result) > 0,
+      info = "Should get frequency query results"
+    )
 
-  # Test 4: Check that result has expected columns
-  expect_true(all(c("query", "vc", "totalResults") %in% names(result)),
-    info = "Result should contain expected columns"
-  )
+    # Test 4: Check that result has expected columns
+    expect_true(all(c("query", "vc", "totalResults") %in% names(result)),
+      info = "Result should contain expected columns"
+    )
+  })
 })
 
 test_that("corpusQuery ETA only displays with verbose=TRUE and multiple queries", {
-  skip_if_offline() # Commented out for testing
+  withWorkflowFixture("workflow-corpusquery-eta-3", function(state) {
 
-  # Test with verbose=FALSE - should not show ETA
-  kco_quiet <- KorAPConnection(verbose = FALSE, cache = FALSE, accessToken = NULL)
-  query <- c("Test", "der")
-  vc <- c("pubDate in 2020", "pubDate in 2021")
 
-  # Capture output with verbose=FALSE
-  temp_file <- tempfile()
-  sink(temp_file)
-  result1 <- corpusQuery(kco_quiet, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE)
-  cat("\n")
-  sink()
+    # Test with verbose=FALSE - should not show ETA
+    kco_quiet <- suppressMessages(fixtureKorapConnection(verbose = FALSE, cache = FALSE))
+    query <- c("Test", "der")
+    vc <- c("pubDate in 2020", "pubDate in 2021")
 
-  output <- readLines(temp_file)
-  unlink(temp_file)
-  output_str <- paste(output, collapse = "\n")
-  # Remove ANSI escape sequences
-  output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
+    # Capture output with verbose=FALSE
+    temp_file <- tempfile()
+    sink(temp_file)
+    result1 <- corpusQuery(kco_quiet, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE)
+    cat("\n")
+    sink()
 
-  # Should not contain ETA information when verbose=FALSE
-  expect_equal(trimws(output_str), "", info = "Nothing should be displayed when verbose=FALSE")
+    output <- readLines(temp_file)
+    unlink(temp_file)
+    output_str <- paste(output, collapse = "\n")
+    # Remove ANSI escape sequences
+    output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
 
-  # Test with single query - should not show ETA even with verbose=TRUE
-  kco_verbose <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
-  temp_file2 <- tempfile()
-  sink(temp_file2)
-  result2 <- corpusQuery(kco_verbose,
-    query = "Test", vc = "pubDate in 2020",
-    metadataOnly = TRUE, as.df = TRUE
-  )
-  cat("\n")
-  sink()
+    # Should not contain ETA information when verbose=FALSE
+    expect_equal(trimws(output_str), "", info = "Nothing should be displayed when verbose=FALSE")
 
-  output2 <- readLines(temp_file2)
-  unlink(temp_file2)
-  output_str2 <- paste(output2, collapse = "\n")
-  # Remove ANSI escape sequences
-  output_str2 <- gsub("\\033\\[[0-9;]*m", "", output_str2)
+    # Test with single query - should not show ETA even with verbose=TRUE
+    kco_verbose <- suppressMessages(fixtureKorapConnection(verbose = TRUE, cache = FALSE))
+    temp_file2 <- tempfile()
+    sink(temp_file2)
+    result2 <- corpusQuery(kco_verbose,
+      query = "Test", vc = "pubDate in 2020",
+      metadataOnly = TRUE, as.df = TRUE
+    )
+    cat("\n")
+    sink()
 
-  # Should not contain ETA for single query
-  expect_false(grepl("left", output_str2),
-    info = "The remaining time should not be displayed for single queries"
-  )
-  expect_match(output_str2, "Searching \"Test\" in \"pubDate in 2020\": [0-9,]+ hits")
+    output2 <- readLines(temp_file2)
+    unlink(temp_file2)
+    output_str2 <- paste(output2, collapse = "\n")
+    # Remove ANSI escape sequences
+    output_str2 <- gsub("\\033\\[[0-9;]*m", "", output_str2)
+
+    # Should not contain ETA for single query
+    expect_false(grepl("left", output_str2),
+      info = "The remaining time should not be displayed for single queries"
+    )
+    expect_match(output_str2, "Searching \"Test\" in \"pubDate in 2020\": [0-9,]+ hits")
+  })
 })
 
 test_that("progress rows are aligned, and without colour when not on a terminal", {
@@ -198,28 +204,30 @@ test_that("labels are shortened in the middle, and a shared beginning is factore
 })
 
 test_that("corpusQuery ETA format_duration function works correctly", {
-  # This tests the internal format_duration function indirectly
-  # by checking that ETA displays reasonable time formats
-  skip_if_offline() # Commented out for testing
-  kco <- KorAPConnection(verbose = TRUE, cache = FALSE, accessToken = NULL)
+  withWorkflowFixture("workflow-corpusquery-eta-8", function(state) {
+    # This tests the internal format_duration function indirectly
+    # by checking that ETA displays reasonable time formats
 
-  # Use multiple queries to trigger ETA display
-  query <- c("Test", "der", "und")
-  vc <- c("pubDate in 2020", "pubDate in 2021")
+    kco <- suppressMessages(fixtureKorapConnection(verbose = TRUE, cache = FALSE))
 
-  # Capture output
-  temp_file <- tempfile()
-  sink(temp_file)
-  result <- corpusQuery(kco, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE)
-  cat("\n")
-  sink()
+    # Use multiple queries to trigger ETA display
+    query <- c("Test", "der", "und")
+    vc <- c("pubDate in 2020", "pubDate in 2021")
 
-  output <- readLines(temp_file)
-  unlink(temp_file)
-  output_str <- paste(output, collapse = "\n")
-  # Remove ANSI escape sequences
-  output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
+    # Capture output
+    temp_file <- tempfile()
+    sink(temp_file)
+    result <- corpusQuery(kco, query = query, vc = vc, metadataOnly = TRUE, as.df = TRUE)
+    cat("\n")
+    sink()
 
-  # Check that the total is formatted as a duration
-  expect_match(output_str, "6 queries in \\d+s", info = "Summary should show the total time")
+    output <- readLines(temp_file)
+    unlink(temp_file)
+    output_str <- paste(output, collapse = "\n")
+    # Remove ANSI escape sequences
+    output_str <- gsub("\\033\\[[0-9;]*m", "", output_str)
+
+    # Check that the total is formatted as a duration
+    expect_match(output_str, "6 queries in \\d+s", info = "Summary should show the total time")
+  })
 })

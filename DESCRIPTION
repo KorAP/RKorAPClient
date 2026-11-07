@@ -48,6 +48,7 @@ Suggests:
     callr,
     chromote,
     lifecycle,
+    pkgload,
     testthat,
     tidyllm,
     htmlwidgets,

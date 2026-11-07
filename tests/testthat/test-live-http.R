@@ -13,8 +13,7 @@ test_that("an explicitly enabled live KorAP workflow remains compatible", {
   checkKorapHttpWorkflow(kco)
 })
 
-# Keep the former live maxFetch regression explicitly available while its
-# partial-page scenarios await the next fixture-migration step.
+# Keep a real-server check alongside the offline partial-page regressions.
 test_that("an explicitly enabled live fetch respects successive maxFetch limits", {
   kco <- liveKorapConnection()
   q <- corpusQuery(kco, "Test", "pubDate since 2014", fields = "textSigle")
@@ -30,4 +29,8 @@ test_that("live query encodings and URL imports remain compatible", {
 
 test_that("live collocation score queries remain compatible", {
   checkKorapCollocationScores(liveKorapConnection())
+})
+
+test_that("live public annotations and collocation analysis remain compatible", {
+  checkKorapContentWorkflow(liveKorapConnection())
 })

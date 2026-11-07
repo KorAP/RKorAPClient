@@ -1,0 +1,101 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "x-index-revision": "workflow-index-1",
+          "Content-Type": "text/plain",
+          "Content-Length": "31",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Synthetic KorAP workflow server"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "text/plain",
+          "Content-Length": "23",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Authorization supported"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=pubDate+in+2020"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=pubDate+in+2021"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq=textType+%3D+%2F.%2Azeitung.%2A%2Fi"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "VCR-vcr/2.1.0"
+}

@@ -30,7 +30,7 @@ test_that("customizations of the startup theme are retained even with its origin
 })
 
 test_that("frequency results retain denominator mode and query labels for all chart helpers", {
-  kco <- methods::new("KorAPConnection", apiUrl = "https://example.invalid/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/", authorizationSupported = FALSE, verbose = FALSE)
   local_mocked_bindings(
     corpusQuery = function(kco, query, vc, ...) tibble::tibble(query = unname(query),

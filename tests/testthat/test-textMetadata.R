@@ -1,156 +1,181 @@
 test_that("textMetadata includes expected metadata fields", {
-  skip_if_offline()
-  kco <- RKorAPClient::KorAPConnection(accessToken = NULL)
-  skip_if_offline()
-  kco <- RKorAPClient::KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, "WUD17/B96/57558")
+  withKorapFixtureApi(function(state) {
 
-  expect_s3_class(m, "tbl_df")
-  expect_true("textSigle" %in% names(m))
-  expect_true("requestUrl" %in% names(m))
-  expect_true("webUIRequestUrl" %in% names(m))
-  expect_equal(m$textSigle[1], "WUD17/B96/57558")
-  expect_true(nrow(m) == 1)
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    expect_s3_class(m, "tbl_df")
+    expect_true("textSigle" %in% names(m))
+    expect_true("requestUrl" %in% names(m))
+    expect_true("webUIRequestUrl" %in% names(m))
+    expect_equal(m$textSigle[1], "TEST/2023/00001")
+    expect_true(nrow(m) == 1)
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata works with multiple text sigles", {
-  skip_if_offline()
-  kco <- RKorAPClient::KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, c("WUD17/B96/57558", "WUD17/A97/08541"))
+  withKorapFixtureApi(function(state) {
 
-  expect_s3_class(m, "tbl_df")
-  expect_true("textSigle" %in% names(m))
-  expect_true(nrow(m) == 2)
-  expect_true(all(c("WUD17/B96/57558", "WUD17/A97/08541") %in% m$textSigle))
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, c("TEST/2023/00001", "TEST/2023/00002"))
+
+    expect_s3_class(m, "tbl_df")
+    expect_true("textSigle" %in% names(m))
+    expect_true(nrow(m) == 2)
+    expect_true(all(c("TEST/2023/00001", "TEST/2023/00002") %in% m$textSigle))
+  }, cassette = "metadata-two")
 })
 
 test_that("textMetadata includes expected metadata columns", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, "WUD17/B96/57558")
+  withKorapFixtureApi(function(state) {
 
-  # Check for common metadata fields
-  expect_true("textType" %in% names(m))
-  expect_true("textSigle" %in% names(m))
-  expect_true("requestUrl" %in% names(m))
-  expect_true("webUIRequestUrl" %in% names(m))
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    # Check for common metadata fields
+    expect_true("textType" %in% names(m))
+    expect_true("textSigle" %in% names(m))
+    expect_true("requestUrl" %in% names(m))
+    expect_true("webUIRequestUrl" %in% names(m))
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata works for unknown text sigles", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, c("WUD17/B96/57558", "unknownsigle"))
+  withKorapFixtureApi(function(state) {
 
-  expect_true("errors" %in% names(m))
-  expect_true(nrow(m) >= 1)
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, c("TEST/2023/00001", "unknownsigle"))
 
-  # Test with only unknown sigle
-  m_unknown <- textMetadata(kco, "completely/unknown/sigle")
-  expect_true("errors" %in% names(m_unknown))
+    expect_true("errors" %in% names(m))
+    expect_true(nrow(m) >= 1)
+
+    # Test with only unknown sigle
+    m_unknown <- textMetadata(kco, "completely/unknown/sigle")
+    expect_true("errors" %in% names(m_unknown))
+  }, cassette = "metadata-errors")
 })
 
 test_that("textMetadata works with list valued fields", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, "WUD17/B96/57558")
+  withKorapFixtureApi(function(state) {
 
-  # DeReKo-2026 renamed textClass to dmozDomain (list valued); list
-  # valued fields are flattened tab separated
-  expect_true("staat-gesellschaft\\tbiographien-interviews" == m$dmozDomain[1] ||
-              grepl("\\t", m$dmozDomain[1]),
-              "multiple text classes / domains should be tab separated")
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    # DeReKo-2026 renamed textClass to dmozDomain (list valued); list
+    # valued fields are flattened tab separated
+    expect_true("staat-gesellschaft\\tbiographien-interviews" == m$dmozDomain[1] ||
+                grepl("\\t", m$dmozDomain[1]),
+                "multiple text classes / domains should be tab separated")
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata respects verbose parameter", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL, verbose = FALSE)
+  withKorapFixtureApi(function(state) {
 
-  # Test with verbose = FALSE (default from connection)
-  expect_silent(m1 <- textMetadata(kco, "WUD17/B96/57558"))
+    kco <- suppressMessages(fixtureKorapConnection())
 
-  # Test with explicit verbose = TRUE
-  expect_output(m2 <- textMetadata(kco, "WUD17/B96/57558", verbose = TRUE),
-                "Getting metadata")
+    # Test with verbose = FALSE (default from connection)
+    expect_silent(m1 <- textMetadata(kco, "TEST/2023/00001"))
 
-  # Results should be the same regardless of verbosity
-  expect_equal(m1$textSigle, m2$textSigle)
+    # Test with explicit verbose = TRUE
+    expect_output(m2 <- textMetadata(kco, "TEST/2023/00001", verbose = TRUE),
+                  "Getting metadata")
+
+    # Results should be the same regardless of verbosity
+    expect_equal(m1$textSigle, m2$textSigle)
+  }, cassette = "metadata-verbose")
 })
 
 test_that("textMetadata handles URL encoding correctly", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
+  withKorapFixtureApi(function(state) {
 
-  # Test with a text sigle that contains special characters
-  m <- textMetadata(kco, "WUD17/B96/57558")
+    kco <- suppressMessages(fixtureKorapConnection())
 
-  expect_true(grepl("corpus/WUD17%2FB96%2F57558", m$requestUrl[1]))
-  expect_true(grepl("textSigle", m$webUIRequestUrl[1]))
+    # Test with a text sigle that contains special characters
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    expect_true(grepl("corpus/TEST%2F2023%2F00001", m$requestUrl[1]))
+    expect_true(grepl("textSigle", m$webUIRequestUrl[1]))
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata returns proper data types", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, "WUD17/B96/57558")
+  withKorapFixtureApi(function(state) {
 
-  # All columns should be character type due to mutate(across(everything(), as.character))
-  expect_true(all(sapply(m, is.character)))
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    # All columns should be character type due to mutate(across(everything(), as.character))
+    expect_true(all(sapply(m, is.character)))
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata column ordering", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  m <- textMetadata(kco, "WUD17/B96/57558")
+  withKorapFixtureApi(function(state) {
 
-  # textSigle should be the first column due to relocate(textSigle)
-  expect_equal(names(m)[1], "textSigle")
+    kco <- suppressMessages(fixtureKorapConnection())
+    m <- textMetadata(kco, "TEST/2023/00001")
+
+    # textSigle should be the first column due to relocate(textSigle)
+    expect_equal(names(m)[1], "textSigle")
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata handles special characters in sigle", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
+  withKorapFixtureApi(function(state) {
 
-  # Test with valid sigle containing numbers and special format
-  m <- textMetadata(kco, "WUD17/A97/08542")
+    kco <- suppressMessages(fixtureKorapConnection())
 
-  expect_true("textSigle" %in% names(m))
-  expect_equal(m$textSigle[1], "WUD17/A97/08542")
+    # Test with valid sigle containing numbers and special format
+    m <- textMetadata(kco, "TEST/2023/00003")
+
+    expect_true("textSigle" %in% names(m))
+    expect_equal(m$textSigle[1], "TEST/2023/00003")
+  }, cassette = "metadata-special")
 })
 
 test_that("textMetadata error handling for API failures", {
-  # Mock a connection with invalid API URL to test error handling
-  kco <- KorAPConnection(KorAPUrl = "https://invalid.url", accessToken = NULL)
+  withKorapFixtureApi(function(state) {
+    # Mock a connection with invalid API URL to test error handling
+    kco <- suppressMessages(fixtureKorapConnection())
 
-  # This should handle API failures gracefully
-  m <- textMetadata(kco, "WUD17/B96/57558")
-  expect_true("errors" %in% names(m) || nrow(m) == 0)
+    # This should handle API failures gracefully
+    local_mocked_bindings(has_internet = function() FALSE, .package = "curl")
+    m <- textMetadata(kco, "TEST/2023/00001")
+    expect_true("errors" %in% names(m) || nrow(m) == 0)
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata preserves request information", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
-  test_sigle <- "WUD17/B96/57558"
-  m <- textMetadata(kco, test_sigle)
+  withKorapFixtureApi(function(state) {
 
-  expect_true("requestUrl" %in% names(m))
-  expect_true("webUIRequestUrl" %in% names(m))
-  expect_true(grepl(URLencode(test_sigle, reserved = TRUE), m$requestUrl[1]))
-  expect_true(grepl("textSigle", m$webUIRequestUrl[1]))
+    kco <- suppressMessages(fixtureKorapConnection())
+    test_sigle <- "TEST/2023/00001"
+    m <- textMetadata(kco, test_sigle)
+
+    expect_true("requestUrl" %in% names(m))
+    expect_true("webUIRequestUrl" %in% names(m))
+    expect_true(grepl(URLencode(test_sigle, reserved = TRUE), m$requestUrl[1]))
+    expect_true(grepl("textSigle", m$webUIRequestUrl[1]))
+  }, cassette = "metadata-single")
 })
 
 test_that("textMetadata batch processing consistency", {
-  skip_if_offline()
-  kco <- KorAPConnection(accessToken = NULL)
+  withKorapFixtureApi(function(state) {
 
-  # Get metadata individually
-  m1 <- textMetadata(kco, "WUD17/B96/57558")
-  m2 <- textMetadata(kco, "WUD17/A97/08541")
+    kco <- suppressMessages(fixtureKorapConnection())
 
-  # Get metadata in batch
-  m_batch <- textMetadata(kco, c("WUD17/B96/57558", "WUD17/A97/08541"))
+    # Get metadata individually
+    m1 <- textMetadata(kco, "TEST/2023/00001")
+    m2 <- textMetadata(kco, "TEST/2023/00002")
 
-  # Should have same number of rows
-  expect_equal(nrow(m_batch), 2)
+    # Get metadata in batch
+    m_batch <- textMetadata(kco, c("TEST/2023/00001", "TEST/2023/00002"))
 
-  # Should contain both sigles
-  expect_true(all(c("WUD17/B96/57558", "WUD17/A97/08541") %in% m_batch$textSigle))
+    # Should have same number of rows
+    expect_equal(nrow(m_batch), 2)
+
+    # Should contain both sigles
+    expect_true(all(c("TEST/2023/00001", "TEST/2023/00002") %in% m_batch$textSigle))
+  }, cassette = "metadata-repeat")
 })

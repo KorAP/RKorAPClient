@@ -1,33 +1,30 @@
-# Offline HTTP pilot fixtures
+# Synthetic HTTP fixtures
 
-These are synthetic responses in the KorAP API format, replayed by `vcr`.
-They contain no copied corpus texts, access tokens or other credentials.
-Each JSON file stores one scenario's request URLs, response headers and bodies
-in vcr's cassette format. Matching uses the HTTP method and complete URI. Tests use
-`record = "none"`; missing interactions never trigger recording or real requests.
+These vcr JSON cassettes contain artificial KorAP responses, with no copied
+corpus texts or credentials. Tests match HTTP method and full URI using
+`record = "none"`; missing interactions fail without recording or live fallback.
+Per-scenario cassettes limit matching overhead. Repeated requests have separate
+interactions because vcr consumes each interaction once per cassette context.
 
-The welcome response includes an index-revision header. The authorization probe
-returns HTTP 200. A count query reports 51 hits, and two result pages contain 50
-and 1 matches using the fields-array metadata representation. A separate query
-has zero hits. All texts and match IDs are artificial.
-Two statistics responses provide known document, token, sentence and paragraph
-counts for the whole corpus and a date-restricted subcorpus.
-The fetch cassette contains the continuation followed by `fetchAll()`; the
-workflow cassette uses the same positive assertions as the live test, including
-a final single-hit page. Separate small cassettes cover connection errors,
-cache reuse, warnings and statistics. vcr consumes each matching interaction
-once within a cassette context. Per-scenario cassettes avoid scanning unrelated
-requests during matching.
-The `query-*` cassettes additionally contain synthetic corpus-query cases,
-including token contexts and extended KED metadata. `fetch-random.json` records
-the expected page requests for the fixed test seed. No generation step contacts
-a server.
+`generate.R` writes connection, query, statistics, metadata and annotation
+scenarios directly. Welcome responses include index revisions; results include
+fields-array metadata, pagination, token contexts and extended KED fields.
+Separate cases cover failures, warnings, cache reuse and fixed-seed page order.
 
-To regenerate the same files without accessing a server, run from the package root:
+`generate-workflows.R` records the remaining workflows against a temporary local
+`webfakes` server containing synthetic search results, statistics and annotation
+XML. Only that process's loopback URL is allowed during recording. Request URLs
+are normalized to `https://korap.example.invalid/` and timestamps are fixed.
+The server is stopped afterwards; no public KorAP server is contacted.
+
+Regenerate from the package root with the suggested development dependencies
+installed:
 
 ```sh
 Rscript tests/testthat/fixtures/http-pilot/generate.R
+Rscript tests/testthat/fixtures/http-pilot/generate-workflows.R
 ```
 
-Fixture lookup is strict: missing files fail rather than recording a real request.
-The tests keep `apiCall()`, request construction, JSON parsing and fetching active.
+Inspect cassette diffs before committing. Regeneration is explicit and never
+runs as part of the standard tests or package checks. Tests retain the real
+`apiCall()`, request construction, JSON parsing and fetching code paths.

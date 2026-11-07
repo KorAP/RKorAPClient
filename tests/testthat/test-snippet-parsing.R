@@ -66,9 +66,7 @@ test_that("findExample survives a fetch that returned no snippet column", {
   # after a failed request collectedMatches has no snippet column at all, so
   # that the example was character(0) and the assignment aborted with
   # "replacement has length zero"
-  kco <- methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.invalid/",
+  kco <- offlineKorapConnection(apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/",
     authorizationSupported = FALSE,
     verbose = FALSE

@@ -1,4 +1,5 @@
 test_that("KORAP_VERBOSE overrides verbose default and is restorable", {
+  testthat::local_mocked_bindings(apiCall = function(...) NULL, .package = "RKorAPClient")
   old <- Sys.getenv("KORAP_VERBOSE", unset = NA_character_)
   on.exit({
     if (is.na(old)) Sys.unsetenv("KORAP_VERBOSE") else Sys.setenv(KORAP_VERBOSE = old)

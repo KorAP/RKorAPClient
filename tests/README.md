@@ -1,102 +1,80 @@
 # Test suites
 
-## Offline HTTP pilot
-
-Run the fixture and local-transport tests without contacting a KorAP server:
+## Offline tests
 
 ```sh
-RKORAP_LLM_MODELS="" Rscript -e 'devtools::test(filter = "^(http-fixtures|http-transport|corpusStats|KorAPConnection|corpusQuery|fetch)$")'
+Rscript -e 'devtools::test()'
 ```
 
-Install the suggested `vcr` (>= 2.0.0), `webfakes`, `callr` and `withr` packages to run both
-parts. `test-http-fixtures.R` covers connection initialization, count queries,
-a two-page fetch, continuation and response caching. It uses synthetic response
-files with the real `apiCall()`, URL construction and JSON parsing. Connectivity
-probing is replaced only inside that context, the cache test uses a temporary
-directory, and an unexpected request fails without falling back to the internet.
-Following [httr2's testing guidance](https://httr2.r-lib.org/reference/with_mocked_responses.html),
-vcr uses httr2's mocking hook directly. Cassettes match HTTP method and URI, use
-JSON serialization and run with `record = "none"`; tests never record implicitly.
-The four formerly live `test-corpusStats.R` cases now use synthetic responses
-too, checking exact sizes, both output formats, URL encoding and printing.
-`test-KorAPConnection.R` also runs offline: HTTP errors use small per-scenario
-cassettes, resolver/transport failures are injected at the curl boundary, and
-credential tests use the real keyring front end with an in-memory backend.
-Cache tests use temporary directories, including when clearing the cache.
-`test-corpusQuery.R` covers encoding, URL import, token contexts, extended KED
-metadata, large offsets, alternatives and frequency/collocation queries using
-synthetic responses. `test-fetch.R` uses a fixed, scoped seed for the legacy
-randomized-page regression. No corpus texts or credentials are recorded.
+The standard suite runs offline. Install the suggested `vcr` (>= 2.0.0),
+`webfakes`, `callr` and `withr` packages. Synthetic vcr cassettes exercise the real
+request construction, JSON parsing, pagination, metadata, annotations and
+collocation workflows. Exact counts and simulated failures are checked offline.
+Cassettes match method and URI and use `record = "none"`; unexpected requests
+fail instead of recording or contacting a server. External curl transfers are
+also rejected at suite teardown, including errors caught by client code.
 
-`test-http-transport.R` uses temporary local `webfakes` servers on automatically
-allocated ports to exercise actual httr2 retries and curl timeouts. Server
-processes are stopped after each test. These tests need loopback networking,
-but no internet, and are skipped on CRAN; the fixture tests still run there.
+Caches use temporary directories. Credential tests use an in-memory keyring
+backend; environment variables and mocks are restored afterwards. No corpus
+texts or credentials are recorded. Following
+[httr2's testing guidance](https://httr2.r-lib.org/reference/with_mocked_responses.html),
+vcr uses httr2's mock interface directly, without another HTTP adapter.
 
-The pilot has also been run in a Linux network namespace with no external
-network interface, with loopback enabled for the local-server tests.
+`test-http-transport.R` additionally exercises real retries and timeouts using
+local `webfakes` servers on automatically allocated ports. Processes are stopped
+after each test. These tests need loopback networking, but no internet; they are
+skipped on CRAN. CI runs them separately after the package check.
 
-Run the deliberately separate live integration tests explicitly:
+## Live integration tests
 
 ```sh
 RKORAP_LIVE_TESTS=true RKORAP_LLM_MODELS="" Rscript -e 'devtools::test(filter = "^live-http$")'
 ```
 
-These check real server compatibility, including corpus sizes, and retain the
-former successive `maxFetch` scenario. They are skipped by default and on CRAN.
-They use no access token or local response cache. The original connection-message,
-basic count, maxFetch and corpus-statistics cases use this fixture/live split.
-`checkKorapHttpWorkflow()` applies the same positive assertions offline and live
-to initialization, search, two-page fetching, positions and corpus sizes in both
-output formats. Exact synthetic counts, error responses and credential behavior
-remain offline-only checks.
-Shared assertions also cover Latin-1/UTF-8 queries, URL import and collocation
-scores; these run in both fixture tests and the opt-in live suite.
+Five opt-in tests check initialization, query encodings, URL import, fetching,
+corpus sizes, text metadata, annotations and collocation analysis against KorAP.
+Shared positive assertions run offline and live; exact synthetic values and
+simulated errors remain offline-only. The live tests use anonymous connections
+without response caching, and a Creative Commons subcorpus for text content.
+They are skipped by default and on CRAN, or when the server is unavailable.
 
-This is the first migration step: **other legacy test files still contain live
-requests**. An unfiltered `devtools::test()` is not yet an offline-only suite.
-Do not replace the remaining tests with skips; migrate their HTTP responses and
-retain useful end-to-end assertions as the following step.
+Documentation-model tests are also opt-in. `RKORAP_LLM_MODELS=default` selects the
+default models; a comma-separated list selects specific models. These tests send
+the README to the configured providers. Unset or empty selection disables them.
 
-The synthetic cassette and regeneration instructions are in
+## Fixtures and timing
+
+Regeneration instructions are in
 [`fixtures/http-pilot/README.md`](testthat/fixtures/http-pilot/README.md).
-Recording new live responses is never an automatic part of these tests.
+Neither standard tests nor package checks record new responses.
 
-Pilot validation in the development environment:
+Measured locally with vcr 2.1.0 and R 4.6.2:
 
-- 281 fixture assertions pass, including 83 for connection behavior, 24 for corpus
-  statistics, and shared workflow assertions. They also check that
-  mock options and vcr configuration are restored after success and failure.
-- Seven local-transport assertions pass with external networking unavailable
-  in a Linux network namespace.
-- The broader selected offline regression run passes 770 assertions, including
-  dispersion, chart, interrupt and retry tests.
-- A fresh installed-package run passes all 281 assertions with
-  `NOT_CRAN=false` and no networking; local-server and live tests are skipped.
+- Full developer suite: 1,909 assertions, 21.7 seconds, with external networking
+  unavailable and loopback enabled.
+- Full CRAN-mode suite: 1,902 assertions, 18.6 seconds, with no network interfaces;
+  no unmocked HTTP transfers occurred. Local-server, browser and live tests skip.
+- Built-package check: 1,781 assertions, 18.2 seconds; four additional README
+  consistency tests skip because the source README is excluded from the archive.
+- Five explicit live tests: 47 assertions, 86.4 seconds.
 
-These are observed timings, not a performance guarantee or a benchmark of the
-entire legacy suite. The live checks were not enabled for these offline runs.
+The earlier 2–3 second measurement covered only a 281-assertion subset, not the
+full suite. The latest migration enables 57 formerly CRAN-skipped cases with
+320 assertions, taking 6.6 seconds within the measured CRAN run. This is added
+coverage, not a controlled before/after comparison of full-suite runtime.
+Timings exclude dependency installation and depend on the machine and server.
 
-In CRAN-mode measurements, the expanded 281-assertion fixture subset took
-2.80 seconds on the first run and 2.04–2.19 seconds warm. This excludes R startup
-and dependency installation; CRAN machines may differ. It is the time for this
-subset, not the whole package suite. Local-server tests add no CRAN runtime.
-The four opt-in live tests passed 32 assertions in 85 seconds in a separate run.
-
-An explicit benchmark records one anonymous metadata-only query and two result
-pages in a temporary directory, then replays the same workflow three times and
-checks that all 51 returned matches are identical. It disables response caching
-and rejects actual HTTP transfers during replay; recordings are removed on exit.
-It never runs during package checks:
+A separate benchmark records an anonymous metadata query and two result pages
+in a temporary directory, replays the same workflow three times and compares all
+51 matches. It disables caching and rejects HTTP transfers during replay;
+recordings are removed on exit. It never runs during package checks:
 
 ```sh
 RKORAP_LIVE_TESTS=true Rscript tools/benchmark-http-replay.R /tmp/korap-http-timings.csv
 ```
 
-A vcr development measurement took 11.09 seconds live (including recording),
-0.95 seconds on the first replay and 0.17–0.20 seconds on subsequent replays.
-This illustrates avoided network waiting, not a guaranteed speedup or a
-comparison of entire test suites.
+One development measurement took 11.09 seconds live (including recording),
+0.95 seconds on the first replay and 0.17–0.20 seconds on later replays.
 
 ## Chart regression checks
 

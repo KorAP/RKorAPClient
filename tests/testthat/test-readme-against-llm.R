@@ -1,4 +1,5 @@
-# Models the documentation is prompted with. Cheap, fast models are used on
+# Models used when explicitly selecting RKORAP_LLM_MODELS=default. They are
+# never contacted by an ordinary offline test run. Cheap, fast models are used on
 # purpose: the tasks are simple, and if such a model cannot follow the Readme,
 # that says something about the Readme, which is what is being tested here.
 # Override with a comma separated list in RKORAP_LLM_MODELS, e.g. to add
@@ -12,8 +13,9 @@ defaultLlmModels <- c(
 )
 
 llmModels <- function() {
-  configured <- Sys.getenv("RKORAP_LLM_MODELS", unset = NA_character_)
-  if (is.na(configured)) {
+  configured <- Sys.getenv("RKORAP_LLM_MODELS", unset = "")
+  if (!nzchar(trimws(configured))) return(character())
+  if (identical(trimws(configured), "default")) {
     return(defaultLlmModels)
   }
   # set but empty means no models at all, which is how these tests are kept out
@@ -21,6 +23,13 @@ llmModels <- function() {
   models <- trimws(strsplit(configured, ",", fixed = TRUE)[[1]])
   models[nzchar(models)]
 }
+
+test_that("documentation model tests require explicit model selection", {
+  withr::local_envvar(RKORAP_LLM_MODELS = NA_character_)
+  expect_identical(llmModels(), character())
+  withr::local_envvar(RKORAP_LLM_MODELS = "default")
+  expect_identical(llmModels(), defaultLlmModels)
+})
 
 # Provider and API key environment variable belonging to a model id
 llmProvider <- function(model) {

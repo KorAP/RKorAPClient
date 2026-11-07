@@ -174,6 +174,57 @@ randomRequests <- vapply(seq_along(randomPages), function(i) {
   pageFixture("Test", queryVc, n = count, total = 500L, offset = randomPages[i] * 50L,
     count = count, fields = "textSigle")
 }, character(1))
+metadataSigles <- c("TEST/2023/00001", "TEST/2023/00002", "TEST/2023/00003")
+metadataUrls <- vapply(metadataSigles, function(sigle) {
+  fields <- list(list(key = "textSigle", value = list(sigle)),
+    list(key = "textType", value = list("Zeitung")),
+    list(key = "dmozDomain", value = list("staat-gesellschaft", "biographien-interviews")))
+  url <- paste0(api, "corpus/", URLencode(sigle, reserved = TRUE))
+  writeFixture(url, list(document = list(fields = fields)))
+  url
+}, character(1))
+unknownUrls <- vapply(c("unknownsigle", "completely/unknown/sigle"), function(sigle) {
+  url <- paste0(api, "corpus/", URLencode(sigle, reserved = TRUE))
+  writeFixture(url, list(errors = list(list(404L, "Synthetic unknown text"))))
+  url
+}, character(1))
+annotationCase <- function(query, vc = "", fields = c("textSigle", "snippet"), count = 1L,
+                           words = "Test", pos = "NN", lemma = words, textOffset = 0L) {
+  n <- min(count, 2L)
+  countUrl <- countFixture(query, vc, total = 2L, fields = fields, metadataOnly = FALSE)
+  pageUrl <- searchUrl(query, vc, fields = fields, metadataOnly = FALSE, count = count, offset = 0L)
+  matches <- artificialMatches(n, offset = textOffset)
+  annotationUrls <- list(tt = character(), marmot = character())
+  for (i in seq_len(n)) {
+    start <- 2000L + i
+    path <- sprintf("TEST/2023/%05d/p%d-%dx_fixture", textOffset + i, start, start + length(words))
+    matches[[i]]$matchID <- sub("/p", "-p", paste0("match-", path), fixed = TRUE)
+    matches[[i]]$snippet <- "Synthetic annotation context"
+    matches[[i]]$tokens <- list(left = list("Ein"), match = as.list(words), right = list("folgt"))
+    for (foundry in names(annotationUrls)) {
+      spans <- vapply(seq_along(words), function(j) sprintf(
+        '<span title="tt/l:%s tt/p:%s%s">%s</span>', lemma[j], pos[j],
+        if (foundry == "marmot") " marmot/m:case:gen|gender:fem|number:sg" else "", words[j]), character(1))
+      snippet <- paste0('<span class="context-left"><span title="tt/l:ein tt/p:ART">Ein</span></span>',
+        '<span class="match"><mark>', paste(spans, collapse = " "), '</mark></span>',
+        '<span class="context-right"><span title="tt/l:folgen tt/p:VVFIN">folgt</span></span>')
+      url <- httr2::url_modify(paste0(api, "corpus/", path), query = list(foundry = foundry))
+      writeFixture(url, list(snippet = snippet))
+      annotationUrls[[foundry]] <- c(annotationUrls[[foundry]], url)
+    }
+  }
+  writeFixture(pageUrl, list(meta = list(totalResults = 2L, startIndex = 0L, itemsPerPage = n), matches = matches))
+  list(count = countUrl, page = pageUrl, annotations = annotationUrls)
+}
+annotationOne <- annotationCase("Test", queryVc)
+annotationTwo <- annotationCase("Test", queryVc, count = 2L)
+annotationComplex <- annotationCase('[orth="[wW]ir"] können alles [orth="ausser" | orth="außer"] [tt/pos=NN]',
+  fields = c("textSigle", "snippet", "tokens"), count = 20L,
+  words = c("Wir", "können", "alles", "außer", "Plan"),
+  pos = c("PPER", "VVFIN", "PIS", "APPR", "NN"), textOffset = 100L)
+annotationMorph <- annotationCase("Ameisenplage", fields = defaultFields, words = "Ameisenplage", textOffset = 200L)
+annotationRegression <- annotationCase("aufgrund einer Ameisenplage", vc = "availability=/CC.*/",
+  fields = defaultFields, count = 5L, words = c("aufgrund", "einer", "Ameisenplage"), pos = c("APPR", "ART", "NN"), textOffset = 300L)
 # One cassette per scenario keeps vcr's sequential request matching cheap and
 # makes the required order and number of requests explicit.
 uris <- vapply(interactions, function(x) x$request$uri, character(1))
@@ -191,7 +242,7 @@ saveCassette("count", c(common, countUrl, emptyUrl))
 saveCassette("fetch", c(common, countUrl, rep(pageUrls, 2)))
 saveCassette("cache", c(common, countUrl))
 saveCassette("statistics", c(common, stats, paste0(api, "statistics?cq=")))
-saveCassette("workflow", c(common, countUrl, pageUrls[1], partialPage, stats, stats))
+saveCassette("workflow", c(common, countUrl, pageUrls[1], partialPage, stats, stats, metadataUrls[1]))
 saveCassette("connection-init-errors", paste0(api, c("unauthorized", "bad-gateway")))
 saveCassette("api-errors", c(common, paste0(api, c("missing", "html", "broken-json"))))
 saveCassette("connection-cache", c(common, rep(paste0(api, "ok"), 2)))
@@ -211,3 +262,15 @@ saveCassette("query-selected-tokens", c(common, selectedTokenCount, selectedToke
 saveCassette("query-ked", c(kedApi, kedAuth, kedCount, kedPage))
 saveCassette("query-alternatives", c(common, alternativeCounts[1:2], alternativeCounts[c(1, 3)], annualCounts))
 saveCassette("fetch-random", c(common, randomCount, randomRequests))
+saveCassette("metadata-single", c(common, metadataUrls[1]))
+saveCassette("metadata-two", c(common, metadataUrls[1:2]))
+saveCassette("metadata-repeat", c(common, rep(metadataUrls[1:2], 2)))
+saveCassette("metadata-verbose", c(common, rep(metadataUrls[1], 2)))
+saveCassette("metadata-special", c(common, metadataUrls[3]))
+saveCassette("metadata-errors", c(common, metadataUrls[1], unknownUrls))
+saveCassette("annotation-one", c(common, annotationOne$count, annotationOne$page, annotationOne$annotations$tt))
+saveCassette("annotation-two", c(common, annotationTwo$count, annotationTwo$page, rep(annotationTwo$annotations$tt, 2)))
+saveCassette("annotation-complex", c(common, annotationComplex$count, annotationComplex$page, annotationComplex$annotations$tt))
+saveCassette("annotation-morph", c(common, annotationMorph$count, annotationMorph$page, annotationMorph$annotations$marmot))
+saveCassette("annotation-regression", c(common, annotationRegression$count, annotationRegression$page,
+  annotationRegression$annotations$marmot))

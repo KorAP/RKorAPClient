@@ -4,7 +4,7 @@ benchmarkHttpReplay <- function() {
   if (!identical(Sys.getenv("RKORAP_LIVE_TESTS"), "true")) {
     stop("Set RKORAP_LIVE_TESTS=true to allow this benchmark to contact KorAP.")
   }
-  devtools::load_all(quiet = TRUE)
+  pkgload::load_all(quiet = TRUE)
   directory <- tempfile("korap-replay-benchmark-")
   dir.create(directory)
   on.exit(unlink(directory, recursive = TRUE), add = TRUE)

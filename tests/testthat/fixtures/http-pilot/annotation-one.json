@@ -1,0 +1,86 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain",
+          "x-index-revision": "fixture-index-1"
+        },
+        "body": {
+          "string": "KorAP offline fixture"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html"
+        },
+        "body": {
+          "string": ""
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Test&cq=pubDate%20since%202014&show-tokens=true&ql=poliqarp&fields=textSigle,snippet&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 2\n  },\n  \"matches\": []\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Test&cq=pubDate%20since%202014&show-tokens=true&ql=poliqarp&fields=textSigle%2Csnippet&count=1&offset=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 2,\n    \"startIndex\": 0,\n    \"itemsPerPage\": 1\n  },\n  \"matches\": [\n    {\n      \"matchID\": \"match-TEST/2023/00001-p2001-2002x_fixture\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00001\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        }\n      ],\n      \"snippet\": \"Synthetic annotation context\",\n      \"tokens\": {\n        \"left\": [\n          \"Ein\"\n        ],\n        \"match\": [\n          \"Test\"\n        ],\n        \"right\": [\n          \"folgt\"\n        ]\n      }\n    }\n  ]\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/corpus/TEST/2023/00001/p2001-2002x_fixture?foundry=tt"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"snippet\": \"<span class=\\\"context-left\\\"><span title=\\\"tt/l:ein tt/p:ART\\\">Ein<\\/span><\\/span><span class=\\\"match\\\"><mark><span title=\\\"tt/l:Test tt/p:NN\\\">Test<\\/span><\\/mark><\\/span><span class=\\\"context-right\\\"><span title=\\\"tt/l:folgen tt/p:VVFIN\\\">folgt<\\/span><\\/span>\"\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

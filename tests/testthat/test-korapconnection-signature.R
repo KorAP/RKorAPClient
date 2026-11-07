@@ -1,4 +1,5 @@
 withOfflineKorAPEnv <- function(code, verboseEnv = NA_character_) {
+  testthat::local_mocked_bindings(apiCall = function(...) NULL, .package = "RKorAPClient")
   oldUrl <- Sys.getenv("KORAP_URL", unset = NA_character_)
   oldVerbose <- Sys.getenv("KORAP_VERBOSE", unset = NA_character_)
   on.exit(
@@ -54,6 +55,7 @@ test_that("KorAPConnection() forwards only the arguments that were supplied", {
 })
 
 test_that("KorAPConnection() derives apiUrl unless it is given explicitly", {
+  testthat::local_mocked_bindings(apiCall = function(...) NULL, .package = "RKorAPClient")
   kco <- KorAPConnection(KorAPUrl = "https://example.invalid/", accessToken = NULL)
   expect_equal(kco@apiUrl, "https://example.invalid/api/v1.0/")
 
@@ -66,6 +68,7 @@ test_that("KorAPConnection() derives apiUrl unless it is given explicitly", {
 })
 
 test_that("KorAPConnection objects can still be created with new()", {
+  testthat::local_mocked_bindings(apiCall = function(...) NULL, .package = "RKorAPClient")
   kco <- methods::new(
     "KorAPConnection",
     KorAPUrl = "https://example.invalid/",

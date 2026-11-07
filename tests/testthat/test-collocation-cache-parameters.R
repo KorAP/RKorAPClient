@@ -1,7 +1,5 @@
 offlineConnection <- function() {
-  methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.invalid/",
+  offlineKorapConnection(apiUrl = "https://example.invalid/",
     KorAPUrl = "https://example.invalid/",
     # keeps the unrelated "authorize your application" warning out of the way
     authorizationSupported = FALSE,

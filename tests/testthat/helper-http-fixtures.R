@@ -78,7 +78,35 @@ checkKorapHttpWorkflow <- function(kco) {
   testthat::expect_equal(unlist(df[c("documents", "tokens", "sentences", "paragraphs")],
     use.names = FALSE), sizes)
   testthat::expect_identical(httr2::url_parse(df$webUIRequestUrl)$query$cq, vc)
+  metadata <- textMetadata(kco, matches$textSigle[1])
+  testthat::expect_s3_class(metadata, "tbl_df")
+  testthat::expect_identical(metadata$textSigle, matches$textSigle[1])
+  testthat::expect_true(all(c("requestUrl", "webUIRequestUrl") %in% names(metadata)))
+  testthat::expect_true(all(vapply(metadata, is.character, logical(1))))
   invisible(result)
+}
+
+# Use for algorithm tests which already replace their HTTP-dependent functions.
+# Initialization still runs through the real constructor and a vcr cassette.
+offlineKorapConnection <- function(...) {
+  kco <- withKorapFixtureApi(function(state) suppressMessages(fixtureKorapConnection()))
+  kco@authorizationSupported <- FALSE
+  args <- list(...)
+  if (!"apiUrl" %in% names(args) && any(c("KorAPUrl", "apiVersion") %in% names(args))) {
+    root <- if (is.null(args$KorAPUrl)) kco@KorAPUrl else args$KorAPUrl
+    if (!endsWith(root, "/")) root <- paste0(root, "/")
+    args$KorAPUrl <- root
+    args$apiUrl <- paste0(root, "api/", if (is.null(args$apiVersion)) kco@apiVersion else args$apiVersion, "/")
+  }
+  for (name in names(args)) methods::slot(kco, name) <- args[[name]]
+  kco
+}
+
+withWorkflowFixture <- function(cassette, code) {
+  directory <- tempfile("workflow-cache-")
+  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
+  testthat::local_mocked_bindings(KorAPCacheSubDir = function() directory, .package = "RKorAPClient")
+  withKorapFixtureApi(code, cassette = cassette)
 }
 
 checkKorapQueryEncodings <- function(kco) {
@@ -112,4 +140,26 @@ checkKorapCollocationScores <- function(kco) {
       df$O1, df$O2, df$O, df$N, df$E, df$w))
   }
   invisible(df)
+}
+
+checkKorapContentWorkflow <- function(kco) {
+  query <- "aufgrund einer Ameisenplage"
+  vc <- "availability=/CC.*/"
+  q <- corpusQuery(kco, query, vc, metadataOnly = FALSE, fields = c("textSigle", "snippet", "tokens"))
+  testthat::expect_true(is.finite(q@totalResults) && q@totalResults > 0)
+  q <- fetchNext(q, maxFetch = 1)
+  testthat::expect_equal(nrow(q@collectedMatches), 1)
+  annotated <- fetchAnnotations(q, foundry = "marmot", verbose = FALSE)@collectedMatches
+  testthat::expect_true(all(c("pos", "lemma", "morph", "atokens") %in% names(annotated)))
+  testthat::expect_true(all(lengths(annotated$pos$match) > 0))
+  testthat::expect_equal(lengths(annotated$pos$match), lengths(annotated$tokens$match))
+  testthat::expect_true(any(grepl("[|]", unlist(annotated$morph$match))))
+  testthat::expect_warning(scores <- collocationAnalysis(kco, query, vc = vc,
+    minOccur = 1, minObservedExpectedRatio = 0, leftContextSize = 3, rightContextSize = 3,
+    searchHitsSampleLimit = 2, topCollocatesLimit = 1, exactFrequencies = FALSE), "access token")
+  testthat::expect_s3_class(scores, "data.frame")
+  testthat::expect_gt(nrow(scores), 0)
+  testthat::expect_true(all(c("collocate", "O", "E", "logDice") %in% names(scores)))
+  testthat::expect_true(all(is.finite(c(scores$O, scores$E, scores$logDice))))
+  invisible(scores)
 }

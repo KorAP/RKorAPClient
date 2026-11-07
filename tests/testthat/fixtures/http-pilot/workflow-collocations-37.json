@@ -1,0 +1,196 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "x-index-revision": "workflow-index-1",
+          "Content-Type": "text/plain",
+          "Content-Length": "31",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Synthetic KorAP workflow server"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "text/plain",
+          "Content-Length": "23",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "Authorization supported"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameisenplage&show-tokens=true&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain%2Csnippet%2Ctokens&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "93",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":200,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameisenplage&show-tokens=true&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain%2Csnippet%2Ctokens&count=2&offset=50"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "1009",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":200,\"startIndex\":50,\"itemsPerPage\":2,\"benchmark\":\"0.0s\"},\"matches\":[{\"matchID\":\"match-WORK/2023/00051-p1001-1002\",\"fields\":[{\"key\":\"textSigle\",\"type\":\"type:string\",\"value\":[\"WORK/2023/00051\"]},{\"key\":\"pubDate\",\"type\":\"type:string\",\"value\":[\"2023-01-01\"]},{\"key\":\"corpusTitle\",\"type\":\"type:string\",\"value\":[\"Synthetic workflow corpus\"]}],\"tokens\":{\"left\":[\"reine\",\"reine\",\"reine\",\"reine\",\"reine\"],\"match\":[\"Test\"],\"right\":[\"Beispiel\",\"Beispiel\",\"Beispiel\",\"Beispiel\",\"Beispiel\"]},\"snippet\":\"reine <mark>Test<\\/mark> Beispiel\"},{\"matchID\":\"match-WORK/2023/00052-p1002-1003\",\"fields\":[{\"key\":\"textSigle\",\"type\":\"type:string\",\"value\":[\"WORK/2023/00052\"]},{\"key\":\"pubDate\",\"type\":\"type:string\",\"value\":[\"2023-01-01\"]},{\"key\":\"corpusTitle\",\"type\":\"type:string\",\"value\":[\"Synthetic workflow corpus\"]}],\"tokens\":{\"left\":[\"reine\",\"reine\",\"reine\",\"reine\",\"reine\"],\"match\":[\"Test\"],\"right\":[\"Beispiel\",\"Beispiel\",\"Beispiel\",\"Beispiel\",\"Beispiel\"]},\"snippet\":\"reine <mark>Test<\\/mark> Beispiel\"}]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Ameisenplage&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "93",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":200,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/statistics?cq="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "71",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"tokens\":1000000,\"documents\":1000,\"sentences\":10000,\"paragraphs\":5000}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=Beispiel&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=reine&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "94",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":1000,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=contains%28%3Cbase%2Fs%3Ds%3E%2C+%28Beispiel+%5B%5D%7B0%2C4%7D+Ameisenplage+%7C+Ameisenplage+%5B%5D%7B0%2C4%7D+Beispiel%29%29&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "91",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":6,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=contains%28%3Cbase%2Fs%3Ds%3E%2C+%28reine+%5B%5D%7B0%2C4%7D+Ameisenplage+%7C+Ameisenplage+%5B%5D%7B0%2C4%7D+reine%29%29&ql=poliqarp&fields=corpusSigle%2CcorpusTitle%2CtextSigle%2CpubDate%2CpubPlace%2Cavailability%2CtextClass%2CdmozDomain%2CwikiDomain&access-rewrite-disabled=true&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "91",
+          "date": "Wed, 01 Jan 2020 00:00:00 GMT"
+        },
+        "body": {
+          "string": "{\"meta\":{\"totalResults\":6,\"startIndex\":0,\"itemsPerPage\":0,\"benchmark\":\"0.0s\"},\"matches\":[]}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "VCR-vcr/2.1.0"
+}

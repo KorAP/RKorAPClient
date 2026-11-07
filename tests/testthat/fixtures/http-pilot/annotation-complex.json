@@ -1,0 +1,102 @@
+{
+  "http_interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain",
+          "x-index-revision": "fixture-index-1"
+        },
+        "body": {
+          "string": "KorAP offline fixture"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/settings/oauth/authorize"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html"
+        },
+        "body": {
+          "string": ""
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5borth%3d%22%5bwW%5dir%22%5d%20k%c3%b6nnen%20alles%20%5borth%3d%22ausser%22%20%7c%20orth%3d%22au%c3%9fer%22%5d%20%5btt%2fpos%3dNN%5d&show-tokens=true&ql=poliqarp&fields=textSigle,snippet,tokens&count=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 2\n  },\n  \"matches\": []\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/search?q=%5Borth%3D%22%5BwW%5Dir%22%5D%20k%C3%B6nnen%20alles%20%5Borth%3D%22ausser%22%20%7C%20orth%3D%22au%C3%9Fer%22%5D%20%5Btt%2Fpos%3DNN%5D&show-tokens=true&ql=poliqarp&fields=textSigle%2Csnippet%2Ctokens&count=20&offset=0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"meta\": {\n    \"totalResults\": 2,\n    \"startIndex\": 0,\n    \"itemsPerPage\": 2\n  },\n  \"matches\": [\n    {\n      \"matchID\": \"match-TEST/2023/00101-p2001-2006x_fixture\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00101\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        }\n      ],\n      \"snippet\": \"Synthetic annotation context\",\n      \"tokens\": {\n        \"left\": [\n          \"Ein\"\n        ],\n        \"match\": [\n          \"Wir\",\n          \"können\",\n          \"alles\",\n          \"außer\",\n          \"Plan\"\n        ],\n        \"right\": [\n          \"folgt\"\n        ]\n      }\n    },\n    {\n      \"matchID\": \"match-TEST/2023/00102-p2002-2007x_fixture\",\n      \"fields\": [\n        {\n          \"key\": \"corpusSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST\"\n          ]\n        },\n        {\n          \"key\": \"corpusTitle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Synthetic corpus\"\n          ]\n        },\n        {\n          \"key\": \"textSigle\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"TEST/2023/00102\"\n          ]\n        },\n        {\n          \"key\": \"pubDate\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"2023-01-01\"\n          ]\n        },\n        {\n          \"key\": \"pubPlace\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"Nürnberg\"\n          ]\n        },\n        {\n          \"key\": \"availability\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"CC-BY\"\n          ]\n        },\n        {\n          \"key\": \"textClass\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"dmozDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"wissenschaft populaerwissenschaft\"\n          ]\n        },\n        {\n          \"key\": \"wikiDomain\",\n          \"type\": \"type:string\",\n          \"value\": [\n            \"\"\n          ]\n        }\n      ],\n      \"snippet\": \"Synthetic annotation context\",\n      \"tokens\": {\n        \"left\": [\n          \"Ein\"\n        ],\n        \"match\": [\n          \"Wir\",\n          \"können\",\n          \"alles\",\n          \"außer\",\n          \"Plan\"\n        ],\n        \"right\": [\n          \"folgt\"\n        ]\n      }\n    }\n  ]\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/corpus/TEST/2023/00101/p2001-2006x_fixture?foundry=tt"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"snippet\": \"<span class=\\\"context-left\\\"><span title=\\\"tt/l:ein tt/p:ART\\\">Ein<\\/span><\\/span><span class=\\\"match\\\"><mark><span title=\\\"tt/l:Wir tt/p:PPER\\\">Wir<\\/span> <span title=\\\"tt/l:können tt/p:VVFIN\\\">können<\\/span> <span title=\\\"tt/l:alles tt/p:PIS\\\">alles<\\/span> <span title=\\\"tt/l:außer tt/p:APPR\\\">außer<\\/span> <span title=\\\"tt/l:Plan tt/p:NN\\\">Plan<\\/span><\\/mark><\\/span><span class=\\\"context-right\\\"><span title=\\\"tt/l:folgen tt/p:VVFIN\\\">folgt<\\/span><\\/span>\"\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/corpus/TEST/2023/00102/p2002-2007x_fixture?foundry=tt"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"snippet\": \"<span class=\\\"context-left\\\"><span title=\\\"tt/l:ein tt/p:ART\\\">Ein<\\/span><\\/span><span class=\\\"match\\\"><mark><span title=\\\"tt/l:Wir tt/p:PPER\\\">Wir<\\/span> <span title=\\\"tt/l:können tt/p:VVFIN\\\">können<\\/span> <span title=\\\"tt/l:alles tt/p:PIS\\\">alles<\\/span> <span title=\\\"tt/l:außer tt/p:APPR\\\">außer<\\/span> <span title=\\\"tt/l:Plan tt/p:NN\\\">Plan<\\/span><\\/mark><\\/span><span class=\\\"context-right\\\"><span title=\\\"tt/l:folgen tt/p:VVFIN\\\">folgt<\\/span><\\/span>\"\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
+    }
+  ],
+  "recorded_with": "Synthetic KorAP fixtures"
+}

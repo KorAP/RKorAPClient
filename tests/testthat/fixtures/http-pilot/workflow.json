@@ -112,6 +112,22 @@
         }
       },
       "recorded_at": "2020-01-01 00:00:00"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "uri": "https://korap.example.invalid/api/v1.0/corpus/TEST%2F2023%2F00001"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "string": "{\n  \"document\": {\n    \"fields\": [\n      {\n        \"key\": \"textSigle\",\n        \"value\": [\n          \"TEST/2023/00001\"\n        ]\n      },\n      {\n        \"key\": \"textType\",\n        \"value\": [\n          \"Zeitung\"\n        ]\n      },\n      {\n        \"key\": \"dmozDomain\",\n        \"value\": [\n          \"staat-gesellschaft\",\n          \"biographien-interviews\"\n        ]\n      }\n    ]\n  }\n}"
+        }
+      },
+      "recorded_at": "2020-01-01 00:00:00"
     }
   ],
   "recorded_with": "Synthetic KorAP fixtures"

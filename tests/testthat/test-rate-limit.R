@@ -2,9 +2,7 @@
 # Requests) with a Retry-After header beyond that. These tests run offline.
 
 mockConnection <- function() {
-  methods::new(
-    "KorAPConnection",
-    apiUrl = "https://example.invalid/api/v1.0/",
+  offlineKorapConnection(apiUrl = "https://example.invalid/api/v1.0/",
     KorAPUrl = "https://example.invalid/",
     authorizationSupported = FALSE,
     verbose = FALSE
