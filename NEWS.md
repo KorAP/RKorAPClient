@@ -1,96 +1,65 @@
 # RKorAPClient (development version)
 
-- HTTP tests run offline using synthetic vcr cassettes. Local webfakes tests
-  cover retries and timeouts. Five KorAP integration tests are enabled with
-  `RKORAP_LIVE_TESTS=true`; documentation-model tests require explicit
-  `RKORAP_LLM_MODELS` selection.
+- **Compare how widely expressions are used**, beyond their overall frequency.
+  The experimental `dispersionAnalysis()` compares their distribution across
+  sources, publication countries or years, taking the size of each group into
+  account. Groups without hits are included. Different measures describe
+  different aspects of dispersion; the help pages explain how to interpret them.
+  The new `demo("dispersion")` compares *Nutzer*innen* and *Nutzer:innen*.
 
-- Shared year-plot tooltips separate query blocks with line breaks and show
-  each query's series colour, including when confidence intervals are hidden.
+- **See where expressions are concentrated** with the experimental
+  `hc_dispersion()`. Its interactive bars compare each group's share of hits
+  with its share of corpus tokens. Clicking a bar opens the corresponding
+  concordances in KorAP.
 
-- Frequency and dispersion bars show the corpus or subcorpus in their tooltip
-  headers. The default highcharter theme no longer masks the helpers' palettes;
-  year plots retain their historical D3 palette. Custom themes still take priority.
+- **Compare frequencies in bar charts** with `hc_freq_bar_ci()` for interactive
+  plots or `geom_freq_bar_ci()` for ggplot2 figures suitable for publications.
+  Both experimental helpers display supplied confidence intervals and support
+  comparisons between expressions and virtual corpora. Named queries and
+  corpora supply the labels.
 
-- Stopping an HTTP request with RStudio's Stop button or a keyboard interrupt
-  cancels the running script without entering the error debugger. Error-handler
-  settings are restored afterwards; ordinary request errors retain their handling.
-  With `verbose = TRUE`, a short cancellation notice is included in the progress
-  output without signalling an additional warning.
+- **Choose whether to show confidence intervals**: pass `showCI = FALSE` to the
+  frequency bar-chart or time-series helpers. Observed frequencies stay the same.
+  Confidence intervals describe uncertainty under their statistical assumptions;
+  they do not account for every source of variation in a corpus.
 
-- Frequency-bar and time-series helpers for highcharter and ggplot2 accept
-  `showCI = FALSE` to omit confidence intervals, including interval tooltip
-  lines. The default remains `TRUE`; disabling intervals does not require
-  confidence-limit columns and preserves the observed frequencies.
+- **Plots are easier to read and explore.** Tooltips identify the expression and
+  corpus and show absolute frequency, relative frequency in IPM (instances per
+  million tokens), and corpus size. Time-series plots separate the expressions
+  clearly. Text and number formatting follow German or English browser
+  preferences; `options(rkorap.chart.language = "de")` or `"en"` fixes the language.
+  Repeated clicks can open concordances in the same KorAP tab.
 
-- Chart tooltips use absolute and relative frequency, corpus size and confidence
-  interval terminology, with IPM as the frequency unit. Generated text and number
-  formatting follow German/English browser preferences; set
-  `options(rkorap.chart.language = "de")` or `"en"` to fix the language.
-  Generic footer instructions are omitted. Confidence intervals use subdued grey
-  styling, and repeated concordance clicks open the named KorAP tab directly.
+- **Use your usual chart theme**, including IDS themes, for colours and fonts.
+  Confidence intervals use subdued colours by default. Themes applied through
+  highcharter continue to take precedence.
 
-- Plotting helpers now share Highcharts themes, palettes, escaped display labels
-  and a reusable concordance tab. Colour and tooltip customization remain
-  available through highcharter. Singleton categories serialize as arrays,
-  restricted corpora keep meaningful labels, rare frequencies retain significant
-  digits, and year partitions show all years by default.
-- Interactive helpers respect `options(highcharter.theme = ...)` and themes
-  applied with `hc_add_theme()`, including IDS themes. Fonts, query palettes,
-  data-label colours and interval colours are inherited from the theme.
-- `frequencyQuery()` retains named-query labels and the denominator mode used
-  by interactive plots. Conflicting plotting modes are rejected. The experimental
-  frequency-bar helpers support explicit logarithmic-axis handling in highcharter
-  and horizontal interval orientation in ggplot2.
+- **Make a reproducible selection of result pages** with
+  `fetchSamplePages(maxHits = ..., seed = ...)`, or use `maxHits = Inf` to fetch
+  all hits. This selects pages, not independent random hits: clustered results
+  can strongly bias dispersion estimates. Analyses identify estimates and report
+  how much of the results was fetched.
 
-- Added experimental `geom_freq_bar_ci()`, a ggplot2 counterpart to the interactive
-  frequency-bar helper. It combines bars and confidence intervals with shared
-  grouping positions and supports normal ggplot printing and export workflows.
+- **Stop a long-running search** with RStudio's Stop button or your interface's
+  interrupt key without entering the error debugger. The running script stops;
+  it does not continue with an incomplete result. With `verbose = TRUE`, a short
+  cancellation notice appears in the progress output.
 
+- **Large result sets are retrieved more reliably.** When KorAP asks the client
+  to slow down, it waits and retries. If a page cannot be retrieved, the client
+  warns that results are incomplete; `fetchRest()` can resume at that page.
+  Plain-text server errors are displayed as readable messages.
 
-- Added experimental `hc_freq_bar_ci()` for interactive frequency comparisons across virtual
-  corpora and queries, with linked concordances and confidence intervals.
-  Horizontal bars or columns use instances per million tokens or percentages
-  of alternatives. Missing comparisons and undefined frequencies remain gaps.
+- `fetchAll()` starts again from the first hit and replaces previously collected
+  matches, including page selections. Preserved metadata keep single-valued
+  fields as ordinary columns and multivalued fields as lists. Source titles
+  (`corpusTitle`) are now fetched by default; source-based dispersion combines
+  annual titles belonging to the same source.
 
-
-- Added experimental metadata-based dispersion analysis with replaceable DP,
-  corrected DPnorm, Juilland's D, Carroll's D2, Rosengren's S and range.
-  `dispersionAnalysis()` accepts
-  counts or `corpusQuery()` results; `dispersionQuery()` and
-  `frequencyQuery(dispersionBy = ...)` provide query wrappers. `corpusPartition()`
-  discovers metadata groups and token sizes independently of the search terms,
-  retaining groups without hits and reporting incomplete metadata coverage.
-- Added `fetchSamplePages(maxHits = ..., seed = ...)` for explicit, reproducible
-  selection of complete result pages. It samples pages rather than independent
-  hits and warns that clustering can strongly bias dispersion estimates. Without
-  a fetch, dispersion uses exact part counts; after a fetch it reuses the recorded
-  pages or complete unjoined metadata. Comparisons show sample coverage and warn
-  about unequal inclusion probabilities. `maxHits = Inf` fetches all hits.
-- Added experimental `hc_dispersion()` to plot stored hit shares alongside
-  corpus-token shares for any partition, without additional queries. It groups
-  remaining parts explicitly, retains full-population denominators, identifies
-  estimates and zero-hit variants, and links individual bars to concordances.
-- Named query vectors retain fetchable states with `as.df = FALSE`. Their
-  dispersion comparisons share partitions and print measures side by side.
-  The demo compares Nutzer*innen and Nutzer:innen across sources, publication
-  countries and calendar years in 2023-2025 using complete results. A single
-  README-guided prompting scenario covers the page-sampling alternative.
-- Added `corpusTitle` to the default match metadata. Source grouping combines
-  annual titles, and compact filters avoid repeating metadata conditions in
-  group-discovery requests. The Stern corpus-size demo also accepts annual
-  corpus titles in current DeReKo.
-- `fetchAll()` restarts retrieval from the beginning and replaces previously
-  collected matches, including page samples. With preserved metadata,
-  single-valued columns remain ordinary vectors and only multivalued columns
-  remain lists. Continuation calls inherit the recorded preservation mode;
-  changing modes requires restarting with `fetchAll()`.
-
-- **requests that hit the rate limit of the KorAP server are retried**: KorAP limits the number of requests per access token and answers `429 Too Many Requests` beyond that, which made `fetchAll()` of large result sets fail after some thousand pages. RKorAPClient now waits as long as the server's `Retry-After` header asks, and tries again, as it does for `503 Service Unavailable`
-- **`fetchNext()`, `fetchAll()` and `fetchRest()` no longer mistake a failed page for the end of the results**: they warn that the collected matches are incomplete and keep `nextStartIndex` and `hasMoreMatches` at the failed page, so that `fetchRest()` can continue from there. Before, the result looked complete
-- error messages that the server labels as JSON, but sends as plain text, like `Rate limit exceeded`, are shown as they are, instead of a JSON parsing error
-- **the Readme explains how regular expressions are marked** in queries and in virtual corpora, where double quotes mean opposite things: `"…"` is a regular expression in Poliqarp+, but a literal string in a `vc`, where regular expressions go between slashes. A literal string in a `vc` raises no error but just finds nothing, a trap that a language model, too, easily falls into. A new doc-prompting test checks that code written from the Readme gets both right
-- **the Readme suggests a random sample of texts for slow queries**, selected by the last digit of the text sigle, e.g. `vc = "textSigle = /.*5/"` for about 10 % of the texts. The relative frequency remains an estimate for the whole corpus. In DeLiKo@DNB, where slow queries are most common, a sample saves about as much time as it leaves out once the server has read the index of the query terms, as in a series of queries on the same terms, but hardly any time before. The help pages of `corpusQuery()`, `frequencyQuery()` and `collocationAnalysis()` describe the workaround as well, until KorAP supports sampling by itself. A new doc-prompting test checks that a language model, asked to speed up a query that times out, comes up with such a sample by itself
+- **The README explains common query pitfalls**, including the different use of
+  regular expressions in search expressions and virtual-corpus definitions.
+  It also describes selecting a smaller subset of texts for slow searches and
+  the limitations of treating its frequencies as estimates for the whole corpus.
 
 # RKorAPClient 1.4.1
 
