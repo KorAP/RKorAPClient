@@ -1,70 +1,19 @@
 # RKorAPClient (development version)
 
-- **Draw curved time series in ggplot2** with
-  `geom_freq_by_year_ci(smooth = TRUE)`. Annual observations stay visible as
-  points; the connecting curve and confidence-band boundaries are interpolated
-  for display. This does not estimate a time trend or add observations.
+- Added **experimental metadata-based dispersion analysis** with `dispersionAnalysis()`
+  and interactive plots with `hc_dispersion()` to compare distributions across
+  sources, countries and years, accounting for corpus-part sizes.
 
-- **Compare how widely expressions are used**, beyond their overall frequency.
-  The experimental `dispersionAnalysis()` compares their distribution across
-  sources, publication countries or years, taking the size of each group into
-  account. Groups without hits are included. Different measures describe
-  different aspects of dispersion; the help pages explain how to interpret them.
-  The new `demo("dispersion")` compares *Nutzer*innen* and *Nutzer:innen*.
+- Added **interactive and static frequency bar charts** with `hc_freq_bar_ci()` and
+  `geom_freq_bar_ci()`, including confidence intervals. The ggplot2 time-series
+  helper now also supports curved connections between annual observations.
 
-- **See where expressions are concentrated** with the experimental
-  `hc_dispersion()`. Its interactive bars compare each group's share of hits
-  with its share of corpus tokens. Clicking a bar opens the corresponding
-  concordances in KorAP.
+- Running searches can now be **cancelled without entering the error debugger**.
+  Retrieval also handles server rate limits and failed page downloads more
+  reliably, with warnings for incomplete results and support for resuming them.
 
-- **Compare frequencies in bar charts** with `hc_freq_bar_ci()` for interactive
-  plots or `geom_freq_bar_ci()` for ggplot2 figures suitable for publications.
-  Both experimental helpers display supplied confidence intervals and support
-  comparisons between expressions and virtual corpora. Named queries and
-  corpora supply the labels.
-
-- **Choose whether to show confidence intervals**: pass `showCI = FALSE` to the
-  frequency bar-chart or time-series helpers. Observed frequencies stay the same.
-  Confidence intervals describe uncertainty under their statistical assumptions;
-  they do not account for every source of variation in a corpus.
-
-- **Plots are easier to read and explore.** Tooltips identify the expression and
-  corpus and show absolute frequency, relative frequency in IPM (instances per
-  million tokens), and corpus size. Time-series plots separate the expressions
-  clearly. Text and number formatting follow German or English browser
-  preferences; `options(rkorap.chart.language = "de")` or `"en"` fixes the language.
-  Repeated clicks can open concordances in the same KorAP tab.
-
-- **Use your usual chart theme**, including IDS themes, for colours and fonts.
-  Confidence intervals use subdued colours by default. Themes applied through
-  highcharter continue to take precedence.
-
-- **Make a reproducible selection of result pages** with
-  `fetchSamplePages(maxHits = ..., seed = ...)`, or use `maxHits = Inf` to fetch
-  all hits. This selects pages, not independent random hits: clustered results
-  can strongly bias dispersion estimates. Analyses identify estimates and report
-  how much of the results was fetched.
-
-- **Stop a long-running search** with RStudio's Stop button or your interface's
-  interrupt key without entering the error debugger. The running script stops;
-  it does not continue with an incomplete result. With `verbose = TRUE`, a short
-  cancellation notice appears in the progress output.
-
-- **Large result sets are retrieved more reliably.** When KorAP asks the client
-  to slow down, it waits and retries. If a page cannot be retrieved, the client
-  warns that results are incomplete; `fetchRest()` can resume at that page.
-  Plain-text server errors are displayed as readable messages.
-
-- `fetchAll()` starts again from the first hit and replaces previously collected
-  matches, including page selections. Preserved metadata keep single-valued
-  fields as ordinary columns and multivalued fields as lists. Source titles
-  (`corpusTitle`) are now fetched by default; source-based dispersion combines
-  annual titles belonging to the same source.
-
-- **The README explains common query pitfalls**, including the different use of
-  regular expressions in search expressions and virtual-corpus definitions.
-  It also describes selecting a smaller subset of texts for slow searches and
-  the limitations of treating its frequencies as estimates for the whole corpus.
+- Internal: **Tests now run offline** using synthetic response fixtures and
+  local test servers. Live-server checks remain opt-in.
 
 # RKorAPClient 1.4.1
 
