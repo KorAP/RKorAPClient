@@ -1,3 +1,5 @@
+# Requires RKorAPClient >= 1.5.0 or a current development build.
+
 library(RKorAPClient)
 
 cat("Are the gender-sensitive variants Nutzer*innen and Nutzer:innen similarly dispersed\n",
