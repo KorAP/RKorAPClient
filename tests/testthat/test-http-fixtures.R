@@ -64,10 +64,7 @@ test_that("a two-page fetch parses fields, match positions and continuation offl
 })
 
 test_that("fixture-based requests can use a fresh isolated real response cache", {
-  directory <- tempfile("http-fixture-cache-")
-  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
-  testthat::local_mocked_bindings(KorAPCacheSubDir = function(...) directory,
-    .package = "RKorAPClient")
+  localKorapTestCache("http-fixture-cache-")
   withKorapFixtureApi(function(state) {
     kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
     first <- korapHttpTestQuery(kco)
@@ -118,14 +115,19 @@ test_that("missing fixtures fail even when apiCall handles the request error", {
 test_that("the real response cache stays under the temporary suite root", {
   root <- getOption("R.cache.rootPath")
   expect_true(startsWith(root, tempdir()))
-  withWorkflowFixture("cache", function(state) {
+  path <- withWorkflowFixture("cache", function(state) {
+    subdirectory <- RKorAPClient:::KorAPCacheSubDir()
+    expect_identical(subdirectory, basename(subdirectory))
     kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
     query <- korapHttpTestQuery(kco)
-    path <- R.cache::getCachePath(dirs = RKorAPClient:::KorAPCacheSubDir())
-    expect_true(startsWith(normalizePath(path), paste0(normalizePath(root), "/")))
+    path <- R.cache::getCachePath(dirs = subdirectory)
+    expect_identical(normalizePath(dirname(path), winslash = "/"),
+      normalizePath(root, winslash = "/"))
     expect_true(length(list.files(path, recursive = TRUE)) > 0)
     expect_equal(query@totalResults, 51)
+    path
   })
+  expect_false(dir.exists(path))
 })
 
 test_that("default metadata include current topic-domain fields", {

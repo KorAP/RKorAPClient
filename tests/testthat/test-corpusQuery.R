@@ -1,8 +1,6 @@
 # Keep all response-cache reads, writes and clearing in temporary directories.
 withQueryFixture <- function(cassette, code) {
-  directory <- tempfile("query-cache-")
-  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
-  local_mocked_bindings(KorAPCacheSubDir = function() directory, .package = "RKorAPClient")
+  localKorapTestCache("query-cache-")
   withKorapFixtureApi(code, cassette = cassette)
 }
 

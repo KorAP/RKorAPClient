@@ -15,9 +15,9 @@ fail instead of recording or contacting a server. External curl transfers are
 also rejected at suite teardown, including errors caught by client code.
 
 The suite sets a temporary `R.cache.rootPath`, removes it at teardown and
-restores the previous option. This also isolates caches whose subdirectory
-looks like an absolute path. Credential tests use an in-memory keyring backend;
-environment variables and mocks are restored afterwards. No corpus
+restores the previous option. Fixture caches use relative subdirectories for
+Windows compatibility and are removed after each test. Credential tests use an
+in-memory keyring backend; environment variables and mocks are restored afterwards. No corpus
 texts or credentials are recorded. Following
 [httr2's testing guidance](https://httr2.r-lib.org/reference/with_mocked_responses.html),
 vcr uses httr2's mock interface directly, without another HTTP adapter.

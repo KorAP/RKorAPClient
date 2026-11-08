@@ -102,10 +102,19 @@ offlineKorapConnection <- function(...) {
   kco
 }
 
+localKorapTestCache <- function(prefix, .local_envir = parent.frame()) {
+  # R.cache appends dirs to its root even if dirs looks absolute. A Windows
+  # drive prefix there would become an invalid nested directory component.
+  directory <- basename(tempfile(prefix))
+  path <- file.path(R.cache::getCacheRootPath(), directory)
+  withr::defer(unlink(path, recursive = TRUE), envir = .local_envir)
+  testthat::local_mocked_bindings(KorAPCacheSubDir = function() directory,
+    .package = "RKorAPClient", .env = .local_envir)
+  directory
+}
+
 withWorkflowFixture <- function(cassette, code) {
-  directory <- tempfile("workflow-cache-")
-  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
-  testthat::local_mocked_bindings(KorAPCacheSubDir = function() directory, .package = "RKorAPClient")
+  localKorapTestCache("workflow-cache-")
   withKorapFixtureApi(code, cassette = cassette)
 }
 

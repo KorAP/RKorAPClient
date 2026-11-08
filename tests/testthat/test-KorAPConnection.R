@@ -166,9 +166,7 @@ test_that("apiCall handles HTTP errors, non-JSON content and malformed JSON offl
 })
 
 test_that("successful responses are persisted, reused and cleared in an isolated cache", {
-  directory <- tempfile("connection-cache-")
-  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
-  local_mocked_bindings(KorAPCacheSubDir = function() directory, .package = "RKorAPClient")
+  directory <- localKorapTestCache("connection-cache-")
   withConnectionFixture(function(state) {
     kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
     url <- paste0(kco@apiUrl, "ok")
@@ -191,9 +189,7 @@ test_that("KorAPCacheSubDir uses the package version", {
 })
 
 test_that("warning 682 is reported and the response is not persisted", {
-  directory <- tempfile("connection-warning-cache-")
-  on.exit(unlink(directory, recursive = TRUE), add = TRUE)
-  local_mocked_bindings(KorAPCacheSubDir = function() directory, .package = "RKorAPClient")
+  directory <- localKorapTestCache("connection-warning-cache-")
   withConnectionFixture(function(state) {
     kco <- suppressMessages(fixtureKorapConnection(cache = TRUE))
     url <- paste0(kco@apiUrl, "warning")

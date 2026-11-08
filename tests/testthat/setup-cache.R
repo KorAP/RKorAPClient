@@ -1,5 +1,5 @@
-# R.cache treats dir as relative even when it looks absolute. Isolate its root
-# for the whole suite so every test cache is removed, including nested paths.
+# Isolate R.cache's root for the whole suite. Individual fixture caches use
+# relative subdirectories and are removed when their test scope ends.
 local({
   directory <- tempfile("rkorap-test-cache-")
   withr::local_options(list(R.cache.rootPath = directory),

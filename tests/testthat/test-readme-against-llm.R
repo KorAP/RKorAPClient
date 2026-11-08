@@ -113,7 +113,7 @@ skip_if_no_api_key <- function(model) {
 find_readme_path <- function() {
   readme_paths <- c("Readme.md", "../Readme.md", "../../Readme.md")
   for (path in readme_paths) {
-    if (file.exists(path)) {
+    if (file.exists(file.path(dirname(path), "DESCRIPTION")) && file.exists(path)) {
       return(path)
     }
   }

@@ -9,7 +9,8 @@
 
 readmePath <- function() {
   for (path in c("Readme.md", "../Readme.md", "../../Readme.md")) {
-    if (file.exists(path)) {
+    # tests/README.md also matches Readme.md on case-insensitive filesystems.
+    if (file.exists(file.path(dirname(path), "DESCRIPTION")) && file.exists(path)) {
       return(path)
     }
   }
@@ -89,6 +90,24 @@ packageFunctionParameters <- function(name) {
 
   names(formals(if (isRematched) eval(body[[2]][[3]]) else method))
 }
+
+test_that("Readme lookup ignores the test-suite guide", {
+  root <- withr::local_tempdir()
+  dir.create(file.path(root, "tests", "testthat"), recursive = TRUE)
+  guide <- file.path(root, "tests", "README.md")
+  writeLines("# Test suites", guide)
+  # Emulate case-insensitive lookup on Linux as well as macOS and Windows.
+  alias <- file.path(root, "tests", "Readme.md")
+  if (!file.exists(alias)) file.copy(guide, alias)
+  withr::local_dir(file.path(root, "tests", "testthat"))
+
+  expect_null(readmePath())
+
+  writeLines("Package: RKorAPClient", file.path(root, "DESCRIPTION"))
+  sourceReadme <- file.path(root, "Readme.md")
+  writeLines(c("# RKorAPClient", "```r", "library(RKorAPClient)", "```"), sourceReadme)
+  expect_identical(normalizePath(readmePath()), normalizePath(sourceReadme))
+})
 
 test_that("all R code blocks in the Readme parse", {
   skip_without_readme()
