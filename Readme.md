@@ -29,6 +29,25 @@ library(RKorAPClient)
 KorAPConnection(verbose=TRUE) |> corpusQuery("Hello world") |> fetchAll()
 ```
 
+### Interactive time-series plots using [highcharter](http://jkunst.com/highcharter/)
+
+For an **interactive frequency plot over time with confidence intervals**, pass the result of `frequencyQuery()` directly to `hc_freq_by_year_ci()`. This helper is provided by RKorAPClient and returns an interactive HTML widget, with tooltips and clickable data points that open the corresponding KorAP search results. No additional plotting package needs to be loaded. By default, it shows frequencies per million tokens; the example below uses `as.alternatives = TRUE` to show percentages instead.
+
+See the [Highcharts license notes](#highcharts) below.
+
+```r
+library(RKorAPClient)
+query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
+years = c(1980:2010)
+as.alternatives = TRUE
+vc = "textType = /Zeit.*/ & creationDate in"
+KorAPConnection(verbose = TRUE) |>
+  frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) |>
+  hc_freq_by_year_ci(as.alternatives)
+```
+
+[![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
+
 ### Verbose output without changing code
 
 You can turn on verbose logging globally without changing calls by setting an environment variable (or an R option):
@@ -72,7 +91,7 @@ The client sends the virtual-corpus definition (`vc`) to the selected KorAP inst
 
 Check the corpus documentation for the intended meaning, missing values and date precision. `textMetadata()` (see below) shows stored values for individual texts; it does not supply field definitions or a complete inventory of possible values. A syntactically valid query and plausible counts do not establish that the right metadata field was chosen. The need for accessible field descriptions is also discussed in [Kalamar issue #40](https://github.com/KorAP/Kalamar/issues/40).
 
-The following time-series examples use `creationDate`; their year axis therefore follows that field, not necessarily publication year.
+The time-series examples use `creationDate`; their year axis therefore follows that field, not necessarily publication year.
 
 ### Frequencies over time and newspaper sections using ggplot2
 
@@ -110,25 +129,6 @@ remain visible as points; the curve and confidence-band boundaries are
 interpolated for display only. Missing years leave gaps. This is not a trend
 analysis, and the band does not provide confidence intervals for unobserved
 dates. Interpolation follows the plot scales, including logarithmic axes.
-
-### Interactive time-series plots using [highcharter](http://jkunst.com/highcharter/)
-
-For an **interactive frequency plot over time with confidence intervals**, pass the result of `frequencyQuery()` directly to `hc_freq_by_year_ci()`. This helper is provided by RKorAPClient and returns an interactive HTML widget, with tooltips and clickable data points that open the corresponding KorAP search results. No additional plotting package needs to be loaded. By default, it shows frequencies per million tokens; the example below uses `as.alternatives = TRUE` to show percentages instead.
-
-See the [Highcharts license notes](#highcharts) below.
-
-```r
-library(RKorAPClient)
-query = c("macht []{0,3} Sinn", "ergibt []{0,3} Sinn")
-years = c(1980:2010)
-as.alternatives = TRUE
-vc = "textType = /Zeit.*/ & creationDate in"
-KorAPConnection(verbose = TRUE) |>
-  frequencyQuery(query, paste(vc, years), as.alternatives = as.alternatives) |>
-  hc_freq_by_year_ci(as.alternatives)
-```
-
-[![Proportion of "ergibt … Sinn"  versus "macht … Sinn" between 1980 and 2010 in newspapers and magazines](man/figures/Readme-Example-2.png)<!-- -->](https://korap.github.io/RKorAPClient/man/figures/Readme-Example-2.html)
 
 ### Interactive frequency comparisons with confidence intervals
 
