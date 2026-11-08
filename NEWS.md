@@ -1,4 +1,4 @@
-# RKorAPClient (development version)
+# RKorAPClient 1.5.0
 
 - Added **experimental metadata-based dispersion analysis** with `dispersionAnalysis()`
   and interactive plots with `hc_dispersion()` to compare distributions across
