@@ -64,18 +64,31 @@ Check the corpus documentation for the intended meaning, missing values and date
 
 The following time-series examples use `creationDate`; their year axis therefore follows that field, not necessarily publication year.
 
-### Frequencies over time and domains using ggplot2
+### Frequencies over time and newspaper sections using ggplot2
 
 ```r
 library(RKorAPClient)
 library(ggplot2)
-kco <- KorAPConnection(verbose=TRUE)
-expand_grid(condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"), 
-            year = (2002:2018)) %>%
-    cbind(frequencyQuery(kco, "[tt/l=Heuschrecke]", paste0(.$condition," & creationDate in ", .$year)))  %>%
-    ipm() %>%
-    ggplot(aes(x = year, y = ipm, fill = condition, colour = condition)) +
-    geom_freq_by_year_ci()
+kco <- KorAPConnection(verbose = TRUE)
+
+expand_grid(
+  ressort = c(
+    Wirtschaft = "idsColumn = /Wirtschaft.*/",
+    `Nicht-Wirtschaft` = "idsColumn != /Wirtschaft.*/"
+  ),
+  year = 2002:2018
+) |>
+  mutate(
+    frequencyQuery(kco, "[tt/l=Heuschrecke]",
+      paste(ressort, "& creationDate in", year)),
+    ressort = names(ressort)
+  ) |>
+  ipm() |>
+  ggplot(aes(year, ipm, fill = ressort, colour = ressort)) +
+  theme_minimal() +
+  geom_freq_by_year_ci() +
+  labs(x = "Jahr", y = "Relative Häufigkeit (IPM)",
+       fill = "Ressort", colour = "Ressort")
 ```
 ![](man/figures/Readme-Example-1.png)<!-- -->
 
