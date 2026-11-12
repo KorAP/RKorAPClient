@@ -231,9 +231,9 @@ because selecting the sample takes some time itself.
 \dontrun{
 
 # Find top collocates of "Packung" inside and outside the sports domain.
-KorAPConnection(verbose = TRUE) |>
+KorAPConnection(verbose = TRUE) |> auth() |>
   collocationAnalysis("Packung",
-    vc = c("textClass=sport", "textClass!=sport"),
+    vc = c("dmozDomain = /sport.*/", "dmozDomain != /sport.*/"),
     leftContextSize = 1, rightContextSize = 1, topCollocatesLimit = 20
   ) |>
   dplyr::filter(logDice >= 5)

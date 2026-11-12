@@ -670,7 +670,7 @@ Please note that unless you explicitly state otherwise any
 contribution intentionally submitted for inclusion into this software shall –
 as this software itself – be under the [BSD-2 License](LICENSE.md).
 
-Part of the test suite prompts current LLMs with this Readme and checks that the code they write from it uses the package correctly, so that a gap in the documentation shows up as a failing test – see Kupietz et al. (2026) on the approach. The tests are skipped without an API key; `RKORAP_LLM_MODELS` selects the models to prompt.
+Part of the test suite prompts current LLMs with this Readme and checks that the code they write from it uses the package correctly, so that a gap in the documentation shows up as a failing test – see Kupietz et al. (2026) on the approach. These tests run only when `RKORAP_LLM_MODELS` explicitly selects models (or `default`) and the corresponding API keys are available. See [the test-suite guide](tests/README.md) for details.
 
 ## References
 

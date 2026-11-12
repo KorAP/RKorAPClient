@@ -6,14 +6,14 @@ library(RKorAPClient)
 library(ggplot2)
 
 freqPerDomain <- function(query, con = KorAPConnection(verbose = TRUE)) {
-  g <- corpusQuery(con, query = query, vc="") %>%
+  g <- corpusQuery(con, query = query, vc = "", fields = "dmozDomain") %>%
     fetchAll() %>%
     slot("collectedMatches") %>%
-    mutate(Domain = factor(sapply(strsplit(as.character(.$textClass), " "), `[[`, 1))) %>%
+    mutate(Domain = factor(sapply(strsplit(as.character(.$dmozDomain), " "), `[[`, 1))) %>%
     group_by(Domain) %>%
-    dplyr::filter(!is.na(Domain)) %>%
+    dplyr::filter(!is.na(Domain), as.character(Domain) != "") %>%
     summarise(count = dplyr::n()) %>%
-    mutate(total = (corpusStats(con, sprintf("textClass = /%s.*/", .$Domain)))$tokens) %>%
+    mutate(total = (corpusStats(con, sprintf("dmozDomain = /%s.*/", .$Domain)))$tokens) %>%
     ci(x = count) %>%
     ipm() %>%
     { df <- . } %>%

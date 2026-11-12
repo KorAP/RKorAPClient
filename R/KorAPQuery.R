@@ -112,11 +112,13 @@ utils::globalVariables(c("."))
 #'   \item{**Publication info**:}{`author`, `editor`, `title`, `docTitle`, `corpusTitle` - authorship and titles}
 #'   \item{**Temporal data**:}{`pubDate`, `creationDate` - when text was published/created}
 #'   \item{**Publication details**:}{`pubPlace`, `publisher`, `reference` - where/how published}
-#'   \item{**Text classification**:}{`textClass`, `dmozDomain`, `wikiDomain`, `textType`, `textTypeArt`, `textDomain`, `textColumn` - topic domain, genre, text type and column}
+#'   \item{**Text classification**:}{`textClass`, `dmozDomain`, `wikiDomain`, `textType`, `textTypeArt`, `idsColumn` - topic domain, genre, text type and column}
 #'   \item{**Administrative and technical info**:}{`corpusEditor`, `availability`, `language`, `foundries` - access rights and annotations}
 #'   \item{**Content data**:}{`snippet`, `tokens`, `tokenSource`, `externalLink` - actual text content, tokenization, and link to source text}
 #'   \item{**System data**:}{`indexCreationDate`, `indexLastModified` - corpus indexing info}
 #' }
+#' Current DeReKo releases use `dmozDomain` and `wikiDomain` for topic domains;
+#' `textClass` is retained in the default request for older corpus releases.
 #' Use `c("textSigle", "pubDate", "author")` to retrieve multiple fields.
 #' Default fields provide basic text identification and publication metadata. The actual text content fields (`snippet` and `tokens`) are activated by default if `metadataOnly` is set to `FALSE`.
 #' @param accessRewriteFatal abort if query or given vc had to be rewritten due to insufficient rights (not yet implemented).

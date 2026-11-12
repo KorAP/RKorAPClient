@@ -22,7 +22,7 @@ mosaicplot <- function(query, vc, kco = KorAPConnection(verbose = TRUE)) {
     vcd::mosaic(shade = TRUE) # , labeling = labeling_border(rot_labels = c(45,0,0,0), just_labels = c("left", "center", "center", "right")))
   queryResult
 }
-queryResult <- mosaicplot(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"), c("textDomain=Wirtschaft", "textDomain=Kultur", "textDomain=Sport"))
+queryResult <- mosaicplot(c("[marmot/m=mood:subj]", "[marmot/m=mood:ind]"), c("idsColumn=Wirtschaft", "idsColumn=Kultur", "idsColumn=Sport"))
 #mosaicplot(c("Asylbewerber", "Asylwerber"), c("pubPlaceKey=DE", "pubPlaceKey=AT"))
 #mosaicplot(c("wegen dem [tt/p=NN]", "wegen des [tt/p=NN]"), c("pubPlaceKey=DE", "pubPlaceKey=AT"))
 #mosaicplot(c("Samstag", "Sonnabend"), c("pubPlace=Hamburg", "pubPlace=Berlin"))

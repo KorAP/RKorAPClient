@@ -52,11 +52,13 @@ Available fields depend on the corpus. For DeReKo (German Reference Corpus), pos
 \item{\strong{Publication info}:}{\code{author}, \code{editor}, \code{title}, \code{docTitle}, \code{corpusTitle} - authorship and titles}
 \item{\strong{Temporal data}:}{\code{pubDate}, \code{creationDate} - when text was published/created}
 \item{\strong{Publication details}:}{\code{pubPlace}, \code{publisher}, \code{reference} - where/how published}
-\item{\strong{Text classification}:}{\code{textClass}, \code{dmozDomain}, \code{wikiDomain}, \code{textType}, \code{textTypeArt}, \code{textDomain}, \code{textColumn} - topic domain, genre, text type and column}
+\item{\strong{Text classification}:}{\code{textClass}, \code{dmozDomain}, \code{wikiDomain}, \code{textType}, \code{textTypeArt}, \code{idsColumn} - topic domain, genre, text type and column}
 \item{\strong{Administrative and technical info}:}{\code{corpusEditor}, \code{availability}, \code{language}, \code{foundries} - access rights and annotations}
 \item{\strong{Content data}:}{\code{snippet}, \code{tokens}, \code{tokenSource}, \code{externalLink} - actual text content, tokenization, and link to source text}
 \item{\strong{System data}:}{\code{indexCreationDate}, \code{indexLastModified} - corpus indexing info}
 }
+Current DeReKo releases use \code{dmozDomain} and \code{wikiDomain} for topic domains;
+\code{textClass} is retained in the default request for older corpus releases.
 Use \code{c("textSigle", "pubDate", "author")} to retrieve multiple fields.
 Default fields provide basic text identification and publication metadata. The actual text content fields (\code{snippet} and \code{tokens}) are activated by default if \code{metadataOnly} is set to \code{FALSE}.}
 

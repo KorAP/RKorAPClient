@@ -61,25 +61,13 @@ Regeneration instructions are in
 [`fixtures/http-pilot/README.md`](testthat/fixtures/http-pilot/README.md).
 Neither standard tests nor package checks record new responses.
 
-Measured locally with vcr 2.1.0 and R 4.6.2:
+Package checks run the offline suite; source-README checks skip when checking
+an archive because `Readme.md` is excluded from the package. Local HTTP,
+browser and live-server checks run separately as described above.
 
-- Full CRAN-mode source suite: 1,792 assertions, 18.8 seconds, with no network
-  interfaces. Temporary cache roots were removed, the original option restored
-  and the home cache unchanged. Local-server, browser and live tests skip.
-- Built-package `R CMD check --as-cran`: 1,671 assertions, about 35 seconds in
-  the test phase. Four source-README consistency tests additionally skip because
-  the README is excluded from the archive. The check has no errors or warnings;
-  one NOTE concerns the development version. The locally missing optional `sf`
-  package was not required; online incoming checks were disabled.
-- Six additional local-transport assertions run with loopback networking only.
-- The five live scenarios remain opt-in. The added default-metadata contract
-  also passed against the public KorAP server.
-
-The earlier 2–3 second measurement covered only a subset, not the full suite.
-Timings exclude dependency installation and depend on the machine and server.
-Request guards now signal missing fixtures as errors rather than counting each
-successful guard as an assertion; assertion totals therefore differ from the
-previous migration report.
+For release validation, record the current check results and test environments
+in `cran-comments.md`. Assertion counts and timings vary with enabled suites,
+installed optional dependencies and the machine.
 
 A separate benchmark records an anonymous metadata query and two result pages
 in a temporary directory, replays the same workflow three times and compares all

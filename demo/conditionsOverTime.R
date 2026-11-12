@@ -19,4 +19,4 @@ conditionsOverTime <- function(query, conditions, years, kco = KorAPConnection(v
   print(g)
 }
 
-conditionsOverTime("[tt/l=Heuschrecke]", c("textClass = /natur.*/", "textClass=/politik.*/", "textClass=/wirtschaft.*/"), (2002:2018))
+conditionsOverTime("[tt/l=Heuschrecke]", c("dmozDomain = /natur.*/", "dmozDomain=/politik.*/", "dmozDomain=/wirtschaft.*/"), (2002:2018))

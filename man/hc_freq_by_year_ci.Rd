@@ -63,7 +63,7 @@ KorAPConnection(verbose = TRUE) \%>\%
 
 kco <- KorAPConnection(verbose = TRUE)
 expand_grid(
-  condition = c("textDomain = /Wirtschaft.*/", "textDomain != /Wirtschaft.*/"),
+  condition = c("idsColumn = /Wirtschaft.*/", "idsColumn != /Wirtschaft.*/"),
   year = (2005:2011)
 ) \%>\%
   cbind(frequencyQuery(
