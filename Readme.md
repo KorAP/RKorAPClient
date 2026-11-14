@@ -17,11 +17,6 @@ R client package to access the [web service API](https://github.com/KorAP/Kustva
 
 ## Examples
 
-**Version note:** The dispersion analyses and new bar-chart helpers below are
-planned for version 1.5.0 and require the development version until that
-release is available on CRAN. They are not available in CRAN version 1.4.1.
-New options such as `showCI` also require the development version.
-
 ### Hello world
 
 ```R
@@ -124,15 +119,13 @@ expand_grid(
 `frequencyQuery` returns a data frame with raw frequencies (in `totalResults`), relative frequencies (in `f`), and confidence intervals. The relative frequencies and confidence limits are proportions, not values per million. Use `ipm()` when a plotting workflow needs values per million, as in the ggplot2 example above. When using `hc_freq_by_year_ci()`, pass the `frequencyQuery()` result directly: that helper performs the conversion itself (or converts to percentages with `as.alternatives = TRUE`). Calling `ipm()` first would scale the confidence limits twice.
 
 For curved connections between annual observations, use
-`geom_freq_by_year_ci(smooth = TRUE)` (from version 1.5.0). The measured years
+`geom_freq_by_year_ci(smooth = TRUE)`. The measured years
 remain visible as points; the curve and confidence-band boundaries are
 interpolated for display only. Missing years leave gaps. This is not a trend
 analysis, and the band does not provide confidence intervals for unobserved
 dates. Interpolation follows the plot scales, including logarithmic axes.
 
 ### Interactive frequency comparisons with confidence intervals
-
-Available from version 1.5.0 (currently the development version).
 
 For an **interactive bar chart comparing frequencies between corpora or queries**,
 pass the unconverted `frequencyQuery()` result to `hc_freq_bar_ci()`. Like
@@ -307,8 +300,6 @@ The result has one column per metadata field the corpus provides – 26 in this 
 ### Dispersion across metadata
 
 [![Lifecycle: experimental](man/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
-Available from version 1.5.0 (currently the development version).
 
 **Are Nutzer*innen and Nutzer:innen similarly dispersed across press sources,
 publication countries and years, allowing for the size of each group?**
