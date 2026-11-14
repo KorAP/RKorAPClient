@@ -14,7 +14,8 @@
 Invisible NULL (function called for side effects)
 }
 \description{
-Clears the local cache of API responses for the current RKorAPClient version.
+Clears the local cache of API responses. Cached responses are kept across
+package updates and are refetched automatically when the corpus index changes.
 Useful when you want to force fresh data retrieval or free up disk space.
 }
 \examples{

@@ -2,6 +2,15 @@
 
 - Keep interactive frequency and dispersion charts compatible with both the
   existing highcharter theme functions and the forthcoming preset-based API.
+- The local cache of API responses is no longer discarded with every minor
+  release. Responses are still refetched when the corpus index changes. The
+  cache stays in the `RKorAPClient_1.5` directory. To carry over a 1.4 cache:
+
+  ```r
+  root <- R.cache::getCacheRootPath()
+  new <- file.path(root, "RKorAPClient_1.5"); dir.create(new, showWarnings = FALSE)
+  file.copy(list.files(file.path(root, "RKorAPClient_1.4"), full.names = TRUE), new)
+  ```
 
 # RKorAPClient 1.5.0
 

@@ -184,8 +184,8 @@ test_that("successful responses are persisted, reused and cleared in an isolated
   }, cassette = "connection-cache")
 })
 
-test_that("KorAPCacheSubDir uses the package version", {
-  expect_match(RKorAPClient:::KorAPCacheSubDir(), "^RKorAPClient_[0-9]+\\.[0-9]+$")
+test_that("KorAPCacheSubDir keeps the 1.5 cache across package updates", {
+  expect_identical(RKorAPClient:::KorAPCacheSubDir(), "RKorAPClient_1.5")
 })
 
 test_that("warning 682 is reported and the response is not persisted", {

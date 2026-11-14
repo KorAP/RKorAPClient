@@ -391,16 +391,14 @@ warnIfNotAuthorized <- function(kco) {
   }
 }
 
+# Deliberately not the package version: the index revision in the cache key
+# already invalidates entries when the corpus changes, so a release must not
+# throw away hours of cached queries. Raise this only when apiCall() changes
+# what it stores. Frozen at the directory name 1.5.x used, to keep those caches.
+cacheGeneration <- "1.5"
+
 KorAPCacheSubDir <- function() {
-  paste0(
-    "RKorAPClient_",
-    gsub(
-      "^([0-9]+\\.[0-9]+).*",
-      "\\1",
-      packageVersion("RKorAPClient"),
-      perl = TRUE
-    )
-  )
+  paste0("RKorAPClient_", cacheGeneration)
 }
 
 setGeneric("apiCall", function(kco, ...) standardGeneric("apiCall"))
@@ -598,7 +596,8 @@ setGeneric("clearCache", function(kco) standardGeneric("clearCache"))
 
 #' Clear local cache
 #'
-#' Clears the local cache of API responses for the current RKorAPClient version.
+#' Clears the local cache of API responses. Cached responses are kept across
+#' package updates and are refetched automatically when the corpus index changes.
 #' Useful when you want to force fresh data retrieval or free up disk space.
 #'
 #' @family connection-initialization
