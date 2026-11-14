@@ -33,8 +33,18 @@ chartLabelFormatter <- function(field) {
     ").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;'); }"))
 }
 
+chartGoogleTheme <- function(...) {
+  if ("preset" %in% names(formals(highcharter::hc_theme))) {
+    highcharter::hc_theme("google", ...)
+  } else {
+    # Resolve the legacy export only when needed: newer highcharter removes it.
+    legacy <- getExportedValue("highcharter", "hc_theme_google")
+    legacy(...)
+  }
+}
+
 korapHighchart <- function(height = NULL, series = 1L, colors = chartPalette(series)) {
-  fallback <- highcharter::hc_theme_google(colors = colors,
+  fallback <- chartGoogleTheme(colors = colors,
     plotOptions = list(errorbar = list(color = "#737373"),
       arearange = list(color = "#808080", fillOpacity = 0.15, lineWidth = 0),
       areasplinerange = list(color = "#808080", fillOpacity = 0.15, lineWidth = 0)))

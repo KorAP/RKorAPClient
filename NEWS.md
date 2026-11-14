@@ -1,3 +1,8 @@
+# RKorAPClient (development version)
+
+- Keep interactive frequency and dispersion charts compatible with both the
+  existing highcharter theme functions and the forthcoming preset-based API.
+
 # RKorAPClient 1.5.0
 
 - Added **experimental metadata-based dispersion analysis** with `dispersionAnalysis()`
