@@ -48,10 +48,57 @@ test_that("connection initialization handles rejected tokens and bad gateways of
     for (case in list(c("unauthorized", "401"), c("bad-gateway", "502"))) {
       expect_message(kco <- KorAPConnection(KorAPUrl = "https://korap.example.invalid/",
         apiUrl = paste0("https://korap.example.invalid/api/v1.0/", case[1]),
-        accessToken = "fixture-invalid-token", cache = FALSE), case[2])
+        accessToken = NULL, cache = FALSE), case[2])
       expect_null(kco@welcome)
     }
   }, cassette = "connection-init-errors")
+})
+
+test_that("an expired stored token falls back to anonymous access (#32)", {
+  skip_on_cran()
+  skip_if_not_installed("webfakes")
+  skip_if_not_installed("callr")
+  app <- webfakes::new_app()
+  app$get("/api/v1.0/", function(req, res) {
+    if (!is.null(req$get_header("Authorization"))) {
+      res$set_status(401L)
+      res$send_json(list(errors = list(list(2003, "Access token is expired"))), auto_unbox = TRUE)
+    } else {
+      res$set_header("x-index-revision", "local-index-1")
+      res$send("KorAP local HTTP fixture")
+    }
+  })
+  app$get("/settings/oauth/authorize", function(req, res) res$send("Authorization supported"))
+  server <- webfakes::local_app_process(app)
+  local_mocked_bindings(has_internet = function() TRUE, .package = "curl")
+  expect_warning(kco <- suppressMessages(KorAPConnection(KorAPUrl = server$url(),
+    accessToken = "expired-token", cache = FALSE)), "access token .* was rejected")
+  expect_null(kco@accessToken)
+  expect_false(is.null(kco@welcome))
+  expect_identical(kco@indexRevision, "local-index-1")
+})
+
+test_that("metadata-only responses are cached independently of the access token (#32)", {
+  directory <- localKorapTestCache("token-cache-")
+  kco <- withConnectionFixture(function(state) suppressMessages(fixtureKorapConnection(cache = TRUE)))
+  local_mocked_bindings(has_internet = function() FALSE, .package = "curl")
+  cached <- function(url, token, total) R.cache::saveCache(list(meta = list(totalResults = total)),
+    key = list(url, token, kco@indexRevision), dir = directory)
+  metadataUrl <- paste0(kco@apiUrl, "search?q=x&access-rewrite-disabled=true")
+  kco@accessToken <- "old-token"
+  cached(metadataUrl, "old-token", 1)
+  # entries written before the change are still found
+  expect_identical(apiCall(kco, metadataUrl)$meta$totalResults, 1)
+  cached(metadataUrl, NULL, 2)
+  kco@accessToken <- "new-token"
+  expect_identical(apiCall(kco, metadataUrl)$meta$totalResults, 2)
+  statsUrl <- paste0(kco@apiUrl, "statistics?cq=x")
+  cached(statsUrl, NULL, 4)
+  expect_identical(apiCall(kco, statsUrl)$meta$totalResults, 4)
+  # full-text results depend on the license rights the token grants
+  kwicUrl <- paste0(kco@apiUrl, "search?q=x")
+  cached(kwicUrl, "old-token", 3)
+  expect_message(expect_null(apiCall(kco, kwicUrl)), "No internet")
 })
 
 test_that("connection URLs are normalized and connection information is printable offline", {

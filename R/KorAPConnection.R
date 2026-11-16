@@ -189,7 +189,21 @@ setMethod("initialize", "KorAPConnection", function(.Object,
   }
   .Object@verbose <- verbose
   .Object@cache <- cache
-  .Object@welcome <- apiCall(.Object, .Object@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
+  welcome <- function(kco) apiCall(kco, kco@apiUrl, json = FALSE, cache = FALSE, getHeaders = TRUE)
+  unauthorized <- FALSE
+  .Object@welcome <- withCallingHandlers(welcome(.Object), message = function(m) {
+    if (grepl("status 401", conditionMessage(m), fixed = TRUE)) unauthorized <<- TRUE
+  })
+  # An expired stored token must not block queries that need no login (#32).
+  if (is.null(.Object@welcome) && unauthorized && !is.null(.Object@accessToken) &&
+      is.null(.Object@oauthClient)) {
+    warning("The access token for ", .Object@KorAPUrl, " was rejected, probably because it ",
+      "has expired. Continuing without authorization, so KWICs from corpora with restricted ",
+      "licenses are not available. Renew the token with auth() and persistAccessToken(), ",
+      "or remove it with clearAccessToken().", call. = FALSE)
+    .Object@accessToken <- NULL
+    .Object@welcome <- welcome(.Object)
+  }
   if (!is.null(.Object@welcome)) {
     message(.Object@welcome[[2]])
     resp <- httr2::request(.Object@KorAPUrl) |>
@@ -467,10 +481,20 @@ utils::globalVariables(c("."))
 #' @export
 setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeaders = FALSE, cache = kco@cache, timeout = kco@timeout, verbose = kco@verbose) {
   result <- ""
+  # The token cannot change metadata-only results (the server skips its license
+  # rewrite for them) or corpus statistics, so a renewed token must not discard
+  # their cache (#32). Checked against KorAP with and without token and VPN.
+  metadataOnly <- grepl("access-rewrite-disabled=true", url, fixed = TRUE) ||
+    startsWith(url, paste0(kco@apiUrl, "statistics?"))
+  cacheKey <- list(url, if (!metadataOnly) kco@accessToken, kco@indexRevision)
 
   # Handle caching if enabled
   if (cache) {
-    result <- R.cache::loadCache(dir = KorAPCacheSubDir(), key = list(url, kco@accessToken, kco@indexRevision))
+    result <- R.cache::loadCache(dir = KorAPCacheSubDir(), key = cacheKey)
+    # shortcut: entries written before #32 still carry the token; drop with the next cacheGeneration
+    if (is.null(result) && metadataOnly && !is.null(kco@accessToken)) {
+      result <- R.cache::loadCache(dir = KorAPCacheSubDir(), key = list(url, kco@accessToken, kco@indexRevision))
+    }
     if (!is.null(result)) {
       if (!is.null(result$meta)) result$meta$cached <- "local"
       return(result)
@@ -581,7 +605,7 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
 
   # Save to cache if enabled
   if (cache && resp |> httr2::resp_status() == 200) {
-    R.cache::saveCache(result, key = list(url, kco@accessToken, kco@indexRevision), dir = KorAPCacheSubDir(), compress = TRUE)
+    R.cache::saveCache(result, key = cacheKey, dir = KorAPCacheSubDir(), compress = TRUE)
   }
 
   # Return headers and content as a list if `getHeaders` is TRUE

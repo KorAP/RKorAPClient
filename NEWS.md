@@ -2,6 +2,12 @@
 
 - Keep interactive frequency and dispersion charts compatible with both the
   existing highcharter theme functions and the forthcoming preset-based API.
+- An expired stored access token no longer breaks the connection:
+  `KorAPConnection()` warns and continues without authorization, so queries
+  that need no login keep working (#32).
+- Frequency and other metadata-only results as well as corpus statistics are
+  cached independently of the access token, so renewing it no longer discards
+  their cache (#32).
 - The local cache of API responses is no longer discarded with every minor
   release. Responses are still refetched when the corpus index changes. The
   cache stays in the `RKorAPClient_1.5` directory. To carry over a 1.4 cache:
