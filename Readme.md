@@ -63,6 +63,20 @@ Explicit `verbose` arguments still take precedence over these settings.
 Use RStudio's Stop button or your R interface's interrupt key (Escape or Ctrl+C)
 to stop the running script and return to the console.
 
+### Maintenance notices
+
+When the selected KorAP instance provides a public maintenance schedule,
+the client announces planned and ongoing maintenance before server requests,
+including with `verbose = FALSE`. Each window is announced once per R session
+and again when it begins. The schedule is refreshed at most every five minutes.
+Use `maintenanceInfo(kco)` to inspect the schedule; `state = "unknown"` means
+that the client cannot establish whether maintenance is planned.
+
+These notices are R messages, not errors. To disable automatic checks and
+messages, set `options(rkorap.maintenance.notices = FALSE)`. Explicit
+`maintenanceInfo()` calls still work. Older instances without the endpoint
+remain usable. This feature requires the development version of RKorAPClient.
+
 ### Local caching of API responses
 
 To speed up repeated analyses and to avoid unnecessary load on the KorAP servers, API responses are cached locally by default, in the cache directory that is standard for your operating system (see [R.cache](https://cran.r-project.org/package=R.cache)). Cached responses are invalidated automatically when the corpus index revision changes.

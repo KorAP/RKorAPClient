@@ -507,6 +507,8 @@ setMethod("apiCall", "KorAPConnection", function(kco, url, json = TRUE, getHeade
     return(invisible(NULL))
   }
 
+  maintenanceNotices(kco)
+
   # Create the request
   # disable the curl low-speed abort (r-curl kills "stalled" transfers
   # with less than 1 byte/s after 600s by default): long running

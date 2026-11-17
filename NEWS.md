@@ -1,5 +1,8 @@
 # RKorAPClient (development version)
 
+- Report planned and ongoing maintenance from an optional public Kalamar
+  endpoint, with `maintenanceInfo()` for inspecting the schedule. Notices are
+  short-lived, do not require a login and never prevent corpus queries.
 - Keep interactive frequency and dispersion charts compatible with both the
   existing highcharter theme functions and the forthcoming preset-based API.
 - An expired stored access token no longer breaks the connection:

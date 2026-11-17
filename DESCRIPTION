@@ -87,6 +87,7 @@ Collate:
     'hc_dispersion.R'
     'hc_freq_bar_ci.R'
     'hc_freq_by_year_ci.R'
+    'maintenance.R'
     'misc.R'
     'reexports.R'
     'textMetadata.R'
