@@ -6,6 +6,7 @@
 #'
 #' **Warning:** This function may be moved to a new package.
 #' @inheritSection hc_freq_bar_ci Display language
+#' @inheritSection hc_freq_bar_ci Licensing
 #'
 #' @family  highcharter-helpers
 #' @import highcharter

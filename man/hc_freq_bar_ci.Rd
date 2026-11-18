@@ -76,6 +76,16 @@ before creating charts to fix the language for exports; \code{"auto"} restores
 browser selection. IPM means instances per million tokens.
 }
 
+\section{Licensing}{
+
+Interactive charts use the Highcharts JavaScript library through the
+\href{https://cran.r-project.org/web/licenses/MIT}{MIT-licensed highcharter R wrapper}.
+Review Highsoft's separate terms for
+\href{https://shop.highcharts.com/license-eula}{personal and educational use} and
+\href{https://shop.highcharts.com/license}{commercial use} to determine which terms
+cover your use. RKorAPClient's license does not grant a Highcharts license.
+}
+
 \examples{
 \dontrun{
 kco <- KorAPConnection("https://korap.dnb.de")

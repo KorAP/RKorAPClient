@@ -35,6 +35,7 @@
 #' not provide confidence intervals or an overall ranking of dispersion scores.
 #' The interface and display may change in future releases.
 #' @inheritSection hc_freq_bar_ci Display language
+#' @inheritSection hc_freq_bar_ci Licensing
 #' @family highcharter-helpers
 #' @export
 #' @examples

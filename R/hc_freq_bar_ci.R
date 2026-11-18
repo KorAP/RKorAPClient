@@ -48,6 +48,13 @@
 #' labels are retained. Set `options(rkorap.chart.language = "de")` or `"en"`
 #' before creating charts to fix the language for exports; `"auto"` restores
 #' browser selection. IPM means instances per million tokens.
+#' @section Licensing:
+#' Interactive charts use the Highcharts JavaScript library through the
+#' [MIT-licensed highcharter R wrapper](https://cran.r-project.org/web/licenses/MIT).
+#' Review Highsoft's separate terms for
+#' [personal and educational use](https://shop.highcharts.com/license-eula) and
+#' [commercial use](https://shop.highcharts.com/license) to determine which terms
+#' cover your use. RKorAPClient's license does not grant a Highcharts license.
 #' @seealso [geom_freq_bar_ci()] for ggplot2 figures suitable for print.
 #' @family highcharter-helpers
 #' @export

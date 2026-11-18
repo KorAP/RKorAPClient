@@ -21,6 +21,16 @@ then launch KorAP web UI queries for the given query term and virtual corpus in
 a separate tab that is reused for subsequent clicks. Only HTTP(S) links
 are opened; points without a valid link are not clickable.
 }
+\section{Licensing}{
+
+Interactive charts use the Highcharts JavaScript library through the
+\href{https://cran.r-project.org/web/licenses/MIT}{MIT-licensed highcharter R wrapper}.
+Review Highsoft's separate terms for
+\href{https://shop.highcharts.com/license-eula}{personal and educational use} and
+\href{https://shop.highcharts.com/license}{commercial use} to determine which terms
+cover your use. RKorAPClient's license does not grant a Highcharts license.
+}
+
 \examples{
 \dontrun{
 
