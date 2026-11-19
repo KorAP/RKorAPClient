@@ -1,10 +1,12 @@
-# RKorAPClient (development version)
+# RKorAPClient 1.5.1
 
+- Keep interactive frequency and dispersion charts compatible with both the
+  existing highcharter theme functions and the forthcoming preset-based API.
+  Clarify the separate highcharter and Highcharts licenses and link their terms
+  from the README and interactive chart documentation.
 - Report planned and ongoing maintenance from an optional public Kalamar
   endpoint, with `maintenanceInfo()` for inspecting the schedule. Notices are
   short-lived, do not require a login and never prevent corpus queries.
-- Keep interactive frequency and dispersion charts compatible with both the
-  existing highcharter theme functions and the forthcoming preset-based API.
 - An expired stored access token no longer breaks the connection:
   `KorAPConnection()` warns and continues without authorization, so queries
   that need no login keep working (#32).
