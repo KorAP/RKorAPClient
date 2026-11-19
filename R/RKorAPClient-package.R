@@ -43,15 +43,17 @@
 #' ```
 #'
 #' @references
-#' Kupietz, Marc / Diewald, Nils / Margaretha, Eliza (2020):
-#' RKorAPClient: An R package for accessing the German Reference Corpus DeReKo
-#' via KorAP. In: Calzolari, Nicoletta, Frédéric Béchet, Philippe Blache,
-#' Khalid Choukri, Christopher Cieri,  Thierry Declerck, Sara Goggi,
-#' Hitoshi Isahara, Bente Maegaard, Joseph Mariani, Hélène Mazo,
-#' Asuncion Moreno, Jan Odijk, Stelios Piperidis (eds.):
-#' Proceedings of The 12th Language Resources and Evaluation Conference (LREC 2020)
-#' Marseille: European Language Resources Association (ELRA), 7017-7023.
-#' \url{http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.867.pdf}
+#' Kupietz, M., Diewald, N., and Margaretha, E. (2020).
+#' [RKorAPClient: An R Package for Accessing the German Reference Corpus DeReKo
+#' via KorAP](https://aclanthology.org/2020.lrec-1.867/).
+#' Proceedings of LREC 2020, pp. 7015–7021.
+#'
+#' Kupietz, M., Diewald, N., and Margaretha, E. (2022).
+#' Building Paths to Corpus Data: A Multi-Level Least Effort and Maximum Return
+#' Approach.
+#' In D. Fišer and A. Witt (eds.), CLARIN: The Infrastructure for Language
+#' Resources, pp. 163–189. De Gruyter.
+#' \doi{10.1515/9783110767377-007}.
 #'
 #' @keywords internal
 "_PACKAGE"

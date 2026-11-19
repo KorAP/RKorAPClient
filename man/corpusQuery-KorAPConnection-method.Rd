@@ -158,11 +158,9 @@ KorAPConnection(verbose = TRUE) |>
   plot(type = "l")
 }
 }
-\references{
-\url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
-}
 \seealso{
 \code{\link[=KorAPConnection]{KorAPConnection()}}, \code{\link[=fetchNext]{fetchNext()}}, \code{\link[=fetchRest]{fetchRest()}}, \code{\link[=fetchAll]{fetchAll()}}, \code{\link[=corpusStats]{corpusStats()}}
+See \link{RKorAPClient-package} for publications with examples.
 
 Other corpus search functions:
 \code{\link{fetchAll,KorAPQuery-method}},

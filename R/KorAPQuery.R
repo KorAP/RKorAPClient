@@ -205,9 +205,7 @@ utils::globalVariables(c("."))
 #'   plot(type = "l")
 #' }
 #' @seealso [KorAPConnection()], [fetchNext()], [fetchRest()], [fetchAll()], [corpusStats()]
-#'
-#' @references
-#' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
+#'   See [RKorAPClient-package] for publications with examples.
 #'
 #' @export
 setMethod(
@@ -500,9 +498,6 @@ simplifyPreservedMetadata <- function(matches, fields) {
 #'   fetchNext()
 #' q@collectedMatches
 #' }
-#'
-#' @references
-#' <https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026>
 #'
 #' @aliases fetchNext
 #' @importFrom dplyr rowwise mutate bind_rows select summarise n select

@@ -56,9 +56,6 @@ q@collectedMatches
 }
 
 }
-\references{
-\url{https://ids-pub.bsz-bw.de/frontdoor/index/index/docId/9026}
-}
 \seealso{
 Other corpus search functions:
 \code{\link{corpusQuery,KorAPConnection-method}},
