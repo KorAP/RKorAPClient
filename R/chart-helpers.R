@@ -52,8 +52,12 @@ korapHighchart <- function(height = NULL, series = 1L, colors = chartPalette(ser
   # highcharter installs this theme on load, even when no theme was chosen.
   # Compare the whole theme, so customized fonts/backgrounds/palettes (including
   # IDS themes) still take precedence. Do not change the user's global option.
+  # New highcharter versions keep these startup colours but remove the option.
+  startupColors <- getOption("highcharter.color_palette",
+    c("#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9",
+      "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"))
   startup <- highcharter::hc_theme(chart = list(backgroundColor = "transparent"),
-    colors = getOption("highcharter.color_palette"))
+    colors = startupColors)
   if (!is.null(theme) && !identical(theme, startup))
     fallback <- highcharter::hc_theme_merge(fallback, theme)
   highcharter::highchart(height = height, theme = fallback) |>

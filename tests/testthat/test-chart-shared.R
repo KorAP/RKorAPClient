@@ -1,9 +1,5 @@
 test_that("the unchanged highcharter startup theme does not replace helper palettes", {
   # Do not set highcharter.theme here: that hid the startup-theme regression.
-  startup <- highcharter::hc_theme(chart = list(backgroundColor = "transparent"),
-    colors = getOption("highcharter.color_palette"))
-  skip_if_not(identical(getOption("highcharter.theme"), startup),
-    "Requires highcharter's unmodified startup theme")
   before <- getOption("highcharter.theme")
   d <- suppressWarnings(ci(data.frame(query = c("one", "two"), vc = "",
     totalResults = c(1, 2), total = 100)))
@@ -21,7 +17,7 @@ test_that("the unchanged highcharter startup theme does not replace helper palet
 
 test_that("customizations of the startup theme are retained even with its original colours", {
   theme <- highcharter::hc_theme(chart = list(backgroundColor = "transparent",
-    style = list(fontFamily = "serif")), colors = getOption("highcharter.color_palette"))
+    style = list(fontFamily = "serif")), colors = getOption("highcharter.theme")$colors)
   rlang::local_options(highcharter.theme = theme)
   d <- suppressWarnings(ci(data.frame(query = "one", vc = "", totalResults = 1, total = 100)))
   h <- hc_freq_bar_ci(d)

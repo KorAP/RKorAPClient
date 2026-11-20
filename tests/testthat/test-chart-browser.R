@@ -55,12 +55,8 @@ test_that("rendered tooltips include corpus headers and use the intended palette
   expect_true(startsWith(escaped$text, "<img src=x>"), info = escaped$text)
   expect_equal(evaluate("document.querySelectorAll('.highcharts-tooltip img').length"), 0)
 
-  startup <- highcharter::hc_theme(chart = list(backgroundColor = "transparent"),
-    colors = getOption("highcharter.color_palette"))
   # Actual series colours, with the option left as highcharter initialized it.
-  if (identical(getOption("highcharter.theme"), startup)) {
-    expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].points[0].graphic.attr('fill')"), "#E69F00")
-  }
+  expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].points[0].graphic.attr('fill')"), "#E69F00")
 
   rlang::local_options(rkorap.chart.language = "de")
   distribution <- data.frame(part = c("Quelle A", "Quelle B", "Quelle C"),
@@ -76,9 +72,7 @@ test_that("rendered tooltips include corpus headers and use the intended palette
     expect_true(startsWith(shown$text, "Übrige 2 Teilkorpora"), info = shown$text)
   }
   expect_match(shown$text, "Absolute Häufigkeit", fixed = TRUE)
-  if (identical(getOption("highcharter.theme"), startup)) {
-    expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].points[1].graphic.attr('fill')"), "#E69F00")
-  }
+  expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].points[1].graphic.attr('fill')"), "#E69F00")
 
   # The shared year tooltip has a different context and must keep its year header.
   rlang::local_options(rkorap.chart.language = "en")
@@ -92,9 +86,7 @@ test_that("rendered tooltips include corpus headers and use the intended palette
     return c.tooltip.label.element.textContent;
   })()")
   expect_true(startsWith(text, "2023"), info = text)
-  if (identical(getOption("highcharter.theme"), startup)) {
-    expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].graph.attr('stroke')"), "#FF7F0E")
-  }
+  expect_identical(evaluate("Highcharts.charts.find(Boolean).series[2].graph.attr('stroke')"), "#FF7F0E")
 
   lemmas <- c("zutiefst", "präzise", "entscheidend", "unterstreichen", "zeigen")
   multi <- suppressWarnings(ci(data.frame(query = rep(lemmas, each = 2),
