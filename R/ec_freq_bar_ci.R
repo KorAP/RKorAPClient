@@ -56,7 +56,7 @@ ec_freq_bar_ci <- function(df, as.alternatives = NULL,
   title <- as.character(spec$title)
   korapEchart(list(
     title = list(list(text = title, left = "center")),
-    grid = list(top = if (nzchar(title)) 85 else 50, bottom = 30, left = 30, right = 30),
+    grid = list(top = if (nzchar(title)) 50 else 40, bottom = 30, left = 30, right = 30),
     xAxis = if (horizontal) value else category,
     yAxis = if (horizontal) category else value,
     series = c(bars, whiskers)

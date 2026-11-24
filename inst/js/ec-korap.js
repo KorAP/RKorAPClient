@@ -29,8 +29,13 @@ function (el, x, spec, korapChartText) {
     option.title[1] = { text: caption, left: 10, bottom: 4,
       textStyle: { fontSize: 11, fontWeight: 'normal', lineHeight: 15, width: Math.max(width - 30, 100), overflow: 'break' } };
   }
-  // Room for the caption and, where the value axis is below, its title.
-  option.grid.bottom += lines ? lines * 15 + (horizontal ? 18 : 6) : 0;
+  // Room for the caption, the legend above it and, where the value axis is below, its title.
+  var below = lines ? lines * 15 + 6 : 0;
+  if (option.legend.show !== false && option.legend.bottom !== undefined) {
+    option.legend.bottom += below;
+    below += 30;
+  }
+  option.grid.bottom += below ? below + (horizontal ? 20 : 0) : 0;
   var valueAxis = horizontal ? option.xAxis : option.yAxis;
   if (String(valueAxis.name).toLowerCase() === 'ipm') valueAxis.name = 'IPM';
   valueAxis.axisLabel = { formatter: function (v) {
@@ -90,7 +95,7 @@ function (el, x, spec, korapChartText) {
   }
   // Room for a title that was added with e_title()
   var added = theirs.title && [].concat(theirs.title)[0];
-  if (added && added.text && !option.title[0].text) { option.legend.top += 34; option.grid.top += 34; }
+  if (added && added.text && !option.title[0].text) option.grid.top += 34;
   var ink = '#737373';
   chart.setOption(option, true);
   if (Object.keys(theirs).length) chart.setOption(theirs);

@@ -151,8 +151,8 @@ korapEchart <- function(option, locale, palette, trigger, horizontal = FALSE, he
                         unit = "", frequencySeries = length(option$series), categories = 0L) {
   locale <- c(list(language = chartLanguage()), locale)
   option$toolbox <- list(right = 10, feature = list(saveAsImage = list(show = TRUE)))
-  option$legend <- utils::modifyList(list(type = "scroll", left = 10, right = 60,
-    top = if (nzchar(option$title[[1]]$text)) 38 else 4), as.list(option$legend))
+  option$legend <- c(list(type = "scroll"),
+    if (is.null(option$legend$top)) list(left = "center", bottom = 4), option$legend)
   # One entry needs neither a legend nor buttons to switch all entries.
   names <- unique(vapply(option$series, `[[`, "", "name"))
   if (length(names) > 1L) option$legend$selector <- list(list(type = "all"), list(type = "inverse"))

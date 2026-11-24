@@ -41,6 +41,8 @@ ec_dispersion <- function(df, partition = NULL, top = NULL) {
       nameLocation = "middle", nameGap = 28),
     yAxis = list(type = "category", data = as.list(spec$categories), inverse = TRUE,
       axisLabel = list(interval = 0, width = 200, overflow = "truncate")),
+    # The chart can be higher than the page.
+    legend = list(left = 10, right = 60, top = 38),
     series = series
   ), spec$locale, chartPalette(length(spec$labels)), "item", horizontal = TRUE,
     height = spec$height, unit = "%", categories = length(spec$categories))

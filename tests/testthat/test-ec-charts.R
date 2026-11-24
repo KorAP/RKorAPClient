@@ -175,6 +175,13 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   expect_identical(evaluate("c.getVisual({seriesIndex: 1}, 'color')"), "#FF7F0E")
   expect_identical(evaluate("c.getVisual({seriesIndex: 5}, 'color')"), "#FF7F0E")
 
+  # The legend is below the axis labels and within the chart.
+  room <- "(() => { const m = c.getModel(), g = c.getViewOfComponentModel(m.getComponent('legend')).group;
+    const r = g.getBoundingRect().clone(); r.applyTransform(g.getComputedTransform());
+    const plot = m.getComponent('grid').coordinateSystem.getRect();
+    return [r.y - plot.y - plot.height, c.getHeight() - r.y - r.height]; })()"
+  expect_true(all(unlist(evaluate(room)) > c(18, 0)))
+
   # Real clicks on the buttons next to the legend.
   button <- function(text) evaluate(sprintf("(() => {
     let found; c.getZr().storage.traverse(function (el) {
@@ -212,6 +219,8 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   }
   # Values below 1 on a logarithmic axis start at the axis, too.
   render(ec_freq_bar_ci(ecBarData(), log = TRUE))
+  # Axis labels and title, legend and caption follow each other.
+  expect_true(all(unlist(evaluate(room)) > c(40, 18)))
   starts <- unlist(evaluate("(() => { const x = []; c.getModel().getSeriesByIndex(0).getData().eachItemGraphicEl(el => {
     const r = el.getBoundingRect(); x.push(Math.round(Math.min(r.x, r.x + r.width))); }); return x; })()"))
   expect_length(unique(starts), 1)
