@@ -47,10 +47,12 @@ Imports:
 Suggests:
     callr,
     chromote,
+    echarts4r,
     lifecycle,
     pkgload,
     testthat (>= 3.1.7),
     tidyllm,
+    htmltools,
     htmlwidgets,
     rmarkdown,
     shiny,
@@ -81,6 +83,10 @@ Collate:
     'dispersion-metadata.R'
     'dispersion-scores.R'
     'dispersionQuery.R'
+    'ec_add_onclick_korap_search.R'
+    'ec_dispersion.R'
+    'ec_freq_bar_ci.R'
+    'ec_freq_by_year_ci.R'
     'fetchSamplePages.R'
     'geom_freq_bar_ci.R'
     'hc_add_onclick_korap_search.R'

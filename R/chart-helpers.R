@@ -144,3 +144,69 @@ validateShowCI <- function(showCI) {
     stop("showCI must be TRUE or FALSE.", call. = FALSE)
   invisible(showCI)
 }
+
+# ECharts backend. Query expressions and corpus metadata are data, not chart
+# options: keep them out of e$x$opts and pass them as plain JSON by onRender().
+korapEchart <- function(option, locale, palette, trigger, horizontal = FALSE, height = NULL,
+                        unit = "", frequencySeries = length(option$series), categories = 0L) {
+  locale <- c(list(language = chartLanguage()), locale)
+  option$toolbox <- list(right = 10, feature = list(saveAsImage = list(show = TRUE)))
+  option$legend <- utils::modifyList(list(type = "scroll", left = 10, right = 60,
+    top = if (nzchar(option$title[[1]]$text)) 38 else 4), as.list(option$legend))
+  # One entry needs neither a legend nor buttons to switch all entries.
+  names <- unique(vapply(option$series, `[[`, "", "name"))
+  if (length(names) > 1L) option$legend$selector <- list(list(type = "all"), list(type = "inverse"))
+  else option$legend$show <- FALSE
+  e <- echarts4r::e_charts(height = height)
+  e$x$opts <- list()
+  e <- chartEchartTheme(e)
+  code <- paste0("function (el, x, spec) { (", chartJS("ec-korap.js"), ")(el, x, spec, ",
+    chartJS("chart-text.js"), "); }")
+  htmlwidgets::onRender(e, code, list(option = option, locale = locale, palette = as.list(palette),
+    trigger = trigger, horizontal = horizontal, unit = unit, frequencySeries = frequencySeries,
+    categories = categories)) |>
+    ec_add_onclick_korap_search()
+}
+
+requireEcharts <- function() {
+  if (!requireNamespace("echarts4r", quietly = TRUE)) {
+    stop("Install the echarts4r package to use the ec_ functions: install.packages(\"echarts4r\")", call. = FALSE)
+  }
+}
+
+chartEchartTheme <- function(e) {
+  theme <- getOption("rkorap.chart.theme")
+  if (is.null(theme)) return(e)
+  if (is.list(theme)) {
+    if (!is.null(theme$color)) theme$color <- as.list(theme$color)
+    return(echarts4r::e_theme_custom(e, as.character(jsonlite::toJSON(theme, auto_unbox = TRUE, null = "null"))))
+  }
+  if (!is.character(theme) || length(theme) != 1L || is.na(theme)) {
+    stop("rkorap.chart.theme must be a theme name, a JSON file or a list.", call. = FALSE)
+  }
+  if (grepl("\\.json$", theme, ignore.case = TRUE)) {
+    # Parse here, so that a broken file is reported in R rather than as an empty chart.
+    theme <- jsonlite::fromJSON(theme, simplifyVector = FALSE)
+    return(echarts4r::e_theme_custom(e, as.character(jsonlite::toJSON(theme, auto_unbox = TRUE, null = "null"))))
+  }
+  echarts4r::e_theme(e, theme)
+}
+
+# One ECharts data item: the plotted value, its concordance link and the
+# record that the localized tooltip is made of.
+chartEchartPoint <- function(value, point) {
+  url <- point$webUIRequestUrl
+  item <- list(value = value, korap = point[setdiff(names(point), c("webUIRequestUrl", "tooltipText", "tooltipLabel"))])
+  if (!is.null(url) && !is.na(url)) item$webUIRequestUrl <- url
+  item
+}
+
+# ECharts' marker for "no value"
+chartEchartValue <- function(x) if (is.null(x) || is.na(x)) "-" else x
+
+chartEchartManaged <- function(options, managed, caller) {
+  if (any(managed %in% names(options))) {
+    stop(paste(managed[-length(managed)], collapse = ", "), " and ", managed[length(managed)],
+      " are managed by ", caller, "().", call. = FALSE)
+  }
+}
