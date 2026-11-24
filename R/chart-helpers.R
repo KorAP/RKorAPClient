@@ -157,7 +157,8 @@ korapEchart <- function(option, locale, palette, trigger, horizontal = FALSE, he
   names <- unique(vapply(option$series, `[[`, "", "name"))
   if (length(names) > 1L) option$legend$selector <- list(list(type = "all"), list(type = "inverse"))
   else option$legend$show <- FALSE
-  e <- echarts4r::e_charts(height = height)
+  # A canvas would be a bitmap: blurry when zoomed and in exported images.
+  e <- echarts4r::e_charts(height = height, renderer = "svg")
   e$x$opts <- list()
   # Later e_*() options alone are no complete chart: draw only once, in ec-korap.js.
   e$x$draw <- FALSE

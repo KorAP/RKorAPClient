@@ -48,7 +48,7 @@ box_data <- df %>%
   )
 
 # e_boxplot() calculates quartiles of its own, so pass the five numbers directly.
-e <- e_charts() %>%
+e <- e_charts(renderer = "svg") %>%
   e_list(list(
     xAxis = list(type = "value", min = 0, max = 1, name = "Relative position in text",
                  nameLocation = "middle", nameGap = 28),

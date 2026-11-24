@@ -120,7 +120,7 @@ updatePlot <- function(query, map, regions) {
   known <- regions[!is.na(regions$ipm), ]
 
   known |>
-    e_charts(region) |>
+    e_charts(region, renderer = "svg") |>
     e_map_register("regions", gj) |>
     e_map(ipm, map = "regions", name = "ipm", roam = TRUE, aspectScale = 0.66,
           itemStyle = list(areaColor = "#eeeeee", borderColor = "#000000", borderWidth = 0.2)) |>

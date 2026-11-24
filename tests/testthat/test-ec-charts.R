@@ -162,6 +162,12 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   click(at)
   expect_identical(options("opened"), '[["https://example.invalid/?row=2","korap"]]')
   expect_identical(evaluate("String(window.HACKED) + String(window.XSS)"), "undefinedundefined")
+  # Sharp when zoomed: vector graphics only, on the page and as a saved image.
+  expect_equal(evaluate("document.querySelectorAll('.echarts4r canvas').length"), 0)
+  expect_match(evaluate("[...document.querySelectorAll('.echarts4r svg text')].map(t => t.textContent).join('|')"), "2002", fixed = TRUE)
+  saved <- evaluate("decodeURIComponent(c.getDataURL({type: 'svg'}))")
+  expect_match(saved, "&lt;img src=x", fixed = TRUE)
+  expect_false(grepl("<img|<image", saved))
   # The gap breaks curve and band; the years are not added up by the stacked band.
   expect_identical(evaluate("c.getOption().series[0].data[2].value[1]"), "-")
   expect_identical(evaluate("c.getOption().series[2].data[2].value[1]"), "-")
