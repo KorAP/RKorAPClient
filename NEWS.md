@@ -4,7 +4,7 @@
   alternative to Highcharts: `ec_freq_by_year_ci()`, `ec_freq_bar_ci()`,
   `ec_dispersion()` and `ec_add_onclick_korap_search()`. They show the same values
   as their `hc_` counterparts, can switch all curves at once and support personal
-  themes with `options(rkorap.chart.theme = )`. They need the echarts4r package.
+  themes with `options(rkorap.echarts.theme = )`. They need the echarts4r package.
 
 # RKorAPClient 1.5.1
 

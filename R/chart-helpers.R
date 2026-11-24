@@ -178,14 +178,14 @@ requireEcharts <- function() {
 }
 
 chartEchartTheme <- function(e) {
-  theme <- getOption("rkorap.chart.theme")
+  theme <- getOption("rkorap.echarts.theme")
   if (is.null(theme)) return(e)
   if (is.list(theme)) {
     if (!is.null(theme$color)) theme$color <- as.list(theme$color)
     return(echarts4r::e_theme_custom(e, as.character(jsonlite::toJSON(theme, auto_unbox = TRUE, null = "null"))))
   }
   if (!is.character(theme) || length(theme) != 1L || is.na(theme)) {
-    stop("rkorap.chart.theme must be a theme name, a JSON file or a list.", call. = FALSE)
+    stop("rkorap.echarts.theme must be a theme name, a JSON file or a list.", call. = FALSE)
   }
   if (grepl("\\.json$", theme, ignore.case = TRUE)) {
     # Parse here, so that a broken file is reported in R rather than as an empty chart.

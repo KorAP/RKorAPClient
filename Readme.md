@@ -195,14 +195,14 @@ library. They need the [echarts4r](https://cran.r-project.org/package=echarts4r)
 | `hc_add_onclick_korap_search()` | `ec_add_onclick_korap_search()` |
 
 ```r
-options(rkorap.chart.theme = list(color = c("#003366", "#CC6600")))
+options(rkorap.echarts.theme = list(color = c("#003366", "#CC6600")))
 KorAPConnection() |>
   frequencyQuery(c(star = "[orth='Nutzer*innen']", colon = "[orth='Nutzer:innen']"), vc = paste("pubDate in", 2015:2024)) |>
   ec_freq_by_year_ci()
 ```
 
 Click a legend entry to switch a curve and its interval, or All and None to
-switch all of them. `rkorap.chart.theme` takes the name of an echarts4r theme, a
+switch all of them. `rkorap.echarts.theme` takes the name of an echarts4r theme, a
 JSON file from the [theme builder](https://echarts.apache.org/en/theme-builder.html)
 or a list, and applies to all `ec_` plots.
 

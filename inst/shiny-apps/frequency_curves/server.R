@@ -4,10 +4,10 @@ hc_theme <- if (require(idsThemeR)) {
 } else {
   hc_theme_hcrt()
 }
-if (useEcharts && is.null(getOption("rkorap.chart.theme")) &&
+if (useEcharts && is.null(getOption("rkorap.echarts.theme")) &&
     requireNamespace("idsThemeR", quietly = TRUE) &&
     "ec_theme_ids_light" %in% getNamespaceExports("idsThemeR")) {
-  options(rkorap.chart.theme = idsThemeR::ec_theme_ids_light())
+  options(rkorap.echarts.theme = idsThemeR::ec_theme_ids_light())
 }
 rsr <- KorAPConnection(verbose = TRUE, accessToken = NULL)
 vc <- "(textType = /Zeit.*/ | textTypeRef=Plenarprotokoll) & availability!=QAO-NC-LOC:ids & creationDate in"

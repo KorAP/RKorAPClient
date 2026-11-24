@@ -22,7 +22,7 @@
 #' All and None buttons next to the legend switch all curves at once.
 #' @section Themes:
 #' Use [echarts4r::e_theme()] or [echarts4r::e_theme_custom()] on a chart, or set
-#' `options(rkorap.chart.theme = )` for all charts: to the name of an echarts4r
+#' `options(rkorap.echarts.theme = )` for all charts: to the name of an echarts4r
 #' theme, the path of a JSON file made with the
 #' [ECharts theme builder](https://echarts.apache.org/en/theme-builder.html), or
 #' a list such as `list(color = c("#003366", "#CC6600"), backgroundColor = "#FBF7EE")`.

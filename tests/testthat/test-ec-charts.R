@@ -84,16 +84,16 @@ test_that("personal ECharts themes can be a name, a list or a JSON file", {
   skip_if_not_installed("echarts4r")
   d <- ecBarData()
   expect_identical(ec_freq_bar_ci(d)$x$theme, "")
-  rlang::local_options(rkorap.chart.theme = "dark")
+  rlang::local_options(rkorap.echarts.theme = "dark")
   expect_identical(ec_freq_bar_ci(d)$x$theme, "dark")
-  options(rkorap.chart.theme = list(color = "#003366", backgroundColor = "#FBF7EE"))
+  options(rkorap.echarts.theme = list(color = "#003366", backgroundColor = "#FBF7EE"))
   theme <- ec_freq_bar_ci(d)$x$customTheme
   expect_identical(jsonlite::fromJSON(theme, simplifyVector = FALSE)$color, list("#003366"))
   file <- withr::local_tempfile(fileext = ".json", lines = theme)
-  options(rkorap.chart.theme = file)
+  options(rkorap.echarts.theme = file)
   expect_identical(jsonlite::fromJSON(ec_freq_bar_ci(d)$x$customTheme)$backgroundColor, "#FBF7EE")
-  options(rkorap.chart.theme = 1)
-  expect_error(ec_freq_bar_ci(d), "rkorap.chart.theme must be")
+  options(rkorap.echarts.theme = 1)
+  expect_error(ec_freq_bar_ci(d), "rkorap.echarts.theme must be")
 })
 
 test_that("rendered ECharts plots are safe, localized, clickable and switchable", {

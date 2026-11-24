@@ -56,7 +56,7 @@ All and None buttons next to the legend switch all curves at once.
 \section{Themes}{
 
 Use \code{\link[echarts4r:e_theme]{echarts4r::e_theme()}} or \code{\link[echarts4r:e_theme_custom]{echarts4r::e_theme_custom()}} on a chart, or set
-\code{options(rkorap.chart.theme = )} for all charts: to the name of an echarts4r
+\code{options(rkorap.echarts.theme = )} for all charts: to the name of an echarts4r
 theme, the path of a JSON file made with the
 \href{https://echarts.apache.org/en/theme-builder.html}{ECharts theme builder}, or
 a list such as \code{list(color = c("#003366", "#CC6600"), backgroundColor = "#FBF7EE")}.

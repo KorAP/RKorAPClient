@@ -25,4 +25,4 @@ e1 <- plotEchart(c("Leser | Lesern | Lesers", 'Leserin | Leserinnen', 'LeserIn |
 
 # Click the None and All buttons next to the legend to switch all curves.
 # A personal theme for all charts, see ?ec_freq_by_year_ci:
-# options(rkorap.chart.theme = list(color = c("#003366", "#CC6600", "#669900", "#993366")))
+# options(rkorap.echarts.theme = list(color = c("#003366", "#CC6600", "#669900", "#993366")))
