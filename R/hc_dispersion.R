@@ -48,6 +48,33 @@
 #' hc_dispersion(d, top = 12)
 #' }
 hc_dispersion <- function(df, partition = NULL, top = NULL) {
+  spec <- dispersionChartSpec(df, partition, top)
+  hc <- korapHighchart(height = spec$height, series = length(spec$labels)) |>
+    highcharter::hc_chart(type = "bar", height = spec$height, spacingRight = 65) |>
+    highcharter::hc_title(text = chartText(spec$title)) |>
+    highcharter::hc_xAxis(categories = as.list(spec$categories), title = list(text = NULL),
+      labels = list(formatter = chartLabelFormatter("value"), style = list(width = "210px", textOverflow = "ellipsis"))) |>
+    highcharter::hc_yAxis(min = 0, max = 100, tickInterval = 20,
+      title = list(text = "Share within listed parts (%)"),
+      labels = list(format = "{value}%", overflow = "allow")) |>
+    highcharter::hc_legend(align = "left", verticalAlign = "top", maxHeight = 80) |>
+    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.point.tooltipLabel}</b><br/>", pointFormat = "{point.tooltipText}") |>
+    highcharter::hc_plotOptions(series = list(animation = FALSE, borderWidth = 0,
+      groupPadding = .16, pointPadding = .06,
+      dataLabels = list(enabled = TRUE, format = "{point.y:.1f}%", crop = FALSE, overflow = "allow", allowOverlap = TRUE,
+        style = list(textOutline = "none")))) |>
+    highcharter::hc_caption(text = if (nzchar(spec$caption)) chartText(spec$caption) else NULL) |>
+    highcharter::hc_responsive(rules = list(list(condition = list(maxWidth = 520),
+      chartOptions = list(xAxis = list(labels = list(style = list(width = "110px"))))))) |>
+    highcharter::hc_add_series(name = "Corpus tokens", color = "#B8B8B8",
+      data = spec$reference)
+  for (j in seq_along(spec$labels))
+    hc <- highcharter::hc_add_series(hc, name = spec$labels[j], colorIndex = j - 1L, data = spec$points[[j]])
+  chartLocalize(hc, spec$locale)
+}
+
+# Data, checks and labels shared by the Highcharts and ECharts dispersion plots.
+dispersionChartSpec <- function(df, partition, top) {
   required <- c("partition", "query", "distribution", "estimated", "sampling")
   if (!is.data.frame(df) || !nrow(df) || !all(required %in% names(df))) {
     stop("Use a query-based dispersionAnalysis() or dispersionQuery() result with distribution data.", call. = FALSE)
@@ -182,34 +209,17 @@ hc_dispersion <- function(df, partition = NULL, top = NULL) {
               region = "region", year = "publication year", pubDate = "publication year",
               creationDate = "creation year")
   title <- if (partition %in% names(titles)) unname(titles[partition]) else partition
-  height <- max(380, 170 + length(buckets) * (20 * (nrow(rows) + 1) + 16))
-  hc <- korapHighchart(height = height, series = nrow(rows)) |>
-    highcharter::hc_chart(type = "bar", height = height, spacingRight = 65) |>
-    highcharter::hc_title(text = chartText(paste("Distribution by", title))) |>
-    highcharter::hc_xAxis(categories = as.list(categories), title = list(text = NULL),
-      labels = list(formatter = chartLabelFormatter("value"), style = list(width = "210px", textOverflow = "ellipsis"))) |>
-    highcharter::hc_yAxis(min = 0, max = 100, tickInterval = 20,
-      title = list(text = "Share within listed parts (%)"),
-      labels = list(format = "{value}%", overflow = "allow")) |>
-    highcharter::hc_legend(align = "left", verticalAlign = "top", maxHeight = 80) |>
-    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.point.tooltipLabel}</b><br/>", pointFormat = "{point.tooltipText}") |>
-    highcharter::hc_plotOptions(series = list(animation = FALSE, borderWidth = 0,
-      groupPadding = .16, pointPadding = .06,
-      dataLabels = list(enabled = TRUE, format = "{point.y:.1f}%", crop = FALSE, overflow = "allow", allowOverlap = TRUE,
-        style = list(textOutline = "none")))) |>
-    highcharter::hc_caption(text = if (nzchar(caption)) chartText(caption) else NULL) |>
-    highcharter::hc_responsive(rules = list(list(condition = list(maxWidth = 520),
-      chartOptions = list(xAxis = list(labels = list(style = list(width = "110px"))))))) |>
-    highcharter::hc_add_series(name = "Corpus tokens", color = "#B8B8B8",
-      data = points(tokens / sum(tokens) * 100))
-  for (j in seq_len(nrow(rows))) {
-    frequencies <- grouped(counts[, j])
-    values <- if (totals[j] > 0) frequencies / totals[j] * 100 else rep(NA_real_, length(buckets))
-    hc <- highcharter::hc_add_series(hc, name = labels[j], colorIndex = j - 1L,
-      data = points(values, frequencies, grouped(observed[, j]), j))
-  }
-  chartLocalize(hc, list(kind = "dispersion", partition = partition,
-    title = chartText(paste("Distribution by", title)), defaultY = "Share within listed parts (%)",
+  chartTitle <- paste("Distribution by", title)
+  list(categories = categories, labels = labels, title = chartTitle, caption = caption,
+    height = max(380, 170 + length(buckets) * (20 * (nrow(rows) + 1) + 16)),
+    reference = points(tokens / sum(tokens) * 100),
+    points = lapply(seq_len(nrow(rows)), function(j) {
+      frequencies <- grouped(counts[, j])
+      values <- if (totals[j] > 0) frequencies / totals[j] * 100 else rep(NA_real_, length(buckets))
+      points(values, frequencies, grouped(observed[, j]), j)
+    }),
+    locale = list(kind = "dispersion", partition = partition,
+    title = chartText(chartTitle), defaultY = "Share within listed parts (%)",
     caption = if (nzchar(caption)) chartText(caption) else NULL,
     remaining = length(remaining), shown = length(shown), parts = nrow(reference),
     estimated = any(rows$estimated), unequal = length(unique(probabilities)) > 1L,

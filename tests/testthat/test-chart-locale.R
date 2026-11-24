@@ -16,8 +16,10 @@ test_that("browser localization uses actual chart data and preserves repeated co
   file <- tempfile(fileext = ".json")
   on.exit(unlink(file), add = TRUE)
   writeLines(htmlwidgets:::toJSON(charts), file)
-  output <- system2(node, shQuote(c(test_path("js", "chart-locale.cjs"),
-    system.file("js", "chart-locale.js", package = "RKorAPClient"), file)), stdout = TRUE, stderr = TRUE)
+  script <- tempfile(fileext = ".js")
+  on.exit(unlink(script), add = TRUE)
+  writeLines(chartLocaleJS(), script, useBytes = TRUE)
+  output <- system2(node, shQuote(c(test_path("js", "chart-locale.cjs"), script, file)), stdout = TRUE, stderr = TRUE)
   expect_null(attr(output, "status"), info = paste(output, collapse = "\n"))
 })
 

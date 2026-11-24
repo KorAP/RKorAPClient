@@ -75,6 +75,52 @@
 hc_freq_bar_ci <- function(df, as.alternatives = NULL,
                            ylabel = if (as.alternatives) "%" else "IPM",
                            horizontal = TRUE, log = FALSE, showCI = TRUE, ...) {
+  # The default ylabel depends on the denominator mode, resolved in the spec.
+  spec <- frequencyBarSpec(df, as.alternatives, if (missing(ylabel)) NULL else ylabel, horizontal, log, showCI)
+  options <- list(...)
+  if (any(c("data", "type", "id", "linkedTo") %in% names(options))) {
+    stop("data, type, id and linkedTo are managed by hc_freq_bar_ci().", call. = FALSE)
+  }
+  categories <- spec$categories
+  groups <- spec$groups
+  note <- spec$note
+  as.alternatives <- spec$as.alternatives
+  ylabel <- spec$ylabel
+  height <- if (horizontal) spec$height else NULL
+  hc <- korapHighchart(height = height, series = length(groups)) |>
+    highcharter::hc_chart(type = if (horizontal) "bar" else "column", inverted = horizontal, height = height) |>
+    highcharter::hc_title(text = chartText(spec$title)) |>
+    highcharter::hc_xAxis(categories = as.list(categories), title = list(text = NULL),
+      labels = list(formatter = chartLabelFormatter("value"))) |>
+    highcharter::hc_yAxis(min = if (log) NULL else 0, max = if (as.alternatives) 100 else NULL,
+      type = if (log) "logarithmic" else "linear", title = list(text = chartText(ylabel))) |>
+    highcharter::hc_legend(enabled = length(groups) > 1L) |>
+    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.point.tooltipLabel}</b><br/>",
+      pointFormat = "{point.tooltipText}") |>
+    highcharter::hc_caption(text = if (nzchar(note)) note else NULL)
+
+  for (j in seq_along(groups)) {
+    points <- spec$points[[j]]
+    id <- paste0("korap-frequency-", j)
+    series <- utils::modifyList(list(id = id, name = groups[j], data = points,
+      type = if (horizontal) "bar" else "column", colorIndex = j - 1L), options)
+    hc <- do.call(highcharter::hc_add_series, c(list(hc = hc), series))
+    if (showCI) {
+      intervals <- lapply(points, function(p) {
+        if (log && !is.na(p$confLow) && p$confLow <= 0) p$confLow <- p$confHigh <- NA_real_
+        list(x = p$x, low = p$confLow, high = p$confHigh)
+      })
+      hc <- highcharter::hc_add_series(hc, name = "Confidence interval",
+        data = intervals, type = "errorbar", linkedTo = id,
+        showInLegend = FALSE, enableMouseTracking = FALSE)
+    }
+  }
+  chartLocalize(hc, list(kind = "frequency", caption = if (nzchar(note)) note else NULL,
+    gaps = spec$gaps, log = log, showCI = showCI))
+}
+
+# Data, checks and labels shared by the Highcharts and ECharts bar plots.
+frequencyBarSpec <- function(df, as.alternatives, ylabel, horizontal, log, showCI) {
   validateShowCI(showCI)
   required <- c("query", "vc", "totalResults", "total", "f", if (showCI) c("conf.low", "conf.high"))
   if (!is.data.frame(df) || !nrow(df) || !all(required %in% names(df))) {
@@ -87,15 +133,12 @@ hc_freq_bar_ci <- function(df, as.alternatives = NULL,
       stop("horizontal and log must be TRUE or FALSE.", call. = FALSE)
     }
   }
+  if (is.null(ylabel)) ylabel <- if (as.alternatives) "%" else "IPM"
   if (!is.character(ylabel) || length(ylabel) != 1L || is.na(ylabel)) {
     stop("ylabel must be a single string.", call. = FALSE)
   }
   if ("ipm" %in% names(df)) {
-    stop("Pass frequencyQuery() directly; do not call ipm() or percent() before hc_freq_bar_ci().", call. = FALSE)
-  }
-  options <- list(...)
-  if (any(c("data", "type", "id", "linkedTo") %in% names(options))) {
-    stop("data, type, id and linkedTo are managed by hc_freq_bar_ci().", call. = FALSE)
+    stop("Pass frequencyQuery() directly; do not call ipm() or percent() before plotting.", call. = FALSE)
   }
   query <- as.character(df$query)
   vc <- as.character(df$vc)
@@ -162,23 +205,10 @@ hc_freq_bar_ci <- function(df, as.alternatives = NULL,
     if (log) if (showCI) "Log scale: non-positive frequencies and intervals touching zero are omitted." else
       "Log scale: non-positive frequencies are omitted."
   ), collapse = " ")
-  height <- if (horizontal) max(380, 170 + length(categories) * (20 * length(groups) + 16)) else NULL
-  hc <- korapHighchart(height = height, series = length(groups)) |>
-    highcharter::hc_chart(type = if (horizontal) "bar" else "column", inverted = horizontal, height = height) |>
-    highcharter::hc_title(text = if (length(queries) == 1L) chartText(queryLabels) else "") |>
-    highcharter::hc_xAxis(categories = as.list(categories), title = list(text = NULL),
-      labels = list(formatter = chartLabelFormatter("value"))) |>
-    highcharter::hc_yAxis(min = if (log) NULL else 0, max = if (as.alternatives) 100 else NULL,
-      type = if (log) "logarithmic" else "linear", title = list(text = chartText(ylabel))) |>
-    highcharter::hc_legend(enabled = length(groups) > 1L) |>
-    highcharter::hc_tooltip(useHTML = FALSE, headerFormat = "<b>{point.point.tooltipLabel}</b><br/>",
-      pointFormat = "{point.tooltipText}") |>
-    highcharter::hc_caption(text = if (nzchar(note)) note else NULL)
-
-  for (j in seq_along(groups)) {
+  points <- lapply(seq_along(groups), function(j) {
     rows <- which(group == j)
     rows <- rows[match(seq_along(categories), category[rows])]
-    points <- lapply(seq_along(categories), function(i) {
+    lapply(seq_along(categories), function(i) {
       r <- rows[i]
       present <- !is.na(r) && valid[r] && (!log || positive[r])
       point <- list(x = i - 1L, name = categories[i], tooltipLabel = chartText(categories[i]),
@@ -199,20 +229,9 @@ hc_freq_bar_ci <- function(df, as.alternatives = NULL,
       if (present && "webUIRequestUrl" %in% names(df)) point$webUIRequestUrl <- chartUrl(df$webUIRequestUrl[r])
       point
     })
-    id <- paste0("korap-frequency-", j)
-    series <- utils::modifyList(list(id = id, name = groups[j], data = points,
-      type = if (horizontal) "bar" else "column", colorIndex = j - 1L), options)
-    hc <- do.call(highcharter::hc_add_series, c(list(hc = hc), series))
-    if (showCI) {
-      intervals <- lapply(points, function(p) {
-        if (log && !is.na(p$confLow) && p$confLow <= 0) p$confLow <- p$confHigh <- NA_real_
-        list(x = p$x, low = p$confLow, high = p$confHigh)
-      })
-      hc <- highcharter::hc_add_series(hc, name = "Confidence interval",
-        data = intervals, type = "errorbar", linkedTo = id,
-        showInLegend = FALSE, enableMouseTracking = FALSE)
-    }
-  }
-  chartLocalize(hc, list(kind = "frequency", caption = if (nzchar(note)) note else NULL,
-    gaps = any(!valid), log = log, showCI = showCI))
+  })
+  list(categories = categories, groups = groups, points = points, note = note,
+    title = if (length(queries) == 1L) queryLabels else "", gaps = any(!valid),
+    height = max(380, 170 + length(categories) * (20 * length(groups) + 16)),
+    as.alternatives = as.alternatives, ylabel = ylabel)
 }

@@ -69,16 +69,25 @@ korapHighchart <- function(height = NULL, series = 1L, colors = chartPalette(ser
       href = "https://github.com/KorAP/RKorAPClient/")
 }
 
-chartLocaleJS <- function() {
-  highcharter::JS(paste(readLines(system.file("js", "chart-locale.js",
-    package = "RKorAPClient", mustWork = TRUE), encoding = "UTF-8", warn = FALSE), collapse = "\n"))
+chartJS <- function(file) {
+  paste(readLines(system.file("js", file, package = "RKorAPClient", mustWork = TRUE),
+    encoding = "UTF-8", warn = FALSE), collapse = "\n")
 }
 
-chartLocalize <- function(hc, spec) {
+chartLocaleJS <- function() {
+  highcharter::JS(paste0("function () { var korapChartText = ", chartJS("chart-text.js"),
+    "; (", chartJS("chart-locale.js"), ").call(this); }"))
+}
+
+chartLanguage <- function() {
   language <- getOption("rkorap.chart.language", "auto")
   if (!is.character(language) || length(language) != 1L || is.na(language) ||
       !language %in% c("auto", "de", "en")) stop("rkorap.chart.language must be 'auto', 'de' or 'en'.", call. = FALSE)
-  hc$x$hc_opts$chart$korapLocale <- c(list(language = language), spec)
+  language
+}
+
+chartLocalize <- function(hc, spec) {
+  hc$x$hc_opts$chart$korapLocale <- c(list(language = chartLanguage()), spec)
   hc
 }
 

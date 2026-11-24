@@ -57,6 +57,28 @@ hc_freq_by_year_ci <- function(df, as.alternatives = NULL,
                                ylabel = if(as.alternatives) "%" else "IPM",
                                smooth = FALSE, showCI = TRUE,
                                ...) {
+  spec <- frequencyYearSpec(df, as.alternatives, showCI)
+  df <- spec$df
+  title <- spec$title
+  as.alternatives <- spec$as.alternatives
+  hc <- korapHighchart(colors = chartYearPalette()) %>%
+    hc_title(text = chartText(title)) %>%
+    hc_yAxis(
+      title = list(text = if (as.alternatives) "" else chartText(ylabel)),
+      ceiling = if (as.alternatives) 100 else NULL,
+      floor = 0,
+      labels = if (as.alternatives) list(format = paste0("{value}\U2009", ylabel)) else NULL
+    ) %>%
+    hc_xAxis(allowDecimals = FALSE) %>%
+    hc_tooltip(headerFormat = "<b>{point.x}</b><br/>",
+      pointFormat = '<span style="color:{series.color}">\u25CF</span> {point.tooltipText}<br/>',
+      crosshairs = TRUE, shared = TRUE) %>%
+    hc_add_series_korap_frequencies(df, smooth, as.alternatives, ylabel = ylabel, showCI = showCI, ...)
+  chartLocalize(hc, list(kind = "year", caption = NULL))
+}
+
+# Data, checks and labels shared by the Highcharts and ECharts year plots.
+frequencyYearSpec <- function(df, as.alternatives, showCI) {
   title <- ""
   validateShowCI(showCI)
   as.alternatives <- frequencyChartMode(df, as.alternatives)
@@ -83,20 +105,34 @@ hc_freq_by_year_ci <- function(df, as.alternatives = NULL,
       }
     }
   }
-  hc <- korapHighchart(colors = chartYearPalette()) %>%
-    hc_title(text = chartText(title)) %>%
-    hc_yAxis(
-      title = list(text = if (as.alternatives) "" else chartText(ylabel)),
-      ceiling = if (as.alternatives) 100 else NULL,
-      floor = 0,
-      labels = if (as.alternatives) list(format = paste0("{value}\U2009", ylabel)) else NULL
-    ) %>%
-    hc_xAxis(allowDecimals = FALSE) %>%
-    hc_tooltip(headerFormat = "<b>{point.x}</b><br/>",
-      pointFormat = '<span style="color:{series.color}">\u25CF</span> {point.tooltipText}<br/>',
-      crosshairs = TRUE, shared = TRUE) %>%
-    hc_add_series_korap_frequencies(df, smooth, as.alternatives, ylabel = ylabel, showCI = showCI, ...)
-  chartLocalize(hc, list(kind = "year", caption = NULL))
+  list(df = df, title = title, as.alternatives = as.alternatives)
+}
+
+frequencyYearPoints <- function(dat, name, as.alternatives, ylabel, showCI) {
+  urls <- if ("webUIRequestUrl" %in% names(dat)) dat$webUIRequestUrl else rep(NA_character_, nrow(dat))
+  urls <- vapply(urls, function(url) {
+    u <- chartUrl(url); if (is.null(u)) NA_character_ else u
+  }, character(1))
+  tooltipText <- vapply(seq_len(nrow(dat)), function(i) frequencyChartTooltip(name,
+    if (as.alternatives) dat$f[i] else dat$ipm[i], dat$totalResults[i],
+    if ("total" %in% names(dat)) dat$total[i] else NA_real_,
+    if (showCI) dat$conf.low[i] else NULL, if (showCI) dat$conf.high[i] else NULL,
+    ylabel, as.alternatives, showCI), character(1))
+  data.frame(
+    year = dat$year,
+    value = if (as.alternatives) dat$f else dat$ipm,
+    count = dat$totalResults,
+    total = if ("total" %in% names(dat)) dat$total else NA_real_,
+    confLow = if (showCI) dat$conf.low else NA_real_,
+    confHigh = if (showCI) dat$conf.high else NA_real_,
+    korapTooltipType = "frequency",
+    korapTooltipName = name,
+    korapAlternatives = as.alternatives,
+    korapShowCI = showCI,
+    korapTooltipUnit = ylabel,
+    webUIRequestUrl = unname(urls),
+    tooltipText = tooltipText
+  )
 }
 
 ## Mute notes: "no visible binding for global variable:"
@@ -112,33 +148,10 @@ hc_add_series_korap_frequencies <- function(hc, df, smooth = FALSE,
   areatype <- ifelse(smooth, "areasplinerange", "arearange")
   for(q in unique(df$condition)) {
     dat <- df[df$condition==q,]
-    urls <- if ("webUIRequestUrl" %in% names(dat)) dat$webUIRequestUrl else rep(NA_character_, nrow(dat))
-    urls <- vapply(urls, function(url) {
-      u <- chartUrl(url); if (is.null(u)) NA_character_ else u
-    }, character(1))
-    tooltipText <- vapply(seq_len(nrow(dat)), function(i) frequencyChartTooltip(q,
-      if (as.alternatives) dat$f[i] else dat$ipm[i], dat$totalResults[i],
-      if ("total" %in% names(dat)) dat$total[i] else NA_real_,
-      if (showCI) dat$conf.low[i] else NULL, if (showCI) dat$conf.high[i] else NULL,
-      ylabel, as.alternatives, showCI), character(1))
     hc <- hc %>% hc_add_series(
       marker = list(radius = 2),
       name = q,
-      data = data.frame(
-        year = dat$year,
-        value = if (as.alternatives) dat$f else dat$ipm,
-        count = dat$totalResults,
-        total = if ("total" %in% names(dat)) dat$total else NA_real_,
-        confLow = if (showCI) dat$conf.low else NA_real_,
-        confHigh = if (showCI) dat$conf.high else NA_real_,
-        korapTooltipType = "frequency",
-        korapTooltipName = q,
-        korapAlternatives = as.alternatives,
-        korapShowCI = showCI,
-        korapTooltipUnit = ylabel,
-        webUIRequestUrl = unname(urls),
-        tooltipText = tooltipText
-      ),
+      data = frequencyYearPoints(dat, q, as.alternatives, ylabel, showCI),
       hcaes(year, value),
       type = type,
       colorIndex = index,
