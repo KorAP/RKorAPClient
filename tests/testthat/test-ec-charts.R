@@ -213,7 +213,8 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   # Localized dispersion chart, several charts on a page, themes and echarts4r customization.
   rlang::local_options(rkorap.chart.language = "de")
   custom <- ec_freq_bar_ci(ecBarData()) |> echarts4r::e_theme("dark") |>
-    echarts4r::e_title("Eigener Titel") |> echarts4r::e_legend(bottom = 0)
+    echarts4r::e_title("Eigener Titel") |> echarts4r::e_legend(bottom = 0) |>
+    echarts4r::e_y_axis(name = "Eigene Achse")
   render(ec_dispersion(ecDispersionData(), top = 1), custom)
   expect_length(evaluate("charts.map(c => c.getOption().series.length)"), 2)
   expect_identical(evaluate("c.getOption().title[0].text"), "Verteilung nach Quelle")
@@ -224,6 +225,8 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   move(pixel(1, "[10, 0]"))
   expect_match(tooltip(), "Anteil an der Gesamthäufigkeit", fixed = TRUE)
   expect_identical(evaluate("charts[1].getOption().title[0].text"), "Eigener Titel")
+  expect_identical(evaluate("charts[1].getOption().yAxis[0].name"), "Eigene Achse")
+  expect_length(evaluate("charts[1].getOption().yAxis[0].data"), 2)
   expect_identical(evaluate("charts[1].getOption().legend[0].selector[1].title"), "Keine")
   expect_false(identical(evaluate("charts[1].getVisual({seriesIndex: 0}, 'color')"), "#1F77B4"))
 })

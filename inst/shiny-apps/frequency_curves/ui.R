@@ -38,7 +38,15 @@ shinyUI(
 
       ),
       fluidRow(height = 10,
-               highchartOutput("hcontainer", height = "600px"))
+               if (identical(getOption("rkorap.frequency_curves"), "echarts")) {
+                 tagList(echarts4r::echarts4rOutput("hcontainer", height = "600px"),
+                   tags$p(class = "small", "Frequenzverläufe (mit 95%-Konfidenzbändern) im",
+                     tags$a(href = "http://www.dereko.de", "Deutschen Referenzkorpus DeReKo"),
+                     "(eingegrenzt auf Zeitungen, Zeitschriften und Plenarprotokolle).",
+                     "Klicken Sie die einzelnen Datenpunkte an, um entsprechende KorAP-Suchen zu starten."))
+               } else {
+                 highchartOutput("hcontainer", height = "600px")
+               })
     )
   )
 )

@@ -20,3 +20,11 @@ relativeTextpositionBoxplot     Plot the relative text positions of a some adver
 retrieveTitlesFromDeliko				Retrieves and shows all titles from novels of a chosen genre in the DeLiKo@DNB German fiction corpus.
 corpus_size_by_year             Plot corpus sizes by year for Stern magazine
 dispersion                      Compare source, country and year dispersion using replaceable measures and complete metadata
+echarts-example                 Visualize frequencies of optionally alternative terms over time with interactive HTML and JavaScript elements using Apache ECharts
+frequency_by_country_echarts    Plot frequencies depending on country of publication using ECharts
+writtenVsSpoken_echarts         Compare written vs. spoken frequencies with clickable ECharts bars and confidence intervals
+dispersion_echarts              Compare source and country dispersion using ECharts
+pluralGenderVariants_echarts    Plot frequencies of the plural gender variants of a word over time using ECharts
+relativeTextpositionBoxplot_echarts Plot the relative text positions of some adverbs as ECharts boxplot
+regional_echarts                Map regional frequencies of a query expression using ECharts
+shiny-frequency-curves-echarts  Web application that plots frequency curves with ECharts and shiny

@@ -206,6 +206,9 @@ switch all of them. `rkorap.chart.theme` takes the name of an echarts4r theme, a
 JSON file from the [theme builder](https://echarts.apache.org/en/theme-builder.html)
 or a list, and applies to all `ec_` plots.
 
+Run `demo("echarts-example")` for an example. The other Highcharts demos have
+counterparts with names ending in `echarts`, see `demo(package = "RKorAPClient")`.
+
 Use `showCI = FALSE` to omit confidence intervals from frequency plots and
 their tooltips. The option is available in `hc_freq_bar_ci()`,
 `hc_freq_by_year_ci()`, `geom_freq_bar_ci()` and `geom_freq_by_year_ci()`;

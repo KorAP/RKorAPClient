@@ -1,4 +1,5 @@
-hc_theme <- if(require(idsThemeR)) {
+useEcharts <- identical(getOption("rkorap.frequency_curves"), "echarts")
+hc_theme <- if (require(idsThemeR)) {
   idsThemeR::hc_theme_ids_light()
 } else {
   hc_theme_hcrt()
@@ -35,10 +36,15 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
                           as.alternatives = F,
                           conf.level = 0.95,
                           kco = rsr) {
-  hc <- frequencyQuery(kco,
+  df <- frequencyQuery(kco,
                        query,
                        paste(vc, years),
-                       as.alternatives = as.alternatives) %>%
+                       as.alternatives = as.alternatives)
+  if (useEcharts) {
+    return(ec_freq_by_year_ci(df, as.alternatives, smooth = T) %>%
+      echarts4r::e_y_axis(name = "Instanzen pro Million Wörter", nameTextStyle = list(align = "left")))
+  }
+  df %>%
     hc_freq_by_year_ci(as.alternatives, smooth = T) %>%
     hc_yAxis(title = list(text = "Instanzen pro Million Wörter")) %>%
     hc_add_theme(hc_theme) %>%
@@ -49,9 +55,9 @@ plotHighchart <- function(query = c("Tolpatsch", "Tollpatsch"),
       "eingegrenzt auf Zeitungen, Zeitschriften und Plenarprotokolle).",
       "Klicken sie die einzelnen Datenpunkte an, um entsprechende KorAP-Suchen zu starten."
       ))
-
-  hc
 }
+
+renderChart <- if (useEcharts) echarts4r::renderEcharts4r else renderHighchart
 
 generateHighchart <- function(wordParam, from=2005, to=2021) {
   years <<- c(from:to)
@@ -84,14 +90,14 @@ function(input, output, session) {
       paramWord <- queryParams[['q']]
       updateTextInput(session, "q", value = paramWord)
       output$hcontainer <-
-        renderHighchart(generateHighchart(paramWord, from, to))
+        renderChart(generateHighchart(paramWord, from, to))
     }
   })
 
   observeEvent(input$goButton,
                {
                  output$hcontainer <-
-                   renderHighchart(generateHighchart(isolate(input$q), isolate(input$from), isolate(input$to)))
+                   renderChart(generateHighchart(isolate(input$q), isolate(input$from), isolate(input$to)))
                })
 
 }

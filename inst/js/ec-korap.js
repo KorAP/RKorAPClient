@@ -88,6 +88,9 @@ function (el, x, spec, korapChartText) {
       return Object.assign({ selector: option.legend.selector }, l);
     });
   }
+  // Room for a title that was added with e_title()
+  var added = theirs.title && [].concat(theirs.title)[0];
+  if (added && added.text && !option.title[0].text) { option.legend.top += 34; option.grid.top += 34; }
   var ink = '#737373';
   chart.setOption(option, true);
   if (Object.keys(theirs).length) chart.setOption(theirs);

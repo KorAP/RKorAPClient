@@ -84,7 +84,7 @@ ec_freq_by_year_ci <- function(df, as.alternatives = NULL,
   korapEchart(list(
     title = list(list(text = paste(spec$title, collapse = ", "), left = "center")),
     grid = list(top = if (any(nzchar(spec$title))) 85 else 60, bottom = 30, left = 20, right = 30),
-    xAxis = list(type = "time", minInterval = 366 * 24 * 3600 * 1000, axisLabel = list(formatter = "{yyyy}", hideOverlap = TRUE)),
+    xAxis = list(type = "time", minInterval = 366 * 24 * 3600 * 1000, axisLabel = list(formatter = "{yyyy}", hideOverlap = TRUE, showMaxLabel = length(unique(years)) > 1L)),
     yAxis = list(type = "value", min = 0,
       name = if (as.alternatives) "" else ylabel),
     legend = list(icon = "circle"),

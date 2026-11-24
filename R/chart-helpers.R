@@ -159,6 +159,8 @@ korapEchart <- function(option, locale, palette, trigger, horizontal = FALSE, he
   else option$legend$show <- FALSE
   e <- echarts4r::e_charts(height = height)
   e$x$opts <- list()
+  # Later e_*() options alone are no complete chart: draw only once, in ec-korap.js.
+  e$x$draw <- FALSE
   e <- chartEchartTheme(e)
   code <- paste0("function (el, x, spec) { (", chartJS("ec-korap.js"), ")(el, x, spec, ",
     chartJS("chart-text.js"), "); }")
