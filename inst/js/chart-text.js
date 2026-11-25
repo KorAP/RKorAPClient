@@ -19,7 +19,8 @@ function (spec) {
     estimatedAbsolute: 'Geschätzte absolute Häufigkeit', total: 'Gesamthäufigkeit',
     estimatedTotal: 'Geschätzte Gesamthäufigkeit', sample: 'Absolute Häufigkeit in der Stichprobe',
     estimatedRelative: 'Geschätzte relative Häufigkeit', probability: 'Auswahlwahrscheinlichkeit der Seiten',
-    undefined: 'nicht definiert', values: 'Werte', box: ['Unterer Whisker', '1. Quartil', 'Median', '3. Quartil', 'Oberer Whisker']
+    undefined: 'nicht definiert', value: 'Wert', values: ['Wert', 'Werte', 'der Werte'], texts: ['Text', 'Texte', 'der Texte'],
+    upTo: 'bis', under: 'unter', hits: 'Treffer', of: 'in', link: 'Klicken: Treffer in KorAP ansehen'
   } : {
     relative: 'Relative frequency', absolute: 'Absolute frequency', corpus: 'Corpus size (tokens)',
     alternatives: 'Total frequency of alternatives', interval: 'Confidence interval',
@@ -28,7 +29,8 @@ function (spec) {
     estimatedAbsolute: 'Estimated absolute frequency', total: 'Total frequency',
     estimatedTotal: 'Estimated total frequency', sample: 'Absolute frequency in sample',
     estimatedRelative: 'Estimated relative frequency', probability: 'Page inclusion probability',
-    undefined: 'undefined', values: 'Values', box: ['Lower whisker', '1st quartile', 'Median', '3rd quartile', 'Upper whisker']
+    undefined: 'undefined', value: 'Value', values: ['value', 'values', 'of values'], texts: ['text', 'texts', 'of texts'],
+    upTo: 'up to', under: 'below', hits: 'Hits', of: 'in', link: 'Click to see the hits in KorAP'
   };
   function escape(value) {
     return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -43,6 +45,52 @@ function (spec) {
   }
   function percent(value) { return number(value) + (de ? ' %' : '%'); }
   function row(label, value) { return label + ': ' + value; }
+  // Lines of label and right-aligned value; no table, as documents style those.
+  function grid(lines) {
+    return '<div style="display:grid;grid-template-columns:auto auto;column-gap:18px;font-variant-numeric:tabular-nums">' +
+      lines.map(function (line) { return '<span>' + line[0] + '</span><span style="text-align:right">' + line[1] + '</span>'; }).join('') + '</div>';
+  }
+  function muted(content) { return '<span style="opacity:.7">' + content + '</span>'; }
+  // Same number of decimals for all values of a box, about three digits for its largest
+  function boxNumber(point) {
+    var largest = Math.max.apply(null, point.stats.map(Math.abs)) || Math.max(Math.abs(point.min), Math.abs(point.max));
+    var digits = point.integer || !largest ? 0 : Math.min(20, Math.max(0, 2 - Math.floor(Math.log10(largest))));
+    return new Intl.NumberFormat(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  }
+  // Never 0 or 100 % for some, but not all values
+  function part(count, total) {
+    var share = 100 * count / total, digits = 0;
+    while (digits < 4 && (+share.toFixed(digits) === 0 || +share.toFixed(digits) === 100)) digits++;
+    return new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(share) + (de ? ' %' : '%');
+  }
+  function boxTooltip(point, name, linked) {
+    var unit = point.korapTooltipUnit ? escape(point.korapTooltipUnit) : '';
+    if (unit.toLowerCase() === 'ipm') unit = 'IPM';
+    var title = name ? '<b>' + escape(name) + '</b>' : '';
+    if (point.korapTooltipType === 'outlier') {
+      var place = [point.korapTooltipCategory, point.korapTooltipGroup].filter(Boolean).map(escape).join(' · ');
+      var lines = [[unit === 'IPM' ? labels.relative : labels.value, '<b>' + number(point.y) + '</b>' + (unit ? ' ' + unit : '')]];
+      if (typeof point.total === 'number')
+        lines.push([labels.hits, number(point.count, true) + ' ' + labels.of + ' ' + number(point.total, true) + (de ? ' Tokens' : ' tokens')]);
+      return (title ? title + '<br/>' : '') + (place ? muted(place) : '') + grid(lines) + (linked ? muted(labels.link) : '');
+    }
+    var noun = point.korapPerText ? labels.texts : labels.values, format = boxNumber(point);
+    function line(label, value, bold) {
+      value = format.format(value);
+      return bold ? ['<b>' + label + '</b>', '<b>' + value + '</b>'] : [label, value];
+    }
+    function quantile(share, preposition) { return share + ' ' + noun[2] + ' ' + preposition; }
+    var rows = unit ? [['', muted(unit)]] : [];
+    rows.push(line('Maximum', point.max));
+    if (point.above) rows.push(line(quantile(part(point.count - point.above, point.count), labels.upTo), point.stats[4]));
+    rows.push(line(quantile(de ? '75 %' : '75%', labels.upTo), point.stats[3]), line('Median', point.stats[2], true),
+      line(quantile(de ? '25 %' : '25%', labels.upTo), point.stats[1]));
+    if (point.below) rows.push(line(quantile(part(point.below, point.count), labels.under), point.stats[0]));
+    rows.push(line('Minimum', point.min));
+    var about = [point.korapTooltipGroup ? escape(point.korapTooltipGroup) : '',
+      number(point.count, true) + ' ' + noun[point.count === 1 ? 0 : 1]].filter(Boolean).join(' · ');
+    return (title ? title + ' ' + muted('· ' + about) : muted(about)) + grid(rows);
+  }
   function tooltip(point, series) {
     var rows = [], type = point.korapTooltipType;
     if (type === 'frequency') {
@@ -68,14 +116,6 @@ function (spec) {
       rows.push(row(labels.subcorpus, number(point.tokens, true)));
       rows.push(row(estimated ? labels.estimatedRelative : labels.relative, number(point.perMillion) + ' IPM'));
       if (estimated) rows.push(row(labels.probability, percent(point.korapProbability * 100)));
-    } else if (type === 'box' || type === 'outlier') {
-      var suffix = point.korapTooltipUnit ? ' ' + escape(point.korapTooltipUnit) : '';
-      [point.korapTooltipCategory, point.korapTooltipGroup].forEach(function (name) { if (name) rows.push(escape(name)); });
-      if (type === 'outlier') rows.push('<b>' + number(point.y) + '</b>' + suffix);
-      else {
-        for (var i = 4; i >= 0; i--) rows.push(row(labels.box[i], number(point.stats[i]) + suffix));
-        rows.push(row(labels.values, number(point.count, true)));
-      }
     } else return null;
     if (point.korapCombinedParts) rows.push(de ?
       integer.format(point.korapCombinedParts) + (point.korapCombinedParts === 1 ? ' Teilkorpus zusammengefasst.' : ' Teilkorpora zusammengefasst.') :
@@ -123,7 +163,7 @@ function (spec) {
   }
   return { language: language, de: de, escape: escape, number: number, percent: percent,
     share: function (value) { return decimal.format(value) + (de ? ' %' : '%'); },
-    tooltip: tooltip, remainingName: remainingName, caption: caption, dispersionTitle: dispersionTitle,
+    tooltip: tooltip, boxTooltip: boxTooltip, remainingName: remainingName, caption: caption, dispersionTitle: dispersionTitle,
     corpusTokens: de ? 'Korpustokens' : 'Corpus tokens', reference: de ? ' (Referenz)' : ' (reference)',
     combined: de ? ' (zusammengefasst)' : ' (combined)',
     shareAxis: de ? 'Anteil im analysierten Korpus (%)' : spec.defaultY };

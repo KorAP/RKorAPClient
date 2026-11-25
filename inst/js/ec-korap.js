@@ -56,6 +56,7 @@ function (el, x, spec, korapChartText) {
   option.tooltip = { trigger: spec.trigger, confine: true, formatter: function (params) {
     var points = [].concat(params).filter(function (p) { return p.data && p.data.korap; });
     if (!points.length) return '';
+    if (spec.locale.kind === 'box') return text.boxTooltip(points[0].data.korap, points[0].name, !!points[0].data.webUIRequestUrl);
     var head = spec.trigger === 'axis' ? points[0].data.korap.year : points[0].name;
     return '<b>' + text.escape(head) + '</b><br/>' + points.map(function (p) {
       return (spec.trigger === 'axis' ? p.marker : '') + text.tooltip(p.data.korap, { name: p.seriesName });

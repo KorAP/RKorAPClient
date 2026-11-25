@@ -8,6 +8,8 @@
 #'
 #' @param df Data frame with one row per observation. If it has a column
 #'   `webUIRequestUrl`, clicks on outliers open the corresponding search in KorAP.
+#'   For results of [textFrequencyQuery()], the tooltips of outliers also show
+#'   the number of hits and the size of the text.
 #' @param value Column (or expression of columns) with the values to be plotted.
 #' @param category Column to use for the categories on the axis. Factor levels
 #'   determine the order, otherwise the order of occurrence.
@@ -25,7 +27,8 @@
 #' @details
 #' Boxes show the quartiles and the median as computed by [grDevices::boxplot.stats()],
 #' whiskers extend to the most extreme value within 1.5 times the interquartile
-#' range. Missing values are left out with a warning.
+#' range. Missing values are left out with a warning. Tooltips describe the
+#' whiskers by the share of values that they cover.
 #'
 #' If at least three quarters of the values are equal, the box and its whiskers
 #' shrink to a line. This is typical of words that do not occur in most texts:
@@ -80,6 +83,8 @@ ec_boxplot <- function(df, value, category = "", group = NULL, facet = NULL, poi
   if (anyNA(y)) warning(sum(is.na(y)), " missing values are left out.", call. = FALSE)
   if (all(is.na(y))) stop("value has no values other than NA.", call. = FALSE)
 
+  perText <- "textSigle" %in% names(df)
+  hits <- perText && is.numeric(df$totalResults) && is.numeric(df$total)
   hidden <- 0L
   series <- list()
   for (i in seq_len(nlevels(facet))) for (j in seq_len(nlevels(group))) {
@@ -93,15 +98,17 @@ ec_boxplot <- function(df, value, category = "", group = NULL, facet = NULL, poi
       name <- if (nzchar(levels(category)[k])) levels(category)[k] else levels(facet)[i]
       common <- list(korapTooltipGroup = if (grouped) levels(group)[j], korapTooltipUnit = unit)
       boxes <- c(boxes, list(list(name = name, value = as.list(c(k - 1, stats, 0)),
-        korap = c(list(korapTooltipType = "box", count = length(rows), stats = as.list(stats)), common))))
+        korap = c(list(korapTooltipType = "box", count = length(rows), stats = as.list(stats),
+          min = min(y[rows]), max = max(y[rows]), korapPerText = perText, integer = all(y[rows] == round(y[rows])),
+          below = sum(y[rows] < stats[1]), above = sum(y[rows] > stats[5])), common))))
       beyond <- rows[y[rows] < stats[1] | y[rows] > stats[5]]
       if (!outliers) hidden <- hidden + length(beyond)
       # the last value tells points from boxes
       else points <- c(points, lapply(beyond, function(r) {
         labelled <- !is.na(pointLabel[r]) && nzchar(pointLabel[r])
         point <- list(name = if (labelled) pointLabel[r] else name, value = as.list(c(k - 1, rep(y[r], 5), 1)),
-          korap = c(list(korapTooltipType = "outlier", y = y[r],
-            korapTooltipCategory = if (labelled) name), common))
+          korap = c(list(korapTooltipType = "outlier", y = y[r], korapTooltipCategory = if (labelled) name,
+            count = if (hits) df$totalResults[r], total = if (hits) df$total[r]), common))
         if ("webUIRequestUrl" %in% names(df)) point$webUIRequestUrl <- chartUrl(as.character(df$webUIRequestUrl[r]))
         point
       }))

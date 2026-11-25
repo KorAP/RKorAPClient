@@ -291,17 +291,27 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   expect_true(evaluate("c.getModel().getComponent('yAxis', 1).axis.scale.getExtent()[1] > 50 * c.getModel().getComponent('yAxis', 0).axis.scale.getExtent()[1]"))
   move(pixel(1, "[0, 450]"))
   shown <- tooltip()
-  expect_match(shown, "Median: 500 IPM", fixed = TRUE)
-  expect_match(shown, "Oberer Whisker: 800 IPM", fixed = TRUE)
+  shown <- gsub("\\s+", " ", shown)
+  expect_match(shown, "A · 9 Werte IPM Maximum 10.000 89 % der Werte bis 800 75 % der Werte bis 700 Median 500 25 % der Werte bis 300 Minimum 100", fixed = TRUE)
   at <- pixel(1, "[1, 20000]")
   move(at)
   expect_match(tooltip(), "<img src=x", fixed = TRUE)
-  expect_match(tooltip(), "20.000 IPM", fixed = TRUE)
+  expect_match(gsub("\\s+", " ", tooltip()), "B Relative Häufigkeit 20.000 IPM Klicken: Treffer in KorAP ansehen", fixed = TRUE)
   expect_equal(evaluate("document.querySelectorAll('.echarts4r img').length"), 0)
   click(at)
   expect_identical(options("opened"), '[["https://example.invalid/?row=36","korap"]]')
   expect_match(evaluate("c.getOption().title[1].text"), "Interquartilsabstand", fixed = TRUE)
   expect_identical(evaluate("String(window.HACKED) + String(window.XSS)"), "undefinedundefined")
+
+  # Texts with hits and sizes, outliers on both sides, small values
+  rlang::local_options(rkorap.chart.language = "en")
+  texts <- data.frame(f = c(-30, 1:300 / 10, 70) / 1e3, textSigle = "A", totalResults = 4, total = 1915)
+  render(ec_boxplot(texts, f))
+  move(pixel(0, "[0, 0.015]"))
+  expect_match(gsub("\\s+", " ", tooltip()), paste("302 texts Maximum 0.0700 99.7% of texts up to 0.0300 75% of texts up to 0.0226",
+    "Median 0.0151 25% of texts up to 0.0075 0.3% of texts below 0.0001 Minimum -0.0300"), fixed = TRUE)
+  move(pixel(0, "[0, 0.07]"))
+  expect_match(gsub("\\s+", " ", tooltip()), "Value 0.07 Hits 4 in 1,915 tokens", fixed = TRUE)
 
   # Localized dispersion chart, several charts on a page, themes and echarts4r customization.
   rlang::local_options(rkorap.chart.language = "de")

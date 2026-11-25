@@ -19,7 +19,9 @@ ec_boxplot(
 }
 \arguments{
 \item{df}{Data frame with one row per observation. If it has a column
-\code{webUIRequestUrl}, clicks on outliers open the corresponding search in KorAP.}
+\code{webUIRequestUrl}, clicks on outliers open the corresponding search in KorAP.
+For results of \code{\link[=textFrequencyQuery]{textFrequencyQuery()}}, the tooltips of outliers also show
+the number of hits and the size of the text.}
 
 \item{value}{Column (or expression of columns) with the values to be plotted.}
 
@@ -56,7 +58,8 @@ Box plots of any numeric values, such as the frequencies in single texts from
 \details{
 Boxes show the quartiles and the median as computed by \code{\link[grDevices:boxplot.stats]{grDevices::boxplot.stats()}},
 whiskers extend to the most extreme value within 1.5 times the interquartile
-range. Missing values are left out with a warning.
+range. Missing values are left out with a warning. Tooltips describe the
+whiskers by the share of values that they cover.
 
 If at least three quarters of the values are equal, the box and its whiskers
 shrink to a line. This is typical of words that do not occur in most texts:
