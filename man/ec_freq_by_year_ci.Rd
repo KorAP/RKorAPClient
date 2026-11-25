@@ -88,6 +88,7 @@ KorAPConnection() |>
 \seealso{
 Other echarts-helpers:
 \code{\link[=ec_add_onclick_korap_search]{ec_add_onclick_korap_search()}},
+\code{\link[=ec_boxplot]{ec_boxplot()}},
 \code{\link[=ec_dispersion]{ec_dispersion()}},
 \code{\link[=ec_freq_bar_ci]{ec_freq_bar_ci()}}
 }

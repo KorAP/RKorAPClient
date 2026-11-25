@@ -103,4 +103,8 @@ KorAPConnection(verbose = TRUE) |>
 }
 
 }
+\seealso{
+Other frequency analysis:
+\code{\link{textFrequencyQuery,KorAPConnection-method}}
+}
 \concept{frequency analysis}

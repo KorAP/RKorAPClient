@@ -6,6 +6,11 @@
   as their `hc_` counterparts, can switch all curves at once and support personal
   themes with `options(rkorap.echarts.theme = )`. They need the echarts4r package.
 
+- Added the experimental **`textFrequencyQuery()`** to compute frequencies in every
+  single text of virtual corpora, including texts without hits, and **`ec_boxplot()`**
+  to plot such distributions, with groups, panels, localized tooltips and
+  outliers linked to KorAP.
+
 # RKorAPClient 1.5.1
 
 - Keep interactive frequency and dispersion charts compatible with both the

@@ -302,9 +302,9 @@ intersectDispersionVc <- function(base, part) {
   if (!nzchar(base)) part else paste0("(", base, ") & (", part, ")")
 }
 
-strictDispersionRequest <- function(expr) {
+strictDispersionRequest <- function(expr, what = "Dispersion") {
   withCallingHandlers(expr, korapIncompleteResults = function(w) {
-    stop("Dispersion requires complete requests: ", conditionMessage(w), call. = FALSE)
+    stop(what, " requires complete requests: ", conditionMessage(w), call. = FALSE)
   })
 }
 

@@ -19,7 +19,7 @@ function (spec) {
     estimatedAbsolute: 'Geschätzte absolute Häufigkeit', total: 'Gesamthäufigkeit',
     estimatedTotal: 'Geschätzte Gesamthäufigkeit', sample: 'Absolute Häufigkeit in der Stichprobe',
     estimatedRelative: 'Geschätzte relative Häufigkeit', probability: 'Auswahlwahrscheinlichkeit der Seiten',
-    undefined: 'nicht definiert'
+    undefined: 'nicht definiert', values: 'Werte', box: ['Unterer Whisker', '1. Quartil', 'Median', '3. Quartil', 'Oberer Whisker']
   } : {
     relative: 'Relative frequency', absolute: 'Absolute frequency', corpus: 'Corpus size (tokens)',
     alternatives: 'Total frequency of alternatives', interval: 'Confidence interval',
@@ -28,7 +28,7 @@ function (spec) {
     estimatedAbsolute: 'Estimated absolute frequency', total: 'Total frequency',
     estimatedTotal: 'Estimated total frequency', sample: 'Absolute frequency in sample',
     estimatedRelative: 'Estimated relative frequency', probability: 'Page inclusion probability',
-    undefined: 'undefined'
+    undefined: 'undefined', values: 'Values', box: ['Lower whisker', '1st quartile', 'Median', '3rd quartile', 'Upper whisker']
   };
   function escape(value) {
     return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -68,6 +68,14 @@ function (spec) {
       rows.push(row(labels.subcorpus, number(point.tokens, true)));
       rows.push(row(estimated ? labels.estimatedRelative : labels.relative, number(point.perMillion) + ' IPM'));
       if (estimated) rows.push(row(labels.probability, percent(point.korapProbability * 100)));
+    } else if (type === 'box' || type === 'outlier') {
+      var suffix = point.korapTooltipUnit ? ' ' + escape(point.korapTooltipUnit) : '';
+      [point.korapTooltipCategory, point.korapTooltipGroup].forEach(function (name) { if (name) rows.push(escape(name)); });
+      if (type === 'outlier') rows.push('<b>' + number(point.y) + '</b>' + suffix);
+      else {
+        for (var i = 4; i >= 0; i--) rows.push(row(labels.box[i], number(point.stats[i]) + suffix));
+        rows.push(row(labels.values, number(point.count, true)));
+      }
     } else return null;
     if (point.korapCombinedParts) rows.push(de ?
       integer.format(point.korapCombinedParts) + (point.korapCombinedParts === 1 ? ' Teilkorpus zusammengefasst.' : ' Teilkorpora zusammengefasst.') :
@@ -92,6 +100,11 @@ function (spec) {
         'No occurrences for ' + spec.zeroExact.join(', ') + '; frequency shares are undefined.');
       if (spec.zeroSample.length) notes.push(de ? 'Keine Belege in der Stichprobe für ' + spec.zeroSample.join(', ') + '; Häufigkeitsanteile nicht definiert.' :
         'No sample occurrences for ' + spec.zeroSample.join(', ') + '; frequency shares are undefined.');
+    } else if (spec.kind === 'box') {
+      notes.push(de ? 'Kästen: Quartile und Median; Whisker: bis zum 1,5-fachen Interquartilsabstand.' :
+        'Boxes: quartiles and median; whiskers: up to 1.5 times the interquartile range.');
+      if (spec.hidden) notes.push(de ? integer.format(spec.hidden) + (spec.hidden === 1 ? ' Wert' : ' Werte') + ' außerhalb nicht dargestellt.' :
+        integer.format(spec.hidden) + (spec.hidden === 1 ? ' value' : ' values') + ' beyond not shown.');
     } else {
       if (spec.gaps) notes.push(de ? 'Nicht definierte Häufigkeiten bleiben ausgespart.' : 'Undefined frequencies are shown as gaps.');
       if (spec.log) notes.push(spec.showCI === false ?

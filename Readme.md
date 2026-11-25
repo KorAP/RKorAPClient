@@ -206,6 +206,17 @@ switch all of them. `rkorap.echarts.theme` takes the name of an echarts4r theme,
 JSON file from the [theme builder](https://echarts.apache.org/en/theme-builder.html)
 or a list, and applies to all `ec_` plots.
 
+`ec_boxplot()` has no Highcharts counterpart. It plots distributions, such as the
+frequencies in single texts from `textFrequencyQuery()`:
+
+```r
+KorAPConnection("https://korap.dnb.de") |>
+  textFrequencyQuery("Himmel",
+    vc = c(Nominees = "award = buchpreis & pubDate in 2020",
+           Others = "award != buchpreis & pubDate in 2020 & textSigle = /.*05/")) |>
+  ec_boxplot(f * 1e6, label, pointLabel = title, ylabel = "IPM")
+```
+
 Run `demo("echarts-example")` for an example. The other Highcharts demos have
 counterparts with names ending in `echarts`, see `demo(package = "RKorAPClient")`.
 

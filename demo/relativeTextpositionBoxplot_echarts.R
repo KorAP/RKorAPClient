@@ -37,27 +37,8 @@ df <- c(
   map(~ get_relative_positions_sample(kco, .)) %>%
   bind_rows()
 
-box_data <- df %>%
-  group_by(query) %>%
-  summarise(
-    min = min(relativeTextPosition),
-    q1 = quantile(relativeTextPosition, 0.25),
-    median = median(relativeTextPosition),
-    q3 = quantile(relativeTextPosition, 0.75),
-    max = max(relativeTextPosition)
-  )
-
-# e_boxplot() calculates quartiles of its own, so pass the five numbers directly.
-e <- e_charts(renderer = "svg") %>%
-  e_list(list(
-    xAxis = list(type = "value", min = 0, max = 1, name = "Relative position in text",
-                 nameLocation = "middle", nameGap = 28),
-    yAxis = list(type = "category", data = as.list(box_data$query), inverse = TRUE),
-    grid = list(left = 110),
-    series = list(list(type = "boxplot",
-      data = unname(pmap(box_data[-1], function(...) list(...) %>% unname()))))
-  )) %>%
-  e_title("Relative positions of some adverbs in DeReKo texts", left = "center") %>%
-  e_tooltip()
+e <- ec_boxplot(df, relativeTextPosition, query, horizontal = TRUE, ylabel = "Relative position in text", unit = "") %>%
+  e_x_axis(min = 0, max = 1) %>%
+  e_title("Relative positions of some adverbs in DeReKo texts", left = "center")
 
 print(e)

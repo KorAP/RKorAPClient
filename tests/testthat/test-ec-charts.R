@@ -71,10 +71,56 @@ test_that("ECharts plots apply the same checks and honour showCI and the logarit
   expect_identical(ecSpec(ec_freq_bar_ci(d, barGap = "50%"))$option$series[[1]]$barGap, "50%")
 })
 
+ecBoxData <- function(query = "q") {
+  d <- expand.grid(i = 1:9, query = query, label = c("A", "B"), stringsAsFactors = FALSE)
+  d$f <- ifelse(d$i == 9, 100, d$i) * ifelse(d$label == "A", 1, 2)
+  d$title <- paste("Title", d$i)
+  d$webUIRequestUrl <- paste0("https://example.invalid/?row=", seq_len(nrow(d)))
+  d
+}
+
+test_that("box plots show quartiles, whiskers and linked outliers", {
+  skip_if_not_installed("echarts4r")
+  d <- ecBoxData(c("one", "two"))
+  spec <- ecSpec(ec_boxplot(d, f, label, pointLabel = title, facet = query))
+  expect_length(spec$option$series, 2)
+  expect_length(spec$option$grid, 2)
+  data <- spec$option$series[[1]]$data
+  expect_length(data, 4) # two boxes, an outlier each
+  expect_equal(unlist(data[[2]]$value), c(1, boxplot.stats(d$f[d$label == "B" & d$query == "one"])$stats, 0))
+  expect_equal(unlist(data[[4]]$value), c(1, rep(200, 5), 1))
+  expect_identical(data[[4]]$name, "Title 9")
+  expect_identical(data[[4]]$webUIRequestUrl, d$webUIRequestUrl[d$f == 200 & d$query == "one"])
+  expect_equal(vapply(spec$option$title[-(1:2)], `[[`, "", "text"), c("one", "two"))
+
+  grouped <- ecSpec(ec_boxplot(d, f, query, group = label, outliers = FALSE))
+  expect_equal(vapply(grouped$option$series, `[[`, "", "name"), c("A", "B"))
+  expect_equal(grouped$locale$hidden, 4)
+  expect_length(grouped$option$series[[1]]$data, 2)
+  # expressions and factor levels
+  d$label <- factor(d$label, c("B", "A"))
+  expect_equal(ecSpec(ec_boxplot(d, f * 1e6, label, horizontal = TRUE))$option$yAxis[[1]]$data, list("B", "A"))
+  expect_equal(ecSpec(ec_boxplot(d, f * 1e6))$option$series[[1]]$data[[1]]$korap$stats[[1]], 1e6)
+  expect_length(ecSpec(ec_boxplot(d[1, ], f))$option$series[[1]]$data, 1)
+
+  d$f[1] <- NA
+  expect_warning(ec_boxplot(d, f, label), "1 missing")
+  expect_error(suppressWarnings(ec_boxplot(transform(d, f = NA_real_), f)), "other than NA")
+  expect_error(ec_boxplot(d, title), "numeric")
+  expect_error(ec_boxplot(ecBoxData(), f, "query"), "category must be a column name without quotes: query")
+  expect_error(ec_boxplot(ecBoxData(), f, unit = NA), "single strings")
+  unitOf <- function(...) ecSpec(ec_boxplot(ecBoxData(), f, ylabel = "IPM", ...))$option$series[[1]]$data[[1]]$korap$korapTooltipUnit
+  expect_identical(c(unitOf(), unitOf(unit = "")), c("IPM", ""))
+  expect_error(ec_boxplot(transform(ecBoxData(), f = Inf), f), "finite")
+  expect_error(ec_boxplot(transform(ecBoxData(), label = NA), f, label), "must not be missing")
+  expect_error(ec_boxplot(ecBoxData(), f, outliers = NA), "TRUE or FALSE")
+})
+
 test_that("query expressions and metadata are passed as data and not as chart options", {
   skip_if_not_installed("echarts4r")
   for (e in list(ec_freq_by_year_ci(ecYearData("window.HACKED=1")), ec_freq_bar_ci(ecBarData("window.HACKED=1")),
-      ec_dispersion(ecDispersionData("window.HACKED=1")))) {
+      ec_dispersion(ecDispersionData("window.HACKED=1")),
+      ec_boxplot(ecBoxData("window.HACKED=1"), f, query, facet = query, pointLabel = query))) {
     expect_length(e$x$opts, 0)
     expect_match(as.character(htmlwidgets:::toJSON(e$jsHooks)), "window.HACKED=1", fixed = TRUE)
   }
@@ -224,6 +270,38 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   starts <- unlist(evaluate("(() => { const x = []; c.getModel().getSeriesByIndex(0).getData().eachItemGraphicEl(el => {
     const r = el.getBoundingRect(); x.push(Math.round(Math.min(r.x, r.x + r.width))); }); return x; })()"))
   expect_length(unique(starts), 1)
+
+  # Boxes of the same category are next to each other, in both orientations and with a hidden group.
+  for (horizontal in c(TRUE, FALSE)) for (hidden in c(FALSE, TRUE)) {
+    render(ec_boxplot(ecBoxData(c("one", "two")), f, query, group = label, horizontal = horizontal, outliers = FALSE))
+    if (hidden) { evaluate("c.dispatchAction({type: 'legendUnSelect', name: 'A'}); 1"); Sys.sleep(1.2) }
+    centres <- unlist(evaluate(sprintf("(() => { const x = []; c.getModel().eachSeries(function (s) {
+      s.getData().eachItemGraphicEl(function (el) { const r = el.getBoundingRect(); x.push(%s); }); });
+      return x; })()", if (horizontal) "r.y + r.height / 2" else "r.x + r.width / 2")))
+    expect_length(unique(round(centres)), if (hidden) 2 else 4)
+    middles <- unlist(evaluate(sprintf("[0, 1].map(i => c.convertToPixel({%sAxisIndex: 0}, i))", if (horizontal) "y" else "x")))
+    expect_equal(if (hidden) sort(centres) else c(mean(sort(centres)[1:2]), mean(sort(centres)[3:4])), sort(middles), tolerance = 1e-2)
+  }
+  # Panels with axes of their own, localized and escaped tooltips, linked outliers
+  rlang::local_options(rkorap.chart.language = "de")
+  boxes <- ecBoxData(evil)
+  boxes$f[boxes$query == evil[2]] <- boxes$f[boxes$query == evil[2]] * 100
+  boxes$title <- evil[2]
+  render(ec_boxplot(boxes, f, label, facet = query, pointLabel = title, ylabel = "IPM"))
+  expect_true(evaluate("c.getModel().getComponent('yAxis', 1).axis.scale.getExtent()[1] > 50 * c.getModel().getComponent('yAxis', 0).axis.scale.getExtent()[1]"))
+  move(pixel(1, "[0, 450]"))
+  shown <- tooltip()
+  expect_match(shown, "Median: 500 IPM", fixed = TRUE)
+  expect_match(shown, "Oberer Whisker: 800 IPM", fixed = TRUE)
+  at <- pixel(1, "[1, 20000]")
+  move(at)
+  expect_match(tooltip(), "<img src=x", fixed = TRUE)
+  expect_match(tooltip(), "20.000 IPM", fixed = TRUE)
+  expect_equal(evaluate("document.querySelectorAll('.echarts4r img').length"), 0)
+  click(at)
+  expect_identical(options("opened"), '[["https://example.invalid/?row=36","korap"]]')
+  expect_match(evaluate("c.getOption().title[1].text"), "Interquartilsabstand", fixed = TRUE)
+  expect_identical(evaluate("String(window.HACKED) + String(window.XSS)"), "undefinedundefined")
 
   # Localized dispersion chart, several charts on a page, themes and echarts4r customization.
   rlang::local_options(rkorap.chart.language = "de")

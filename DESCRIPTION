@@ -84,6 +84,7 @@ Collate:
     'dispersion-scores.R'
     'dispersionQuery.R'
     'ec_add_onclick_korap_search.R'
+    'ec_boxplot.R'
     'ec_dispersion.R'
     'ec_freq_bar_ci.R'
     'ec_freq_by_year_ci.R'
@@ -96,6 +97,7 @@ Collate:
     'maintenance.R'
     'misc.R'
     'reexports.R'
+    'textFrequencyQuery.R'
     'textMetadata.R'
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.1

@@ -35,6 +35,7 @@ KorAPConnection() |>
 }
 \seealso{
 Other echarts-helpers:
+\code{\link[=ec_boxplot]{ec_boxplot()}},
 \code{\link[=ec_dispersion]{ec_dispersion()}},
 \code{\link[=ec_freq_bar_ci]{ec_freq_bar_ci()}},
 \code{\link[=ec_freq_by_year_ci]{ec_freq_by_year_ci()}}

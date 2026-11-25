@@ -23,6 +23,7 @@ export(dispersionJuillandD)
 export(dispersionRange)
 export(dispersionRosengrenS)
 export(ec_add_onclick_korap_search)
+export(ec_boxplot)
 export(ec_dispersion)
 export(ec_freq_bar_ci)
 export(ec_freq_by_year_ci)
@@ -74,6 +75,7 @@ exportMethods(frequencyQuery)
 exportMethods(initialize)
 exportMethods(persistAccessToken)
 exportMethods(show)
+exportMethods(textFrequencyQuery)
 exportMethods(textMetadata)
 import(R.cache)
 import(highcharter)
@@ -145,7 +147,12 @@ importFrom(purrr,
   map,
   pmap
 )
-importFrom(rlang,sym)
+importFrom(rlang,
+  enquo,
+  eval_tidy,
+  quo_is_null,
+  sym
+)
 importFrom(stats,prop.test)
 importFrom(stringr,
   str_detect,
