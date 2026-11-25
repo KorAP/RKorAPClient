@@ -58,15 +58,18 @@ Add a timeline, to select and move the period shown, and buttons to zoom and to
 restore the plot with \code{\link[echarts4r:e_datazoom]{echarts4r::e_datazoom()}} and \code{\link[echarts4r:e_toolbox_feature]{echarts4r::e_toolbox_feature()}}:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{ec_freq_by_year_ci(df) |>
-  echarts4r::e_datazoom(type = "slider", filterMode = "none") |>
-  echarts4r::e_toolbox_feature("restore")
+  echarts4r::e_datazoom(type = "slider") |>
+  echarts4r::e_toolbox_feature(c("restore", "dataView"))
 }\if{html}{\out{</div>}}
 
 With \code{start} and \code{end}, in percent, the timeline starts with a part of the period.
-\code{filterMode = "none"} keeps the lines to the neighbouring years outside of it.
-Use \code{e_toolbox_feature()} without arguments for all buttons that are available.
-Avoid the feature \code{magicType} with types: it would stack the curves or draw the
-confidence intervals as bars.
+To zoom with the button, click it and drag a rectangle in the plot. The button
+next to it undoes one step, \code{restore} undoes all. \code{dataView} shows the values
+as a table to be copied.
+
+The feature \code{brush} is left out because ECharts cannot select curves with it.
+Avoid \code{magicType} with types: it would stack the curves or draw the confidence
+intervals as bars.
 }
 
 \section{Themes}{

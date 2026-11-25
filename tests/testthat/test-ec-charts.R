@@ -246,7 +246,7 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   expect_identical(unname(selected()), c(FALSE, FALSE))
 
   # A timeline has its own room below the axis labels and above the legend.
-  render(ec_freq_by_year_ci(years) |> echarts4r::e_datazoom(start = 25, end = 75, filterMode = "none") |>
+  render(ec_freq_by_year_ci(years) |> echarts4r::e_datazoom(start = 25, end = 75) |>
     echarts4r::e_toolbox_feature())
   timeline <- "(() => { const m = c.getModel(), r = c.getViewOfComponentModel(m.getComponent('dataZoom')).group;
     const b = r.getBoundingRect().clone(); b.applyTransform(r.getComputedTransform());
@@ -258,6 +258,15 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   evaluate("c.dispatchAction({type: 'dataZoom', start: 0, end: 10}); c.dispatchAction({type: 'restore'}); 1")
   Sys.sleep(.6)
   expect_identical(options("c.getOption().dataZoom.map(z => [z.start, z.end])"), "[[25,75]]")
+  # Zooming keeps the intervals, which are stacked.
+  expect_identical(unlist(evaluate("[c.getOption().dataZoom[0].filterMode, c.getOption().toolbox[0].feature.dataZoom.filterMode]")),
+    c("none", "none"))
+  # Buttons that work only, and one that shows the years with their intervals as text.
+  expect_false(evaluate("'brush' in c.getOption().toolbox[0].feature"))
+  shown <- strsplit(evaluate("c.getOption().toolbox[0].feature.dataView.optionToContent().value"), "\n")[[1]]
+  expect_length(shown, nrow(years) + 1L)
+  expect_match(shown[1], "^Jahr\tKurve\tRelative Häufigkeit")
+  expect_identical(lengths(strsplit(shown[1:2], "\t")), c(7L, 7L))
   expect_true(evaluate("c.getOption().toolbox[0].feature.dataView.readOnly"))
 
   # Each whisker keeps to its own bar, in both orientations and with a hidden group.

@@ -91,6 +91,22 @@ function (spec) {
       number(point.count, true) + ' ' + noun[point.count === 1 ? 0 : 1]].filter(Boolean).join(' · ');
     return (title ? title + ' ' + muted('· ' + about) : muted(about)) + grid(rows);
   }
+  // Plain, tab-separated and unrounded, to be copied into a spreadsheet
+  function yearTable(series) {
+    var first = series[0].data[0].korap, unit = first.korapAlternatives ? '%' : first.korapTooltipUnit;
+    var head = [de ? 'Jahr' : 'Year', de ? 'Kurve' : 'Curve', labels.relative + (unit ? ' (' + unit + ')' : ''), labels.absolute,
+      first.korapAlternatives ? labels.alternatives : labels.corpus];
+    if (first.korapShowCI) head.push(labels.interval + (de ? ' (von)' : ' (from)'), labels.interval + (de ? ' (bis)' : ' (to)'));
+    var rows = [head];
+    series.forEach(function (s) {
+      s.data.forEach(function (d) {
+        var p = d.korap, cells = [p.year, s.name, p.y, p.count, p.total];
+        if (first.korapShowCI) cells.push(p.confLow, p.confHigh);
+        rows.push(cells.map(function (v) { return v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' '); }));
+      });
+    });
+    return rows.map(function (r) { return r.join('\t'); }).join('\n');
+  }
   function tooltip(point, series) {
     var rows = [], type = point.korapTooltipType;
     if (type === 'frequency') {
@@ -163,7 +179,7 @@ function (spec) {
   }
   return { language: language, de: de, escape: escape, number: number, percent: percent,
     share: function (value) { return decimal.format(value) + (de ? ' %' : '%'); },
-    tooltip: tooltip, boxTooltip: boxTooltip, remainingName: remainingName, caption: caption, dispersionTitle: dispersionTitle,
+    tooltip: tooltip, yearTable: yearTable, boxTooltip: boxTooltip, remainingName: remainingName, caption: caption, dispersionTitle: dispersionTitle,
     corpusTokens: de ? 'Korpustokens' : 'Corpus tokens', reference: de ? ' (Referenz)' : ' (reference)',
     combined: de ? ' (zusammengefasst)' : ' (combined)',
     shareAxis: de ? 'Anteil im analysierten Korpus (%)' : spec.defaultY };

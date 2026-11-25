@@ -38,12 +38,9 @@ function (el, x, spec, korapChartText) {
     option.legend.bottom += below;
     below += 30;
   }
-  // Edited data would lose tooltips, links and intervals.
-  var view = theirs.toolbox && theirs.toolbox.feature && theirs.toolbox.feature.dataView;
-  if (view) theirs.toolbox = Object.assign({}, theirs.toolbox, { feature: Object.assign({}, theirs.toolbox.feature,
-    { dataView: Object.assign({ readOnly: true }, view) }) });
   // A slider that was added with e_datazoom() and not placed explicitly
   if (theirs.dataZoom) theirs.dataZoom = [].concat(theirs.dataZoom).map(function (zoom) {
+    zoom = Object.assign({ filterMode: 'none' }, zoom);
     if ((zoom.type || 'slider') !== 'slider' || zoom.orient === 'vertical' || zoom.yAxisIndex !== undefined ||
         zoom.bottom !== undefined || zoom.top !== undefined) return zoom;
     zoom = Object.assign({ height: 22 }, zoom, { bottom: below + 10 });
@@ -61,7 +58,41 @@ function (el, x, spec, korapChartText) {
   if (spec.categories && !horizontal) [].concat(option.xAxis).forEach(function (axis) {
     axis.axisLabel.width = Math.max(40, .8 * width / spec.categories);
   });
-  option.toolbox.feature.saveAsImage.title = text.de ? 'Als Bild speichern' : 'Save as image';
+  // Clearly mark the button in use.
+  option.toolbox.emphasis = { iconStyle: { borderColor: '#D55E00', borderWidth: 2.5 } };
+  // filterMode: zooming must not remove the intervals nor the lines to points outside
+  var tools = {
+    saveAsImage: { title: text.de ? 'Als Bild speichern' : 'Save as image' },
+    dataZoom: { filterMode: 'none', title: text.de ? { zoom: 'Ausschnitt aufziehen', back: 'Ausschnitt zurücknehmen' } :
+      { zoom: 'Zoom into area', back: 'Undo zoom' } },
+    restore: { title: text.de ? 'Alles zurücksetzen' : 'Reset all' },
+    // Edited data would lose tooltips, links and intervals.
+    dataView: { readOnly: true, title: text.de ? 'Daten anzeigen' : 'Show data',
+      lang: text.de ? ['Daten', 'Schließen', ''] : ['Data', 'Close', ''] }
+  };
+  if (spec.locale.kind === 'year') {
+    // no label for the end of a zoomed axis that is within a year
+    option.xAxis.axisLabel.formatter = function (v) {
+      var d = new Date(v);
+      return d.getMonth() || d.getDate() > 1 ? '' : String(d.getFullYear());
+    };
+    tools.dataView.optionToContent = function () {
+      var area = document.createElement('textarea');
+      area.readOnly = true;
+      area.style.cssText = 'box-sizing:border-box;width:100%;height:100%;font:13px monospace;white-space:pre;tab-size:16';
+      area.value = text.yearTable(option.series.slice(0, frequencies));
+      return area;
+    };
+  }
+  Object.assign(option.toolbox.feature.saveAsImage, tools.saveAsImage);
+  if (theirs.toolbox && theirs.toolbox.feature) {
+    var feature = {};
+    Object.keys(theirs.toolbox.feature).forEach(function (name) {
+      // ECharts cannot select curves nor custom series with a brush
+      if (name !== 'brush') feature[name] = Object.assign({}, tools[name], theirs.toolbox.feature[name]);
+    });
+    theirs.toolbox = Object.assign({}, theirs.toolbox, { feature: feature });
+  }
   if (option.legend.selector) {
     option.legend.selector[0].title = text.de ? 'Alle' : 'All';
     option.legend.selector[1].title = text.de ? 'Keine' : 'None';

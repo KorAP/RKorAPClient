@@ -26,15 +26,18 @@
 #'
 #' ```r
 #' ec_freq_by_year_ci(df) |>
-#'   echarts4r::e_datazoom(type = "slider", filterMode = "none") |>
-#'   echarts4r::e_toolbox_feature("restore")
+#'   echarts4r::e_datazoom(type = "slider") |>
+#'   echarts4r::e_toolbox_feature(c("restore", "dataView"))
 #' ```
 #'
 #' With `start` and `end`, in percent, the timeline starts with a part of the period.
-#' `filterMode = "none"` keeps the lines to the neighbouring years outside of it.
-#' Use `e_toolbox_feature()` without arguments for all buttons that are available.
-#' Avoid the feature `magicType` with types: it would stack the curves or draw the
-#' confidence intervals as bars.
+#' To zoom with the button, click it and drag a rectangle in the plot. The button
+#' next to it undoes one step, `restore` undoes all. `dataView` shows the values
+#' as a table to be copied.
+#'
+#' The feature `brush` is left out because ECharts cannot select curves with it.
+#' Avoid `magicType` with types: it would stack the curves or draw the confidence
+#' intervals as bars.
 #' @section Themes:
 #' Use [echarts4r::e_theme()] or [echarts4r::e_theme_custom()] on a chart, or set
 #' `options(rkorap.echarts.theme = )` for all charts: to the name of an echarts4r
