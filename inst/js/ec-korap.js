@@ -31,12 +31,27 @@ function (el, x, spec, korapChartText) {
     option.title[1] = { text: caption, left: 10, bottom: 4,
       textStyle: { fontSize: 11, fontWeight: 'normal', lineHeight: 15, width: Math.max(width - 30, 100), overflow: 'break' } };
   }
-  // Room for the caption, the legend above it and, where the value axis is below, its title.
+  var theirs = Object.assign({}, x.opts);
+  // Room for the caption, the legend above it, a timeline and, where the value axis is below, its title.
   var below = lines ? lines * 15 + 6 : 0;
   if (option.legend.show !== false && option.legend.bottom !== undefined) {
     option.legend.bottom += below;
     below += 30;
   }
+  // Edited data would lose tooltips, links and intervals.
+  var view = theirs.toolbox && theirs.toolbox.feature && theirs.toolbox.feature.dataView;
+  if (view) theirs.toolbox = Object.assign({}, theirs.toolbox, { feature: Object.assign({}, theirs.toolbox.feature,
+    { dataView: Object.assign({ readOnly: true }, view) }) });
+  // A slider that was added with e_datazoom() and not placed explicitly
+  if (theirs.dataZoom) theirs.dataZoom = [].concat(theirs.dataZoom).map(function (zoom) {
+    if ((zoom.type || 'slider') !== 'slider' || zoom.orient === 'vertical' || zoom.yAxisIndex !== undefined ||
+        zoom.bottom !== undefined || zoom.top !== undefined) return zoom;
+    zoom = Object.assign({ height: 22 }, zoom, { bottom: below + 10 });
+    if (spec.locale.kind === 'year')
+      zoom = Object.assign({ labelFormatter: function (v) { return String(new Date(v).getFullYear()); } }, zoom);
+    below += zoom.height + 14;
+    return zoom;
+  });
   grids.forEach(function (grid) { grid.bottom += below ? below + (horizontal ? 20 : 0) : 0; });
   [].concat(horizontal ? option.xAxis : option.yAxis).forEach(function (valueAxis) {
     if (String(valueAxis.name).toLowerCase() === 'ipm') valueAxis.name = 'IPM';
@@ -123,7 +138,6 @@ function (el, x, spec, korapChartText) {
 
   // A theme, whether chosen before or after this function, brings its own palette.
   if (!x.theme) option.color = spec.palette;
-  var theirs = Object.assign({}, x.opts);
   if (theirs.legend && option.legend.selector) {
     // e_legend() keeps the all/none buttons unless they are set explicitly.
     theirs.legend = [].concat(theirs.legend).map(function (l) {
@@ -135,7 +149,11 @@ function (el, x, spec, korapChartText) {
   if (added && added.text && !option.title[0].text) grids.concat(option.title.slice(2)).forEach(function (part) { part.top += 34; });
   var ink = '#737373';
   chart.setOption(option, true);
-  if (Object.keys(theirs).length) chart.setOption(theirs);
+  if (Object.keys(theirs).length) {
+    chart.setOption(theirs);
+    // ECharts restores the first option only
+    chart.on('restore', function () { chart.setOption(theirs); });
+  }
   var paper = chart.getOption().backgroundColor;
   var rgb = typeof paper === 'string' ? echarts.color.parse(paper) : null;
   if (rgb && rgb[3] > 0 && (rgb[0] + rgb[1] + rgb[2]) / 3 < 128) {

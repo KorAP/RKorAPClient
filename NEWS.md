@@ -4,7 +4,8 @@
   alternative to Highcharts: `ec_freq_by_year_ci()`, `ec_freq_bar_ci()`,
   `ec_dispersion()` and `ec_add_onclick_korap_search()`. They show the same values
   as their `hc_` counterparts, can switch all curves at once and support personal
-  themes with `options(rkorap.echarts.theme = )`. They need the echarts4r package.
+  themes with `options(rkorap.echarts.theme = )`. A timeline and zoom buttons can be
+  added with echarts4r functions. They need the echarts4r package.
 
 - Added the experimental **`textFrequencyQuery()`** to compute frequencies in every
   single text of virtual corpora, including texts without hits, and **`ec_boxplot()`**

@@ -20,6 +20,21 @@
 #' @section Switching curves:
 #' Click a legend entry to hide or show a curve together with its interval. The
 #' All and None buttons next to the legend switch all curves at once.
+#' @section Zooming:
+#' Add a timeline, to select and move the period shown, and buttons to zoom and to
+#' restore the plot with [echarts4r::e_datazoom()] and [echarts4r::e_toolbox_feature()]:
+#'
+#' ```r
+#' ec_freq_by_year_ci(df) |>
+#'   echarts4r::e_datazoom(type = "slider", filterMode = "none") |>
+#'   echarts4r::e_toolbox_feature("restore")
+#' ```
+#'
+#' With `start` and `end`, in percent, the timeline starts with a part of the period.
+#' `filterMode = "none"` keeps the lines to the neighbouring years outside of it.
+#' Use `e_toolbox_feature()` without arguments for all buttons that are available.
+#' Avoid the feature `magicType` with types: it would stack the curves or draw the
+#' confidence intervals as bars.
 #' @section Themes:
 #' Use [echarts4r::e_theme()] or [echarts4r::e_theme_custom()] on a chart, or set
 #' `options(rkorap.echarts.theme = )` for all charts: to the name of an echarts4r

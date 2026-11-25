@@ -245,6 +245,21 @@ test_that("rendered ECharts plots are safe, localized, clickable and switchable"
   click(button("Keine"))
   expect_identical(unname(selected()), c(FALSE, FALSE))
 
+  # A timeline has its own room below the axis labels and above the legend.
+  render(ec_freq_by_year_ci(years) |> echarts4r::e_datazoom(start = 25, end = 75, filterMode = "none") |>
+    echarts4r::e_toolbox_feature())
+  timeline <- "(() => { const m = c.getModel(), r = c.getViewOfComponentModel(m.getComponent('dataZoom')).group;
+    const b = r.getBoundingRect().clone(); b.applyTransform(r.getComputedTransform());
+    const l = c.getViewOfComponentModel(m.getComponent('legend')).group;
+    const t = l.getBoundingRect().clone(); t.applyTransform(l.getComputedTransform());
+    const plot = m.getComponent('grid').coordinateSystem.getRect();
+    return [b.y - plot.y - plot.height, t.y - b.y - b.height]; })()"
+  expect_true(all(unlist(evaluate(timeline)) > c(18, -3)), info = paste(evaluate(timeline), collapse = " "))
+  evaluate("c.dispatchAction({type: 'dataZoom', start: 0, end: 10}); c.dispatchAction({type: 'restore'}); 1")
+  Sys.sleep(.6)
+  expect_identical(options("c.getOption().dataZoom.map(z => [z.start, z.end])"), "[[25,75]]")
+  expect_true(evaluate("c.getOption().toolbox[0].feature.dataView.readOnly"))
+
   # Each whisker keeps to its own bar, in both orientations and with a hidden group.
   rlang::local_options(rkorap.chart.language = "en")
   for (horizontal in c(TRUE, FALSE)) for (hidden in c(FALSE, TRUE)) {
